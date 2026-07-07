@@ -1,0 +1,5 @@
+.DS_Store
+
+# Installer output. The canonical skill lives in design-system/skill/;
+# run `node design-system/install.mjs` to (re)generate this locally.
+.claude/

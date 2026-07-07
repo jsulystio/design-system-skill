@@ -1,0 +1,85 @@
+{
+  "components": [
+    {
+      "name": "Button",
+      "figmaNodeId": "10:2",
+      "description": "Primary action trigger. One primary button per view.",
+      "anatomy": ["Container", "Label", "Icon (optional, leading or trailing)"],
+      "props": [
+        { "name": "variant", "values": ["primary", "secondary", "ghost"] },
+        { "name": "size", "values": ["sm", "md", "lg"] }
+      ],
+      "states": ["default", "hover", "focus", "disabled", "loading"],
+      "tokensUsed": ["color/accent/default", "color/text/on-accent", "radius/md", "space/3", "space/5", "font/weight/medium"],
+      "usage": {
+        "do": ["Use one primary button to mark the main action", "Keep labels to a verb, e.g. Save changes"],
+        "dont": ["Stack two primary buttons side by side", "Use a button for navigation, use a link"]
+      },
+      "codeConnected": true,
+      "codePath": "src/components/ui/button.tsx"
+    },
+    {
+      "name": "Input",
+      "figmaNodeId": "10:8",
+      "description": "Single-line text field with label and optional helper text.",
+      "anatomy": ["Label", "Field container", "Placeholder / value", "Helper or error text"],
+      "props": [
+        { "name": "state", "values": ["default", "error", "disabled"] },
+        { "name": "size", "values": ["sm", "md"] }
+      ],
+      "states": ["default", "focus", "filled", "error", "disabled"],
+      "tokensUsed": ["color/bg/surface", "color/border/default", "color/text/primary", "radius/md", "space/3"],
+      "usage": {
+        "do": ["Always pair with a visible label", "Show errors inline below the field"],
+        "dont": ["Use placeholder text as the only label"]
+      },
+      "codeConnected": true,
+      "codePath": "src/components/ui/input.tsx"
+    },
+    {
+      "name": "Card",
+      "figmaNodeId": "10:14",
+      "description": "Surface that groups related content and actions.",
+      "anatomy": ["Surface", "Header (optional)", "Body", "Footer (optional)"],
+      "props": [{ "name": "elevation", "values": ["flat", "raised"] }],
+      "states": ["default", "hover", "selected"],
+      "tokensUsed": ["color/bg/surface", "color/border/default", "radius/lg", "shadow/sm", "space/5"],
+      "usage": {
+        "do": ["Keep one clear primary action per card"],
+        "dont": ["Nest cards more than one level deep"]
+      },
+      "codeConnected": true,
+      "codePath": "src/components/ui/card.tsx"
+    },
+    {
+      "name": "Badge",
+      "figmaNodeId": "10:20",
+      "description": "Small count or status indicator attached to another element.",
+      "anatomy": ["Container", "Value"],
+      "props": [{ "name": "tone", "values": ["accent", "neutral"] }],
+      "states": ["default"],
+      "tokensUsed": ["color/accent/default", "color/text/on-accent", "radius/full", "space/1"],
+      "usage": {
+        "do": ["Use for short counts or one-word status"],
+        "dont": ["Put sentences inside a badge"]
+      },
+      "codeConnected": true,
+      "codePath": "src/components/ui/badge.tsx"
+    },
+    {
+      "name": "Tag",
+      "figmaNodeId": "10:26",
+      "description": "Removable label for categorizing items.",
+      "anatomy": ["Container", "Label", "Remove control (optional)"],
+      "props": [{ "name": "removable", "values": ["true", "false"] }],
+      "states": ["default", "hover", "focus"],
+      "tokensUsed": ["color/bg/surface", "color/text/secondary", "color/border/default", "radius/full"],
+      "usage": {
+        "do": ["Group tags on one row where possible"],
+        "dont": ["Use tags for actions, they read as passive labels"]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/tag.tsx"
+    }
+  ]
+}

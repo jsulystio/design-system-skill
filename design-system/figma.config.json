@@ -1,0 +1,9 @@
+{
+  "name": "Design system",
+  "fileKey": "REPLACE_WITH_FIGMA_FILE_KEY",
+  "pull": {
+    "mode": "import",
+    "importPath": "import/variables.export.json"
+  },
+  "host": { "provider": "github-pages" }
+}

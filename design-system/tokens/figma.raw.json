@@ -1,0 +1,61 @@
+{
+  "meta": { "name": "Design system", "source": "sample", "note": "Replace via `npm run pull` once wired to your Figma file." },
+  "collections": {
+    "primitives": {
+      "modes": ["value"],
+      "variables": {
+        "color/white":    { "type": "COLOR", "values": { "value": "#FFFFFF" } },
+        "color/black":    { "type": "COLOR", "values": { "value": "#141413" } },
+        "color/gray/50":  { "type": "COLOR", "values": { "value": "#F7F6F2" } },
+        "color/gray/100": { "type": "COLOR", "values": { "value": "#EEECE5" } },
+        "color/gray/200": { "type": "COLOR", "values": { "value": "#E1DFD6" } },
+        "color/gray/400": { "type": "COLOR", "values": { "value": "#A8A69C" } },
+        "color/gray/600": { "type": "COLOR", "values": { "value": "#6B6960" } },
+        "color/gray/800": { "type": "COLOR", "values": { "value": "#33322D" } },
+        "color/gray/900": { "type": "COLOR", "values": { "value": "#1F1E1B" } },
+        "color/indigo/50":  { "type": "COLOR", "values": { "value": "#EEEDFB" } },
+        "color/indigo/300": { "type": "COLOR", "values": { "value": "#A9A4F0" } },
+        "color/indigo/500": { "type": "COLOR", "values": { "value": "#5B52E0" } },
+        "color/indigo/600": { "type": "COLOR", "values": { "value": "#4A43C9" } },
+        "color/indigo/700": { "type": "COLOR", "values": { "value": "#3A34A0" } },
+        "space/1": { "type": "FLOAT", "values": { "value": 4 } },
+        "space/2": { "type": "FLOAT", "values": { "value": 8 } },
+        "space/3": { "type": "FLOAT", "values": { "value": 12 } },
+        "space/4": { "type": "FLOAT", "values": { "value": 16 } },
+        "space/5": { "type": "FLOAT", "values": { "value": 24 } },
+        "space/6": { "type": "FLOAT", "values": { "value": 32 } },
+        "space/7": { "type": "FLOAT", "values": { "value": 48 } },
+        "space/8": { "type": "FLOAT", "values": { "value": 64 } },
+        "radius/sm":   { "type": "FLOAT", "values": { "value": 4 } },
+        "radius/md":   { "type": "FLOAT", "values": { "value": 8 } },
+        "radius/lg":   { "type": "FLOAT", "values": { "value": 16 } },
+        "radius/full": { "type": "FLOAT", "values": { "value": 999 } },
+        "font/size/xs":  { "type": "FLOAT", "values": { "value": 12 } },
+        "font/size/sm":  { "type": "FLOAT", "values": { "value": 14 } },
+        "font/size/md":  { "type": "FLOAT", "values": { "value": 16 } },
+        "font/size/lg":  { "type": "FLOAT", "values": { "value": 20 } },
+        "font/size/xl":  { "type": "FLOAT", "values": { "value": 28 } },
+        "font/size/2xl": { "type": "FLOAT", "values": { "value": 40 } },
+        "font/weight/regular": { "type": "FLOAT", "values": { "value": 400 } },
+        "font/weight/medium":  { "type": "FLOAT", "values": { "value": 500 } },
+        "font/family/sans": { "type": "STRING", "values": { "value": "Inter, ui-sans-serif, system-ui, sans-serif" } },
+        "font/family/mono": { "type": "STRING", "values": { "value": "'JetBrains Mono', ui-monospace, monospace" } },
+        "shadow/sm": { "type": "STRING", "values": { "value": "0 1px 2px rgba(20,20,19,0.08)" } },
+        "shadow/md": { "type": "STRING", "values": { "value": "0 4px 16px rgba(20,20,19,0.10)" } }
+      }
+    },
+    "semantic": {
+      "modes": ["Light", "Dark"],
+      "variables": {
+        "color/bg/canvas":    { "type": "COLOR", "values": { "Light": "{primitives.color.white}",    "Dark": "{primitives.color.gray.900}" } },
+        "color/bg/surface":   { "type": "COLOR", "values": { "Light": "{primitives.color.gray.50}",   "Dark": "{primitives.color.gray.800}" } },
+        "color/text/primary":   { "type": "COLOR", "values": { "Light": "{primitives.color.gray.900}", "Dark": "{primitives.color.gray.50}" } },
+        "color/text/secondary": { "type": "COLOR", "values": { "Light": "{primitives.color.gray.600}", "Dark": "{primitives.color.gray.400}" } },
+        "color/text/on-accent": { "type": "COLOR", "values": { "Light": "{primitives.color.white}",    "Dark": "{primitives.color.gray.900}" } },
+        "color/border/default": { "type": "COLOR", "values": { "Light": "{primitives.color.gray.200}", "Dark": "{primitives.color.gray.800}" } },
+        "color/accent/default": { "type": "COLOR", "values": { "Light": "{primitives.color.indigo.600}", "Dark": "{primitives.color.indigo.300}" } },
+        "color/accent/hover":   { "type": "COLOR", "values": { "Light": "{primitives.color.indigo.700}", "Dark": "{primitives.color.indigo.500}" } }
+      }
+    }
+  }
+}

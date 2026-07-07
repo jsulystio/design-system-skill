@@ -1,0 +1,12 @@
+{
+  "note": "Sample snapshot of what the working Figma file uses. Replace inventory/screens.json with a real export to lint your actual screens.",
+  "nodes": [
+    { "screen": "Onboarding", "name": "Continue button", "component": "Button",
+      "fills": [{ "hex": "#4A43C9", "bound": true }], "spacing": [{ "value": 12, "bound": true }] },
+    { "screen": "Onboarding", "name": "Skip link", "fills": [{ "hex": "#3A0CA3", "bound": false }] },
+    { "screen": "Library", "name": "Item card", "component": "Card",
+      "fills": [{ "hex": "#F7F6F2", "bound": true }], "spacing": [{ "value": 24, "bound": true }] },
+    { "screen": "Library", "name": "Hover hint", "component": "Tooltip", "fills": [{ "hex": "#1F1E1B", "bound": true }] },
+    { "screen": "Library", "name": "Filter row gap", "spacing": [{ "value": 10, "bound": false }] }
+  ]
+}
