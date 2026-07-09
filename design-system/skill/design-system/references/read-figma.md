@@ -8,18 +8,58 @@ Get `fileKey` from `design-system/figma.config.json` or from the person's Figma
 URL (`figma.com/design/:fileKey/...`). Convert URL node ids (`1-2`) to MCP form
 (`1:2`).
 
+## 0. Figma connectivity: try both, switch automatically
+
+Two Figma back ends may be connected: the **official Figma MCP** (`figma_*` from
+the `figma` server, e.g. `get_variable_defs`) and the **desktop / console bridge**
+(`figma-console`, e.g. `figma_get_variables`). Either can be down mid-conversation.
+Do not stop and ask which to use, and do not surface a bridge error to the person
+until **both** have failed — try one, and on failure fall back to the other
+automatically using the equivalent tool below.
+
+| Need | Official Figma MCP (`figma`) | Console / desktop bridge (`figma-console`) |
+| --- | --- | --- |
+| Variables | `get_variable_defs` | `figma_get_variables` / `figma_get_token_values` |
+| Page & screen tree | `get_metadata` | `figma_get_file_data` |
+| Node / fill detail | `get_design_context` | `figma_get_file_data` (subtree) / `figma_execute` |
+| Component list | `search_design_system` | `figma_search_components` |
+| Component props / anatomy | `get_context_for_code_connect` | `figma_get_component_for_development` / `figma_get_component_details` |
+| Screenshot | `get_screenshot` | `figma_take_screenshot` |
+| Write variable edits | — (read-only) | `figma_update_variable` / `figma_batch_update_variables` / `figma_execute` |
+
+Treat any of these as a failure that triggers the switch: the server's tools are
+absent, a call errors or times out, the bridge reports "not connected", or the
+result is empty/obviously incomplete (e.g. zero variables on a file that has them).
+
+Fallback procedure, in order:
+
+1. **Prefer the official MCP** for reads when its tools are present. If a call
+   fails, retry once, then switch to the bridge equivalent.
+2. **Before falling back _to_ the bridge**, run `figma_get_status`; if it reports
+   disconnected, call `figma_reconnect` once (then `figma_diagnose` if still
+   failing) before using bridge tools.
+3. **If the bridge fails**, switch to the official MCP equivalent for the same
+   need. Writes (propagate-change) only exist on the bridge — if it is down,
+   recover it via `figma_reconnect`; do not attempt writes through the official
+   MCP.
+4. **Once a provider works for a given need, keep using it** for the rest of that
+   flow instead of re-probing the failed one on every call.
+5. **Only if both fail**, tell the person which tools errored and what to check
+   (Figma desktop open with the plugin running for the bridge; MCP server
+   connected for the official one). Do not silently produce partial output.
+
 ## 1. Read variables
 
 Write `design-system/tokens/figma.raw.json` in the shape of the bundled sample
 (collections, modes, aliases with `{collection.dot.path}` references).
 
-Preferred order:
+Preferred order (auto-fall back between MCP and bridge per section 0):
 
 1. **Figma MCP** — call `get_variable_defs` on the file root (`nodeId: "0:1"`)
    or on each collection's scope node if the file is organized that way. Map the
    response into the `figma.raw.json` collection/variable structure.
-2. **Desktop Bridge or console bridge** — when MCP is unavailable or returns
-   incomplete collections. Same output shape.
+2. **Desktop / console bridge** — `figma_get_variables` when MCP is unavailable or
+   returns incomplete collections. Same output shape.
 3. **Import plugin** — person exports JSON to `design-system/import/` and runs
    `node design-system/scripts/pull.mjs`. Use only when neither MCP nor bridge
    works.

@@ -24,6 +24,18 @@ const inventory = exists(p('inventory/components.json'))
   ? read(p('inventory/components.json'))
   : { components: [] };
 
+// Optional catalog of not-yet-built components. Any template whose name is not
+// already a real component is rendered as a "planned" placeholder page, so the
+// docs show the roadmap. To promote one, move its entry into components.json.
+const templates = exists(p('inventory/component-templates.json'))
+  ? (read(p('inventory/component-templates.json')).components || [])
+  : [];
+const realNames = new Set(inventory.components.map((c) => c.name.toLowerCase()));
+const plannedTemplates = templates
+  .filter((t) => !realNames.has((t.name || '').toLowerCase()))
+  .map((t) => ({ ...t, status: 'planned', codeConnected: false, _template: true }));
+const allComponents = [...inventory.components, ...plannedTemplates];
+
 const { flat, warnings } = resolveTokens(raw);
 if (warnings.length) warnings.forEach((w) => console.warn('  warn:', w));
 
@@ -100,42 +112,118 @@ module.exports = ${JSON.stringify(buckets, null, 2)};
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const groups = groupByCategory(flat);
 
+const CATEGORY_ORDER = ['Actions', 'Forms', 'Layout', 'Navigation', 'Feedback', 'Data display', 'Overlays'];
+const STATUSES = ['stable', 'beta', 'deprecated', 'planned'];
+
+// Components grouped by category, in a stable order (known categories first).
+function componentGroups() {
+  const map = new Map();
+  for (const c of allComponents) {
+    const cat = c.category || 'Components';
+    if (!map.has(cat)) map.set(cat, []);
+    map.get(cat).push(c);
+  }
+  const cats = [
+    ...CATEGORY_ORDER.filter((c) => map.has(c)),
+    ...[...map.keys()].filter((c) => !CATEGORY_ORDER.includes(c)),
+  ];
+  return cats.map((cat) => [cat, map.get(cat)]);
+}
+
+function statusOf(c) {
+  const s = (c.status || 'stable').toLowerCase();
+  return STATUSES.includes(s) ? s : 'stable';
+}
+function statusBadge(c) {
+  const s = statusOf(c);
+  return `<span class="st-badge st-${s}">${esc(s)}</span>`;
+}
+
+// Shared client script: theme toggle + mobile drawer + component filter.
+const SHELL_JS = `
+  const root = document.documentElement;
+  const saved = localStorage.getItem('theme');
+  if (saved) root.setAttribute('data-theme', saved);
+  document.getElementById('theme').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+  const menu = document.getElementById('menu');
+  const backdrop = document.getElementById('backdrop');
+  const closeNav = () => { document.body.classList.remove('nav-open'); menu.setAttribute('aria-expanded', 'false'); backdrop.hidden = true; };
+  const openNav = () => { document.body.classList.add('nav-open'); menu.setAttribute('aria-expanded', 'true'); backdrop.hidden = false; };
+  menu.addEventListener('click', () => document.body.classList.contains('nav-open') ? closeNav() : openNav());
+  backdrop.addEventListener('click', closeNav);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+  document.querySelectorAll('.side a').forEach((a) => a.addEventListener('click', closeNav));
+  const filter = document.getElementById('navfilter');
+  if (filter) filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    document.querySelectorAll('.nav-group').forEach((g) => {
+      let any = false;
+      g.querySelectorAll('a[data-name]').forEach((a) => {
+        const hit = a.dataset.name.includes(q);
+        a.hidden = !hit; if (hit) any = true;
+      });
+      g.hidden = !any;
+    });
+  });
+  document.querySelectorAll('.tabs').forEach((tabs) => {
+    const btns = tabs.querySelectorAll('.tab');
+    btns.forEach((btn) => btn.addEventListener('click', () => {
+      btns.forEach((b) => { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
+      btn.classList.add('is-active'); btn.setAttribute('aria-selected', 'true');
+      tabs.querySelectorAll('.tabpanel').forEach((pan) => pan.classList.toggle('is-hidden', pan.dataset.panel !== btn.dataset.tab));
+    }));
+  });
+  document.querySelectorAll('.copy').forEach((b) => b.addEventListener('click', () => {
+    const box = b.closest('.tabpanel') || b.closest('.snippet');
+    const code = box.querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const prev = b.textContent; b.textContent = 'Copied'; b.classList.add('is-copied');
+      setTimeout(() => { b.textContent = prev; b.classList.remove('is-copied'); }, 1200);
+    });
+  });
+`;
+
+function navMarkup(up) {
+  const groupsHtml = componentGroups().map(([cat, items]) => {
+    const links = items.map((c) =>
+      `<a href="${up}components/${slug(c.name)}.html" data-name="${esc(c.name.toLowerCase())}"><span class="dot st-${statusOf(c)}" title="${statusOf(c)}"></span>${esc(c.name)}</a>`
+    ).join('');
+    return `<div class="nav-group"><p class="nav-group-title">${esc(cat)}</p>${links}</div>`;
+  }).join('');
+  return `
+    <a href="${up}index.html" class="side-lead">Foundations</a>
+    <div class="side-filter"><input id="navfilter" type="search" placeholder="Filter components" autocomplete="off" aria-label="Filter components"></div>
+    <span class="side-label">Components</span>
+    <div class="nav-groups">${groupsHtml}</div>`;
+}
+
 function shell(title, body, depth = 0) {
   const up = '../'.repeat(depth);
-  const nav = inventory.components
-    .map((c) => `<a href="${up}components/${slug(c.name)}.html">${esc(c.name)}</a>`)
-    .join('');
+  const name = raw.meta?.name || 'Design system';
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)} &middot; ${esc(raw.meta?.name || 'Design system')}</title>
+<title>${esc(title)} &middot; ${esc(name)}</title>
 <link rel="stylesheet" href="${up}assets/tokens.css">
 <link rel="stylesheet" href="${up}assets/site.css">
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="${up}index.html">${esc(raw.meta?.name || 'Design system')}</a>
-  <button id="theme" class="theme" aria-label="Toggle color theme">theme</button>
+  <button id="menu" class="menu" aria-label="Toggle navigation" aria-expanded="false" aria-controls="side"><span></span><span></span><span></span></button>
+  <a class="brand" href="${up}index.html">${esc(name)}</a>
+  <button id="theme" class="theme" aria-label="Toggle color theme">Theme</button>
 </header>
+<div class="backdrop" id="backdrop" hidden></div>
 <div class="layout">
-  <nav class="side" aria-label="Components">
-    <a href="${up}index.html" class="side-lead">Foundations</a>
-    <span class="side-label">Components</span>
-    ${nav}
-  </nav>
+  <nav class="side" id="side" aria-label="Components">${navMarkup(up)}</nav>
   <main class="content">${body}</main>
 </div>
-<script>
-  const btn = document.getElementById('theme');
-  const saved = localStorage.getItem('theme');
-  if (saved) document.documentElement.setAttribute('data-theme', saved);
-  btn.addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-  });
-</script>
+<script>${SHELL_JS}</script>
 </body>
 </html>`;
 }
@@ -149,6 +237,62 @@ function swatch(t) {
 function scaleRow(t) {
   return `<tr><td><code>${esc(t.name)}</code></td><td class="mono">${esc(t.light ?? '')}</td></tr>`;
 }
+function compCard(c) {
+  const inner = c.preview || '<span class="stage-empty">Preview pending</span>';
+  const cls = c._template ? 'comp-card comp-card--template' : 'comp-card';
+  return `<a class="${cls}" href="components/${slug(c.name)}.html">
+    <div class="stage stage--thumb">${inner}</div>
+    <div class="comp-card-meta"><strong>${esc(c.name)} ${statusBadge(c)}</strong><span>${esc(c.description || '')}</span></div>
+  </a>`;
+}
+
+function isColorToken(name) {
+  const rec = flat[name];
+  return rec ? rec.type === 'COLOR' : name.startsWith('color/');
+}
+function tokenValue(name) {
+  const rec = flat[name];
+  if (!rec) return '';
+  return cssValue(name, rec, 'light') ?? String(rec.light ?? '');
+}
+function specRow(s) {
+  if (s.token) {
+    const chip = isColorToken(s.token) ? `<span class="chip sm" style="background: var(${cssVar(s.token)})"></span>` : '';
+    return `<tr><td>${esc(s.label)}</td><td>${chip}<code>${esc(s.token)}</code> <span class="spec-val">${esc(tokenValue(s.token))}</span></td></tr>`;
+  }
+  return `<tr><td>${esc(s.label)}</td><td><span class="spec-val">${esc(s.value ?? '')}</span></td></tr>`;
+}
+function renderExample(ex) {
+  const code = ex.code || '';
+  const desc = ex.description ? `<p class="variant-desc">${esc(ex.description)}</p>` : '';
+  const stageInner = code || '<span class="stage-empty">Preview pending</span>';
+  const specs = (ex.specs || []).map(specRow).join('');
+
+  // Tabbed detail: Specs / HTML, like the reference systems. Only build tabs for
+  // the panels that have content; a single panel renders without a tablist.
+  const panels = [];
+  if (specs) panels.push(['specs', 'Specs', `<table class="scale specs-table"><tbody>${specs}</tbody></table>`]);
+  if (code) panels.push(['code', 'HTML', `<div class="code-actions"><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(code)}</code></pre>`]);
+
+  let detail = '';
+  if (panels.length === 1) {
+    detail = `<div class="tabs tabs--single"><div class="tabpanel" data-panel="${panels[0][0]}">${panels[0][2]}</div></div>`;
+  } else if (panels.length > 1) {
+    const tabs = panels.map((pan, i) =>
+      `<button class="tab${i === 0 ? ' is-active' : ''}" type="button" role="tab" aria-selected="${i === 0}" data-tab="${pan[0]}">${pan[1]}</button>`
+    ).join('');
+    const bodies = panels.map((pan, i) =>
+      `<div class="tabpanel${i === 0 ? '' : ' is-hidden'}" role="tabpanel" data-panel="${pan[0]}">${pan[2]}</div>`
+    ).join('');
+    detail = `<div class="tabs"><div class="tablist" role="tablist">${tabs}</div>${bodies}</div>`;
+  }
+
+  return `<div class="variant">
+    <div class="variant-head"><h3>${esc(ex.title || '')}</h3>${desc}</div>
+    <div class="stage stage--variant">${stageInner}</div>
+    ${detail}
+  </div>`;
+}
 
 function foundationsPage() {
   const order = ['color', 'space', 'radius', 'font', 'shadow'];
@@ -161,8 +305,8 @@ function foundationsPage() {
     return `<section id="${cat}"><h2>${esc(cat[0].toUpperCase() + cat.slice(1))}</h2>
       <table class="scale"><tbody>${items.map(scaleRow).join('')}</tbody></table></section>`;
   }).join('');
-  const compList = inventory.components.map((c) =>
-    `<li><a href="components/${slug(c.name)}.html"><strong>${esc(c.name)}</strong><span>${esc(c.description || '')}</span></a></li>`
+  const compSections = componentGroups().map(([cat, items]) =>
+    `<h3 class="cat-head">${esc(cat)}</h3><div class="comp-grid">${items.map(compCard).join('')}</div>`
   ).join('');
   const body = `
     <div class="hero">
@@ -171,7 +315,7 @@ function foundationsPage() {
       <p class="lede">Generated from Figma variables. Everything on this page is rendered with the tokens it documents, so it stays true to the source. Last built ${new Date().toISOString().slice(0, 10)}.</p>
     </div>
     ${sections}
-    <section id="components"><h2>Components</h2><ul class="complist">${compList}</ul></section>`;
+    <section id="components"><h2>Components</h2>${compSections}</section>`;
   return shell('Foundations', body, 0);
 }
 
@@ -186,14 +330,27 @@ function componentPage(c) {
   ).join('');
   const dos = (c.usage?.do || []).map((d) => `<li>${esc(d)}</li>`).join('');
   const donts = (c.usage?.dont || []).map((d) => `<li>${esc(d)}</li>`).join('');
-  const code = c.codeConnected
-    ? `<p class="connected">Code-connected &rarr; <code>${esc(c.codePath || '')}</code></p>`
-    : `<p class="unconnected">Not yet code-connected. Engineers should not hand-build this until a mapping exists.</p>`;
+  const code = c._template
+    ? `<p class="template-note">Template &mdash; not yet detected in the Figma file. When this component ships, move its entry into <code>inventory/components.json</code> and fill in the real description, tokens, specs, and preview code.</p>`
+    : c.codeConnected
+      ? `<p class="connected">Code-connected &rarr; <code>${esc(c.codePath || '')}</code></p>`
+      : `<p class="unconnected">Not yet code-connected. Engineers should not hand-build this until a mapping exists.</p>`;
+  const examples = (c.examples && c.examples.length)
+    ? c.examples
+    : (c.preview ? [{ title: 'Preview', code: c.preview }] : []);
+  const variants = examples.length
+    ? `<section><h2>Variants</h2>${examples.map(renderExample).join('')}</section>`
+    : '';
+  const importLine = c.usage?.import
+    ? `<section><h2>Import</h2><div class="snippet snippet--solo"><div class="snippet-bar"><span>Import</span><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(c.usage.import)}</code></pre></div></section>`
+    : '';
   const body = `
-    <div class="crumb"><a href="../index.html">Foundations</a> / ${esc(c.name)}</div>
-    <h1>${esc(c.name)}</h1>
+    <div class="crumb"><a href="../index.html">Foundations</a> / ${esc(c.category || 'Components')} / ${esc(c.name)}</div>
+    <div class="comp-head"><h1>${esc(c.name)}</h1>${statusBadge(c)}</div>
     <p class="lede">${esc(c.description || '')}</p>
     ${code}
+    ${importLine}
+    ${variants}
     <section><h2>Anatomy</h2><ul class="anatomy">${anatomy}</ul></section>
     <section><h2>Properties</h2><table class="scale"><tbody>${props}</tbody></table></section>
     <section><h2>States</h2><p class="tags">${states}</p></section>
@@ -209,7 +366,7 @@ function componentPage(c) {
 write(p('site/assets/tokens.css'), fs.readFileSync(p('tokens/variables.css'), 'utf8'));
 
 const SITE_CSS = `
-:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); }
+:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 61px; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -221,27 +378,53 @@ body {
 a { color: inherit; }
 code, .mono { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 0.86em; }
 .topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px var(--gap); border-bottom: 1px solid var(--color-border-default, #e6e4dd);
-  position: sticky; top: 0; background: var(--color-bg-canvas, #fff); z-index: 5;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px var(--gap); border-bottom: 1px solid var(--color-border-default, #e6e4dd);
+  position: sticky; top: 0; background: var(--color-bg-canvas, #fff); z-index: 25;
 }
-.brand { font-weight: 500; text-decoration: none; letter-spacing: -0.01em; }
+.brand { font-weight: 500; text-decoration: none; letter-spacing: -0.01em; margin-right: auto; }
 .theme {
   font: inherit; font-size: 13px; cursor: pointer; padding: 6px 12px;
   border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-full, 999px);
   background: transparent; color: inherit;
 }
-.layout { display: grid; grid-template-columns: 220px 1fr; gap: var(--gap); max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gap); }
-.side { padding-top: 40px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: 64px; height: max-content; }
-.side a { text-decoration: none; padding: 5px 8px; border-radius: 6px; font-size: 14px; color: var(--color-text-secondary, #64625c); }
+.menu {
+  display: none; flex-direction: column; justify-content: center; gap: 4px;
+  width: 38px; height: 38px; padding: 0 9px; cursor: pointer;
+  border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px);
+  background: transparent;
+}
+.menu span { display: block; height: 2px; border-radius: 2px; background: var(--color-text-primary, #141413); transition: transform .2s ease, opacity .2s ease; }
+body.nav-open .menu span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+body.nav-open .menu span:nth-child(2) { opacity: 0; }
+body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 15; }
+.layout { display: grid; grid-template-columns: 232px 1fr; gap: var(--gap); max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gap); }
+.side { padding-top: 32px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: var(--topbar-h); align-self: start; max-height: calc(100vh - var(--topbar-h)); overflow-y: auto; }
+.side a { display: flex; align-items: center; text-decoration: none; padding: 6px 8px; border-radius: 6px; font-size: 14px; color: var(--color-text-secondary, #64625c); }
 .side a:hover { background: var(--color-bg-surface, #f5f4ef); color: var(--color-text-primary, #141413); }
 .side-lead { color: var(--color-text-primary, #141413) !important; font-weight: 500; }
-.side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary, #8a887f); margin: 14px 8px 4px; }
+.side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary, #8a887f); margin: 18px 8px 4px; }
+.side-filter { margin: 12px 0 4px; }
+.side-filter input {
+  width: 100%; font: inherit; font-size: 13px; padding: 7px 10px;
+  border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px);
+  background: var(--color-bg-surface, #f5f4ef); color: inherit;
+}
+.side-filter input:focus { outline: 2px solid var(--color-accent-default, #4a43c9); outline-offset: 1px; }
+.nav-group { margin-bottom: 6px; }
+.nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary, #8a887f); margin: 12px 8px 2px; font-weight: 500; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 999px; margin-right: 9px; flex: none; background: var(--color-text-secondary, #8a887f); }
+.dot.st-stable { background: #3f9142; } .dot.st-beta { background: #b5850b; } .dot.st-deprecated { background: #c0392b; } .dot.st-planned { background: #a8a69c; }
+.st-badge { display: inline-block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; line-height: 1.5; }
+.st-badge.st-stable { color: #3f9142; } .st-badge.st-beta { color: #b5850b; } .st-badge.st-deprecated { color: #c0392b; } .st-badge.st-planned { color: var(--color-text-secondary, #8a887f); }
 .content { padding: 40px 0 96px; min-width: 0; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-accent-default, #4a43c9); margin: 0 0 8px; }
 h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 12px; }
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary, #64625c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border-default, #e6e4dd); }
-.lede { font-size: 18px; color: var(--color-text-secondary, #64625c); max-width: 60ch; margin: 0 0 24px; }
+.comp-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.comp-head h1 { margin: 0; }
+.lede { font-size: 18px; color: var(--color-text-secondary, #64625c); max-width: 60ch; margin: 12px 0 24px; }
 .hero { padding: 24px 0 8px; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .swatch { margin: 0; }
@@ -252,12 +435,18 @@ h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: 
 table.scale { border-collapse: collapse; width: 100%; font-size: 14px; }
 table.scale td { padding: 8px 12px; border-bottom: 1px solid var(--color-border-default, #eeece5); }
 table.scale td:first-child { width: 40%; }
-.complist { list-style: none; padding: 0; display: grid; gap: 4px; }
-.complist a { display: flex; flex-direction: column; gap: 2px; text-decoration: none; padding: 14px 16px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); }
-.complist a:hover { border-color: var(--color-accent-default, #4a43c9); }
-.complist span { color: var(--color-text-secondary, #64625c); font-size: 14px; }
+.cat-head { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary, #8a887f); font-weight: 500; margin: 28px 0 12px; }
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.comp-card { display: flex; flex-direction: column; text-decoration: none; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); overflow: hidden; transition: border-color .15s ease; }
+.comp-card:hover { border-color: var(--color-accent-default, #4a43c9); }
+.comp-card-meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; }
+.comp-card-meta strong { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.comp-card-meta span { color: var(--color-text-secondary, #64625c); font-size: 13px; }
 .crumb { font-size: 13px; color: var(--color-text-secondary, #8a887f); margin-bottom: 12px; }
 .crumb a { color: inherit; }
+.stage { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 36px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-lg, 16px); background: var(--color-bg-surface, #f5f4ef); }
+.stage--thumb { padding: 22px; min-height: 104px; justify-content: center; border: 0; border-bottom: 1px solid var(--color-border-default, #e6e4dd); border-radius: 0; }
+.code { background: var(--color-bg-surface, #f5f4ef); border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 0; }
 .tag { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: var(--radius-full, 999px); background: var(--color-bg-surface, #f5f4ef); border: 1px solid var(--color-border-default, #e6e4dd); margin: 2px 0; }
 .tags { line-height: 2.2; }
 .anatomy, .tokenlist, .do, .dont { padding-left: 0; list-style: none; }
@@ -269,17 +458,90 @@ table.scale td:first-child { width: 40%; }
 .dont li::before { content: "\\2013"; position: absolute; left: 0; color: var(--color-text-secondary, #8a887f); }
 .connected { font-size: 14px; color: var(--color-accent-default, #4a43c9); }
 .unconnected { font-size: 14px; color: var(--color-text-secondary, #8a887f); }
+
+/* --- Demo component styles: opted into by inventory \`preview\` snippets. --- */
+/* These render live with the design tokens, so previews stay honest. */
+.ds-btn { display: inline-flex; align-items: center; gap: var(--space-2, 8px); font: inherit; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); line-height: 1; cursor: pointer; padding: var(--space-3, 12px) var(--space-5, 24px); border-radius: var(--radius-md, 8px); border: 1px solid transparent; }
+.ds-btn--primary { background: var(--color-accent-default, #4a43c9); color: var(--color-text-on-accent, #fff); }
+.ds-btn--secondary { background: var(--color-bg-canvas, #fff); color: var(--color-text-primary, #141413); border-color: var(--color-border-default, #e6e4dd); }
+.ds-btn--ghost { background: transparent; color: var(--color-accent-default, #4a43c9); }
+.ds-btn--sm { padding: var(--space-2, 8px) var(--space-3, 12px); font-size: var(--font-size-xs, 12px); }
+.ds-btn--lg { padding: var(--space-4, 16px) var(--space-6, 32px); font-size: var(--font-size-md, 16px); }
+.ds-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.ds-field { display: inline-flex; flex-direction: column; gap: var(--space-2, 8px); text-align: left; }
+.ds-field-label { font-size: var(--font-size-sm, 14px); color: var(--color-text-secondary, #64625c); }
+.ds-input { font: inherit; font-size: var(--font-size-sm, 14px); min-width: 220px; padding: var(--space-3, 12px); border-radius: var(--radius-md, 8px); border: 1px solid var(--color-border-default, #e6e4dd); background: var(--color-bg-canvas, #fff); color: var(--color-text-primary, #141413); }
+.ds-input:focus, .ds-input--focus { outline: 2px solid var(--color-accent-default, #4a43c9); outline-offset: 1px; }
+.ds-input[disabled] { background: var(--color-bg-surface, #f5f4ef); color: var(--color-text-secondary, #64625c); opacity: 0.7; cursor: not-allowed; }
+.ds-card { display: flex; flex-direction: column; gap: var(--space-2, 8px); align-items: flex-start; max-width: 280px; text-align: left; padding: var(--space-5, 24px); border-radius: var(--radius-lg, 16px); border: 1px solid var(--color-border-default, #e6e4dd); background: var(--color-bg-canvas, #fff); box-shadow: var(--shadow-sm, 0 1px 2px rgba(20,20,19,0.08)); }
+.ds-card--flat { box-shadow: none; }
+.ds-card-title { font-weight: var(--font-weight-medium, 500); }
+.ds-card-body { margin: 0; color: var(--color-text-secondary, #64625c); font-size: var(--font-size-sm, 14px); }
+.ds-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; padding: 0 var(--space-2, 8px); height: 20px; font-size: var(--font-size-xs, 12px); font-weight: var(--font-weight-medium, 500); border-radius: var(--radius-full, 999px); background: var(--color-accent-default, #4a43c9); color: var(--color-text-on-accent, #fff); }
+.ds-badge--neutral { background: var(--color-gray-200, #e1dfd6); color: var(--color-text-primary, #141413); }
+.ds-tag { display: inline-flex; align-items: center; gap: var(--space-2, 8px); font-size: var(--font-size-sm, 14px); padding: var(--space-1, 4px) var(--space-3, 12px); border-radius: var(--radius-full, 999px); background: var(--color-bg-canvas, #fff); border: 1px solid var(--color-border-default, #e6e4dd); color: var(--color-text-secondary, #64625c); }
+.ds-tag-x { cursor: pointer; font-size: 15px; line-height: 1; color: var(--color-text-secondary, #8a887f); }
+
+/* --- Variant gallery on component pages --- */
+.variant { margin: 0 0 20px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-lg, 16px); overflow: hidden; }
+.variant-head { padding: 16px 18px 0; }
+.variant-head h3 { margin: 0; font-size: 16px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--color-text-primary, #141413); border: 0; padding: 0; }
+.variant-desc { margin: 4px 0 0; color: var(--color-text-secondary, #64625c); font-size: 14px; }
+.stage--variant { margin: 16px 18px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); }
+.stage-empty { color: var(--color-text-secondary, #8a887f); font-size: 13px; font-style: italic; }
+
+/* Tabs: Specs / HTML */
+.tabs { border-top: 1px solid var(--color-border-default, #e6e4dd); }
+.tablist { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--color-border-default, #e6e4dd); }
+.tab { font: inherit; font-size: 13px; cursor: pointer; padding: 10px 12px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-text-secondary, #64625c); }
+.tab:hover { color: var(--color-text-primary, #141413); }
+.tab.is-active { color: var(--color-text-primary, #141413); border-bottom-color: var(--color-accent-default, #4a43c9); }
+.tabpanel { padding: 16px 18px; }
+.tabpanel.is-hidden { display: none; }
+.specs-table { font-size: 13px; width: 100%; }
+.specs-table td { padding: 6px 0; border-bottom: 1px solid var(--color-border-default, #eeece5); }
+.specs-table tr:last-child td { border-bottom: 0; }
+.specs-table td:first-child { width: 42%; color: var(--color-text-secondary, #64625c); }
+.spec-val { color: var(--color-text-secondary, #8a887f); }
+.code-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.tabpanel .code { border: 0; border-radius: 0; background: transparent; margin: 0; padding: 0; }
+
+/* Solo snippet (import block) */
+.snippet--solo { border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); }
+.snippet-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 6px; }
+.snippet-bar span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary, #8a887f); font-weight: 500; }
+.snippet--solo .code { border: 0; border-radius: 0; background: transparent; margin: 0; }
+
+.copy { font: inherit; font-size: 12px; cursor: pointer; padding: 3px 11px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-full, 999px); background: transparent; color: inherit; }
+.copy:hover { border-color: var(--color-accent-default, #4a43c9); }
+.copy.is-copied { color: var(--color-accent-default, #4a43c9); border-color: var(--color-accent-default, #4a43c9); }
+
+/* Template / planned components */
+.comp-card--template { border-style: dashed; }
+.template-note { font-size: 14px; color: var(--color-text-secondary, #64625c); background: var(--color-bg-surface, #f5f4ef); border: 1px dashed var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); padding: 12px 14px; }
+
 @media (max-width: 720px) {
-  .layout { grid-template-columns: 1fr; }
-  .side { position: static; flex-direction: row; flex-wrap: wrap; padding-top: 20px; }
+  .menu { display: flex; }
+  .backdrop:not([hidden]) { display: block; }
+  .layout { grid-template-columns: 1fr; padding-top: 8px; }
+  .side {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 82%; max-width: 320px; z-index: 20;
+    padding: 24px 18px; margin: 0; max-height: none; overflow-y: auto;
+    background: var(--color-bg-canvas, #fff); border-right: 1px solid var(--color-border-default, #e6e4dd);
+    transform: translateX(-100%); transition: transform .22s ease;
+  }
+  body.nav-open .side { transform: translateX(0); box-shadow: var(--shadow-md, 0 4px 16px rgba(20,20,19,0.10)); }
   .usage { grid-template-columns: 1fr; }
+  .variant-detail { grid-template-columns: 1fr; }
+  .snippet { border-left: 0; border-top: 1px solid var(--color-border-default, #e6e4dd); }
 }
 `;
 write(p('site/assets/site.css'), SITE_CSS.trim() + '\n');
 
 write(p('site/index.html'), foundationsPage());
-for (const c of inventory.components) {
+for (const c of allComponents) {
   write(p('site/components/' + slug(c.name) + '.html'), componentPage(c));
 }
 
-console.log(`Built: ${Object.keys(flat).length} tokens, ${inventory.components.length} component pages -> site/`);
+const plannedCount = plannedTemplates.length;
+console.log(`Built: ${Object.keys(flat).length} tokens, ${allComponents.length} component pages${plannedCount ? ` (${plannedCount} planned from templates)` : ''} -> site/`);

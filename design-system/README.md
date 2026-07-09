@@ -124,6 +124,32 @@ repo does not already use GitHub Pages, `node design-system/install.mjs
 the repo already uses Pages for your app, host the docs on a subpath or a
 separate site instead of adding the workflow.
 
+### Or publish to Storybook
+
+If the project uses a component framework and wants a live, interactive
+playground alongside the static docs, generate a Storybook from the same single
+source:
+
+```bash
+node design-system/scripts/build.mjs         # generates tokens first
+node design-system/scripts/storybook.mjs     # or: npm run ds:storybook
+```
+
+It writes `design-system/stories/` (foundations + token gallery + a doc page per
+component, plus live stories for code-connected React/Vue components), and if the
+repo has no Storybook yet it scaffolds one with `storybook init`. The framework
+is auto-detected from your `package.json`; override it in `figma.config.json`:
+
+```json
+"storybook": { "framework": "react" }
+```
+
+Storybook is free and open source. Publish a static build (`npx storybook build`,
+outputs `storybook-static/`) to GitHub Pages, Netlify, or Cloudflare Pages — no
+paid service required. The static `site/` and Storybook share one source, so keep
+whichever fits your audience, or both. See
+`skill/design-system/references/storybook.md` for details.
+
 ## What is generated vs owned
 
 Owned and committed: `figma.raw.json` (the pulled variables), `inventory/screens.json`

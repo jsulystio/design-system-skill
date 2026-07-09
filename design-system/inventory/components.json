@@ -3,7 +3,64 @@
     {
       "name": "Button",
       "figmaNodeId": "10:2",
+      "category": "Actions",
+      "status": "stable",
       "description": "Primary action trigger. One primary button per view.",
+      "preview": "<button class=\"ds-btn ds-btn--primary\">Save changes</button><button class=\"ds-btn ds-btn--secondary\">Cancel</button><button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
+      "examples": [
+        {
+          "title": "Primary",
+          "description": "The main action on a view. Use exactly one.",
+          "code": "<button class=\"ds-btn ds-btn--primary\">Save changes</button>",
+          "specs": [
+            { "label": "Background", "token": "color/accent/default" },
+            { "label": "Text", "token": "color/text/on-accent" },
+            { "label": "Radius", "token": "radius/md" },
+            { "label": "Padding Y", "token": "space/3" },
+            { "label": "Padding X", "token": "space/5" },
+            { "label": "Weight", "token": "font/weight/medium" }
+          ]
+        },
+        {
+          "title": "Secondary",
+          "description": "A supporting action shown alongside primary.",
+          "code": "<button class=\"ds-btn ds-btn--secondary\">Cancel</button>",
+          "specs": [
+            { "label": "Background", "token": "color/bg/canvas" },
+            { "label": "Text", "token": "color/text/primary" },
+            { "label": "Border", "token": "color/border/default" },
+            { "label": "Radius", "token": "radius/md" }
+          ]
+        },
+        {
+          "title": "Ghost",
+          "description": "Low-emphasis action for tertiary or inline use.",
+          "code": "<button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
+          "specs": [
+            { "label": "Background", "value": "transparent" },
+            { "label": "Text", "token": "color/accent/default" }
+          ]
+        },
+        {
+          "title": "Sizes",
+          "description": "Three sizes share one shape; padding and text scale.",
+          "code": "<button class=\"ds-btn ds-btn--primary ds-btn--sm\">Small</button>\n<button class=\"ds-btn ds-btn--primary\">Medium</button>\n<button class=\"ds-btn ds-btn--primary ds-btn--lg\">Large</button>",
+          "specs": [
+            { "label": "sm padding", "token": "space/2" },
+            { "label": "md padding", "token": "space/3" },
+            { "label": "lg padding", "token": "space/4" }
+          ]
+        },
+        {
+          "title": "Disabled",
+          "description": "Non-interactive. Keep the label so intent stays clear.",
+          "code": "<button class=\"ds-btn ds-btn--primary\" disabled>Save changes</button>",
+          "specs": [
+            { "label": "Opacity", "value": "45%" },
+            { "label": "Cursor", "value": "not-allowed" }
+          ]
+        }
+      ],
       "anatomy": ["Container", "Label", "Icon (optional, leading or trailing)"],
       "props": [
         { "name": "variant", "values": ["primary", "secondary", "ghost"] },
@@ -12,6 +69,7 @@
       "states": ["default", "hover", "focus", "disabled", "loading"],
       "tokensUsed": ["color/accent/default", "color/text/on-accent", "radius/md", "space/3", "space/5", "font/weight/medium"],
       "usage": {
+        "import": "import { Button } from '@/components/ui/button'",
         "do": ["Use one primary button to mark the main action", "Keep labels to a verb, e.g. Save changes"],
         "dont": ["Stack two primary buttons side by side", "Use a button for navigation, use a link"]
       },
@@ -21,7 +79,42 @@
     {
       "name": "Input",
       "figmaNodeId": "10:8",
+      "category": "Forms",
+      "status": "stable",
       "description": "Single-line text field with label and optional helper text.",
+      "preview": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><input class=\"ds-input\" placeholder=\"you@example.com\"></label>",
+      "examples": [
+        {
+          "title": "Default",
+          "description": "Resting field with a visible label.",
+          "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" placeholder=\"you@example.com\">\n</label>",
+          "specs": [
+            { "label": "Background", "token": "color/bg/canvas" },
+            { "label": "Border", "token": "color/border/default" },
+            { "label": "Text", "token": "color/text/primary" },
+            { "label": "Radius", "token": "radius/md" },
+            { "label": "Padding", "token": "space/3" }
+          ]
+        },
+        {
+          "title": "Focused",
+          "description": "Focus ring uses the accent token, matching buttons and links.",
+          "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input ds-input--focus\" value=\"you@example.com\">\n</label>",
+          "specs": [
+            { "label": "Outline", "token": "color/accent/default" },
+            { "label": "Outline width", "value": "2px" }
+          ]
+        },
+        {
+          "title": "Disabled",
+          "description": "Dimmed surface signals the field cannot be edited.",
+          "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" value=\"you@example.com\" disabled>\n</label>",
+          "specs": [
+            { "label": "Background", "token": "color/bg/surface" },
+            { "label": "Opacity", "value": "70%" }
+          ]
+        }
+      ],
       "anatomy": ["Label", "Field container", "Placeholder / value", "Helper or error text"],
       "props": [
         { "name": "state", "values": ["default", "error", "disabled"] },
@@ -30,6 +123,7 @@
       "states": ["default", "focus", "filled", "error", "disabled"],
       "tokensUsed": ["color/bg/surface", "color/border/default", "color/text/primary", "radius/md", "space/3"],
       "usage": {
+        "import": "import { Input } from '@/components/ui/input'",
         "do": ["Always pair with a visible label", "Show errors inline below the field"],
         "dont": ["Use placeholder text as the only label"]
       },
@@ -39,12 +133,39 @@
     {
       "name": "Card",
       "figmaNodeId": "10:14",
+      "category": "Layout",
+      "status": "stable",
       "description": "Surface that groups related content and actions.",
+      "preview": "<div class=\"ds-card\"><strong class=\"ds-card-title\">Weekly report</strong><p class=\"ds-card-body\">Your team shipped 12 changes this week.</p><button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button></div>",
+      "examples": [
+        {
+          "title": "Raised",
+          "description": "Default elevation. Use for standalone surfaces on the canvas.",
+          "code": "<div class=\"ds-card\">\n  <strong class=\"ds-card-title\">Weekly report</strong>\n  <p class=\"ds-card-body\">Your team shipped 12 changes this week.</p>\n  <button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button>\n</div>",
+          "specs": [
+            { "label": "Surface", "token": "color/bg/canvas" },
+            { "label": "Border", "token": "color/border/default" },
+            { "label": "Radius", "token": "radius/lg" },
+            { "label": "Shadow", "token": "shadow/sm" },
+            { "label": "Padding", "token": "space/5" }
+          ]
+        },
+        {
+          "title": "Flat",
+          "description": "No shadow. Use when cards sit inside another surface.",
+          "code": "<div class=\"ds-card ds-card--flat\">\n  <strong class=\"ds-card-title\">Weekly report</strong>\n  <p class=\"ds-card-body\">Your team shipped 12 changes this week.</p>\n</div>",
+          "specs": [
+            { "label": "Shadow", "value": "none" },
+            { "label": "Border", "token": "color/border/default" }
+          ]
+        }
+      ],
       "anatomy": ["Surface", "Header (optional)", "Body", "Footer (optional)"],
       "props": [{ "name": "elevation", "values": ["flat", "raised"] }],
       "states": ["default", "hover", "selected"],
       "tokensUsed": ["color/bg/surface", "color/border/default", "radius/lg", "shadow/sm", "space/5"],
       "usage": {
+        "import": "import { Card } from '@/components/ui/card'",
         "do": ["Keep one clear primary action per card"],
         "dont": ["Nest cards more than one level deep"]
       },
@@ -54,12 +175,38 @@
     {
       "name": "Badge",
       "figmaNodeId": "10:20",
+      "category": "Feedback",
+      "status": "beta",
       "description": "Small count or status indicator attached to another element.",
+      "preview": "<span class=\"ds-badge\">3</span><span class=\"ds-badge ds-badge--neutral\">New</span><span class=\"ds-badge ds-badge--neutral\">12</span>",
+      "examples": [
+        {
+          "title": "Accent",
+          "description": "Draws attention to a count or unread state.",
+          "code": "<span class=\"ds-badge\">3</span>",
+          "specs": [
+            { "label": "Background", "token": "color/accent/default" },
+            { "label": "Text", "token": "color/text/on-accent" },
+            { "label": "Radius", "token": "radius/full" },
+            { "label": "Padding X", "token": "space/2" }
+          ]
+        },
+        {
+          "title": "Neutral",
+          "description": "Quiet label for status that should not pull focus.",
+          "code": "<span class=\"ds-badge ds-badge--neutral\">New</span>",
+          "specs": [
+            { "label": "Background", "token": "color/gray/200" },
+            { "label": "Text", "token": "color/text/primary" }
+          ]
+        }
+      ],
       "anatomy": ["Container", "Value"],
       "props": [{ "name": "tone", "values": ["accent", "neutral"] }],
       "states": ["default"],
       "tokensUsed": ["color/accent/default", "color/text/on-accent", "radius/full", "space/1"],
       "usage": {
+        "import": "import { Badge } from '@/components/ui/badge'",
         "do": ["Use for short counts or one-word status"],
         "dont": ["Put sentences inside a badge"]
       },
@@ -69,12 +216,39 @@
     {
       "name": "Tag",
       "figmaNodeId": "10:26",
+      "category": "Data display",
+      "status": "planned",
       "description": "Removable label for categorizing items.",
+      "preview": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span><span class=\"ds-tag\">Engineering<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span><span class=\"ds-tag\">Research<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
+      "examples": [
+        {
+          "title": "Removable",
+          "description": "Carries a remove control for dismissing the selection.",
+          "code": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
+          "specs": [
+            { "label": "Background", "token": "color/bg/canvas" },
+            { "label": "Border", "token": "color/border/default" },
+            { "label": "Text", "token": "color/text/secondary" },
+            { "label": "Radius", "token": "radius/full" },
+            { "label": "Gap", "token": "space/2" }
+          ]
+        },
+        {
+          "title": "Read-only",
+          "description": "No remove control. Use for fixed categories.",
+          "code": "<span class=\"ds-tag\">Design</span>",
+          "specs": [
+            { "label": "Padding X", "token": "space/3" },
+            { "label": "Padding Y", "token": "space/1" }
+          ]
+        }
+      ],
       "anatomy": ["Container", "Label", "Remove control (optional)"],
       "props": [{ "name": "removable", "values": ["true", "false"] }],
       "states": ["default", "hover", "focus"],
       "tokensUsed": ["color/bg/surface", "color/text/secondary", "color/border/default", "radius/full"],
       "usage": {
+        "import": "import { Tag } from '@/components/ui/tag'",
         "do": ["Group tags on one row where possible"],
         "dont": ["Use tags for actions, they read as passive labels"]
       },

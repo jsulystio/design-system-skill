@@ -5,5 +5,6 @@
     "mode": "import",
     "importPath": "import/variables.export.json"
   },
-  "host": { "provider": "github-pages" }
+  "host": { "provider": "github-pages" },
+  "storybook": { "framework": "auto" }
 }

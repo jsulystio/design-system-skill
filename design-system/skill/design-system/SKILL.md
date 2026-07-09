@@ -24,15 +24,21 @@ tokens to code and docs. Do not write to the Figma canvas except in the
 - Mechanical work goes through scripts, not the model: run `node design-system/scripts/pull.mjs`,
   `node design-system/scripts/build.mjs`, `node design-system/scripts/lint.mjs`. Do not read or rewrite whole
   files token by token when a script can do it.
-- Read Figma through the MCP server (preferred) or the Desktop Bridge. Every flow
-  that touches the file must read **variables**, **screens**, and **component
-  usage** — see `references/read-figma.md`. Variables go to
+- Read Figma through the official MCP server (preferred) or the desktop / console
+  bridge. Both may be connected and either can drop mid-conversation: when one
+  errors, is missing, times out, or returns an empty/incomplete result, switch to
+  the other **automatically** using the equivalent tool — do not ask which to use,
+  and only surface an error once **both** have failed. The capability→tool mapping
+  and the fallback procedure (including `figma_reconnect`/`figma_diagnose` for the
+  bridge) are in `references/read-figma.md` §0. Every flow that touches the file
+  must read **variables**, **screens**, and **component usage**. Variables go to
   `tokens/figma.raw.json`; screen scans go to `inventory/screens.json`;
   component definitions go to `inventory/components.json`.
 - MCP tools: `get_variable_defs` (variables), `get_metadata` (page/screen tree,
   instance scan), `search_design_system` and `get_context_for_code_connect`
-  (component definitions). If the Variables REST API returns 403, that is the
-  Enterprise limit — use MCP or the bridge instead.
+  (component definitions); bridge equivalents `figma_get_variables`,
+  `figma_get_file_data`, `figma_search_components`. If the Variables REST API
+  returns 403, that is the Enterprise limit — use MCP or the bridge instead.
 - Keep changes reviewable. Show the person a diff or a short list before
   applying anything that writes to Figma or commits files.
 - Structural component changes (new prop, new layout logic) are out of scope.
@@ -47,6 +53,8 @@ flows that read the file start with `references/read-figma.md`.
 - Lint reported issues, or "resolve the drift": see `references/resolve-drift.md`.
 - A design change request, e.g. "primary warmer, radius 8 to 4": see
   `references/propagate-change.md`.
+- Publish the system as a Storybook, or "generate the design guidelines on
+  Storybook": see `references/storybook.md`.
 
 After any flow that changes tokens, run `node design-system/scripts/build.mjs` then
 `node design-system/scripts/lint.mjs` and report the result.
