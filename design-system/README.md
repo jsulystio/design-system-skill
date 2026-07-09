@@ -125,6 +125,40 @@ inventory, the scripts, and Code Connect mappings. Generated and gitignored (via
 `design-system/.gitignore`): `tokens.json`, `variables.css`, `tailwind.theme.js`,
 and `site/`. Versioning is just git history on the raw pull.
 
+## Updating
+
+`degit` is a one-time fetch, not a package manager, so re-running it
+**overwrites** this folder. That matters once you have bootstrapped, because the
+folder then holds files you own (`tokens/figma.raw.json`,
+`inventory/components.json`, `figma.config.json`, and `code-connect/`).
+
+Still on the bundled samples (not bootstrapped yet). Just force-refetch:
+
+```bash
+npx degit jsulystio/design-system-skill/design-system design-system --force
+node design-system/install.mjs --force
+node design-system/scripts/build.mjs
+```
+
+Already bootstrapped (you have real data). Commit first so git is your safety
+net, refetch the tooling, then restore your owned files:
+
+```bash
+git add design-system && git commit -m "snapshot before DS update"
+npx degit jsulystio/design-system-skill/design-system design-system --force
+git checkout -- design-system/tokens/figma.raw.json \
+                design-system/inventory/components.json \
+                design-system/figma.config.json \
+                design-system/code-connect
+git diff --stat        # review exactly which tooling files changed
+node design-system/install.mjs --force && node design-system/scripts/build.mjs
+```
+
+Generated files (`tokens.json`, `variables.css`, `tailwind.theme.js`, `site/`)
+are gitignored and rebuilt by `build.mjs`, so they never need restoring. If you
+installed the skill globally, you skip the skill part entirely — a `git pull` in
+your global clone updates it everywhere.
+
 ## Uninstall
 
 Delete the `design-system/` folder, remove `.claude/skills/design-system`, and
