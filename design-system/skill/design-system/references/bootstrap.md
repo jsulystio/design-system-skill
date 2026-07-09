@@ -3,6 +3,17 @@
 Goal: turn a messy WIP Figma file into a first token set and component inventory
 without forcing a design-system-first workflow.
 
+0. Scaffold the toolkit if this project does not have it yet. If there is no
+   `design-system/` folder at the repo root, create one before anything else:
+
+   ```bash
+   npx degit jsulystio/design-system-skill/design-system design-system
+   node design-system/install.mjs --scripts   # adds the ds:* npm scripts
+   ```
+
+   This is what lets the skill live globally (`~/.claude/skills/design-system`)
+   while each project still gets its own scripts, tokens, and inventory. If the
+   folder already exists, skip this step.
 1. Read the file's variables through the Desktop Bridge (any plan). Write them
    into `tokens/figma.raw.json` in the shape the sample file uses (collections,
    modes, aliases with `{collection.dot.path}` references).

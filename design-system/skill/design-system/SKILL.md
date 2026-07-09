@@ -17,6 +17,9 @@ tokens to code and docs. Do not write to the Figma canvas except in the
 
 ## Operating rules
 
+- This skill may be installed globally, so a project might not have the toolkit
+  yet. If there is no `design-system/` folder at the repo root, scaffold it first
+  (see the bootstrap flow) before running any script.
 - Mechanical work goes through scripts, not the model: run `node design-system/scripts/pull.mjs`,
   `node design-system/scripts/build.mjs`, `node design-system/scripts/lint.mjs`. Do not read or rewrite whole
   files token by token when a script can do it.
