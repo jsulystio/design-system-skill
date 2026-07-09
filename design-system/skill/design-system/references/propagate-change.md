@@ -15,5 +15,5 @@ often from stakeholder feedback or a UAT finding.
 4. On approval, apply the variable edits in Figma through the bridge (this is
    the one write-to-canvas case). Do not edit code theme files directly, they
    are generated.
-5. Run `node scripts/build.mjs` then `node scripts/lint.mjs`. Confirm every
+5. Run `node design-system/scripts/build.mjs` then `node design-system/scripts/lint.mjs`. Confirm every
    screen, doc, and the code theme reflect the change from the single edit.

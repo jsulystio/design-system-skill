@@ -17,8 +17,8 @@ tokens to code and docs. Do not write to the Figma canvas except in the
 
 ## Operating rules
 
-- Mechanical work goes through scripts, not the model: run `node scripts/pull.mjs`,
-  `node scripts/build.mjs`, `node scripts/lint.mjs`. Do not read or rewrite whole
+- Mechanical work goes through scripts, not the model: run `node design-system/scripts/pull.mjs`,
+  `node design-system/scripts/build.mjs`, `node design-system/scripts/lint.mjs`. Do not read or rewrite whole
   files token by token when a script can do it.
 - Read variables on any plan through the Figma Desktop Bridge or the console
   bridge. If the Variables REST API returns 403, that is the Enterprise limit,
@@ -37,5 +37,5 @@ Pick the flow that matches the request, then follow its reference file.
 - A design change request, e.g. "primary warmer, radius 8 to 4": see
   `references/propagate-change.md`.
 
-After any flow that changes tokens, run `node scripts/build.mjs` then
-`node scripts/lint.mjs` and report the result.
+After any flow that changes tokens, run `node design-system/scripts/build.mjs` then
+`node design-system/scripts/lint.mjs` and report the result.

@@ -11,8 +11,9 @@ without forcing a design-system-first workflow.
    each component, its props, states, and the tokens it uses.
 3. Write the proposed inventory to `inventory/components.json`. Mark components
    with no code equivalent yet as `"codeConnected": false`.
-4. Run `node scripts/build.mjs`. Open `docs/index.html` and confirm the
-   foundations and component pages look right.
+4. Run `node design-system/scripts/build.mjs`. Open
+   `design-system/site/index.html` and confirm the foundations and component
+   pages look right.
 5. Present the proposed names and groupings to the person for approval before
    committing. Extraction is noisy, so expect to merge or rename.
 
