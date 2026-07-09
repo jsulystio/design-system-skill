@@ -1,6 +1,9 @@
 // pull.mjs
-// Populates tokens/figma.raw.json (and optionally inventory/components.json)
-// from Figma. Two supported sources, selected in figma.config.json -> pull.mode:
+// Populates tokens/figma.raw.json from Figma. Screen usage
+// (inventory/screens.json) and component inventory extraction are handled by
+// the Claude skill via Figma MCP — see skill references/read-figma.md.
+//
+// Two supported sources for variables, selected in figma.config.json -> pull.mode:
 //
 //   "import"  (default, works on ANY Figma plan)
 //       A designer runs a free "export variables to JSON" plugin in Figma and

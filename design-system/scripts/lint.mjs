@@ -4,8 +4,9 @@
 // truth: raw color/number values that are not bound to any token, and
 // components used on screens that are not in the component inventory.
 //
-// The snapshot is produced by the same export/bridge path as pull. A small
-// sample (screens.sample.json) ships so you can see the linter work offline.
+// The screen snapshot (inventory/screens.json) is produced by the Claude skill
+// via Figma MCP or the Desktop Bridge — see skill references/read-figma.md.
+// A small sample (screens.sample.json) ships so you can see the linter work offline.
 // Exit code is non-zero when issues are found, so CI can gate on it.
 
 import path from 'node:path';

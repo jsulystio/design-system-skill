@@ -71,10 +71,10 @@ Pages workflow. Prefer to do it by hand? Copy `skill/design-system` into
 This replaces the bundled samples with your real system. Pick one path:
 
 - With Claude (recommended, any Figma plan). Open the repo in Claude Code or
-  Cowork, start the Figma Desktop Bridge plugin on your file, and ask Claude to
-  "bootstrap the design system". The skill reads your variables and components
-  through the bridge and writes `design-system/tokens/figma.raw.json` plus the
-  component inventory. No Enterprise needed.
+  Cowork, connect the Figma MCP server or start the Desktop Bridge on your file,
+  and ask Claude to "bootstrap the design system". The skill reads variables,
+  scans screens for component usage, and writes `design-system/tokens/figma.raw.json`,
+  `inventory/screens.json`, and the component inventory. No Enterprise needed.
 - Manual import (any plan, no Claude). Run a free export-variables plugin in
   Figma, save its JSON to `design-system/import/variables.export.json`, then
   `node design-system/scripts/pull.mjs && node design-system/scripts/build.mjs`.
@@ -88,12 +88,18 @@ Set your project name and Figma file key in `design-system/figma.config.json`.
 
 ## Daily loop
 
-Designers edit variables and components in Figma. Everything else regenerates:
+Designers edit variables and components in Figma. Regenerate with the skill or
+scripts:
 
 ```bash
 node design-system/scripts/build.mjs     # or: npm run ds:build  (if you added scripts)
 node design-system/scripts/lint.mjs      # flags raw values + uninventoried components
 ```
+
+Re-read screens into `inventory/screens.json` via the skill (see
+`skill/design-system/references/read-figma.md`) before linting when designs have
+changed. The pull script only refreshes variables; screen scans need MCP or the
+bridge.
 
 Or, if you added the npm scripts, `npm run ds:sync` does pull, build, and lint in
 one. Wire it to a git pre-commit hook or a Figma publish webhook and even the
@@ -120,8 +126,9 @@ separate site instead of adding the workflow.
 
 ## What is generated vs owned
 
-Owned and committed: `figma.raw.json` (the pulled variables), the component
-inventory, the scripts, and Code Connect mappings. Generated and gitignored (via
+Owned and committed: `figma.raw.json` (the pulled variables), `inventory/screens.json`
+(the screen usage snapshot), the component inventory, the scripts, and Code Connect
+mappings. Generated and gitignored (via
 `design-system/.gitignore`): `tokens.json`, `variables.css`, `tailwind.theme.js`,
 and `site/`. Versioning is just git history on the raw pull.
 
@@ -147,6 +154,7 @@ net, refetch the tooling, then restore your owned files:
 git add design-system && git commit -m "snapshot before DS update"
 npx degit jsulystio/design-system-skill/design-system design-system --force
 git checkout -- design-system/tokens/figma.raw.json \
+                design-system/inventory/screens.json \
                 design-system/inventory/components.json \
                 design-system/figma.config.json \
                 design-system/code-connect

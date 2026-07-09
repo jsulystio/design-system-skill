@@ -120,11 +120,12 @@ you're good.
 The setup above works against sample data so you can see it in action. When
 you're ready to use your *own* designs:
 
-1. In Figma, start the **Figma Desktop Bridge** plugin on your file. (This is how
-   the tool reads your variables — it works on any Figma plan.)
+1. In Figma, open your file (the Figma MCP server or **Figma Desktop Bridge**
+   plugin reads variables, screens, and component usage — any Figma plan works).
 2. In Claude Code, say *"bootstrap the design system"*.
-3. Claude reads your colors and components, proposes a first organized system,
-   and shows it to you for approval before saving anything.
+3. Claude reads your variables, scans screens for component instances and raw
+   values, proposes a first organized system, and shows it to you for approval
+   before saving anything.
 
 Extraction is a bit messy by nature, so expect to rename or merge a few things —
 Claude asks first.
