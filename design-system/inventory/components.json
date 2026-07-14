@@ -12,6 +12,7 @@
           "title": "Primary",
           "description": "The main action on a view. Use exactly one.",
           "code": "<button class=\"ds-btn ds-btn--primary\">Save changes</button>",
+          "usage": "<Button variant=\"primary\">Save changes</Button>",
           "specs": [
             { "label": "Background", "token": "color/accent/default" },
             { "label": "Text", "token": "color/text/on-accent" },
@@ -25,6 +26,7 @@
           "title": "Secondary",
           "description": "A supporting action shown alongside primary.",
           "code": "<button class=\"ds-btn ds-btn--secondary\">Cancel</button>",
+          "usage": "<Button variant=\"secondary\">Cancel</Button>",
           "specs": [
             { "label": "Background", "token": "color/bg/canvas" },
             { "label": "Text", "token": "color/text/primary" },
@@ -36,6 +38,7 @@
           "title": "Ghost",
           "description": "Low-emphasis action for tertiary or inline use.",
           "code": "<button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
+          "usage": "<Button variant=\"ghost\">Learn more</Button>",
           "specs": [
             { "label": "Background", "value": "transparent" },
             { "label": "Text", "token": "color/accent/default" }
@@ -45,6 +48,7 @@
           "title": "Sizes",
           "description": "Three sizes share one shape; padding and text scale.",
           "code": "<button class=\"ds-btn ds-btn--primary ds-btn--sm\">Small</button>\n<button class=\"ds-btn ds-btn--primary\">Medium</button>\n<button class=\"ds-btn ds-btn--primary ds-btn--lg\">Large</button>",
+          "usage": "<Button variant=\"primary\" size=\"sm\">Small</Button>\n<Button variant=\"primary\">Medium</Button>\n<Button variant=\"primary\" size=\"lg\">Large</Button>",
           "specs": [
             { "label": "sm padding", "token": "space/2" },
             { "label": "md padding", "token": "space/3" },
@@ -55,6 +59,7 @@
           "title": "Disabled",
           "description": "Non-interactive. Keep the label so intent stays clear.",
           "code": "<button class=\"ds-btn ds-btn--primary\" disabled>Save changes</button>",
+          "usage": "<Button variant=\"primary\" disabled>Save changes</Button>",
           "specs": [
             { "label": "Opacity", "value": "45%" },
             { "label": "Cursor", "value": "not-allowed" }
@@ -88,6 +93,7 @@
           "title": "Default",
           "description": "Resting field with a visible label.",
           "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" placeholder=\"you@example.com\">\n</label>",
+          "usage": "<Input label=\"Email\" placeholder=\"you@example.com\" />",
           "specs": [
             { "label": "Background", "token": "color/bg/canvas" },
             { "label": "Border", "token": "color/border/default" },
@@ -100,6 +106,7 @@
           "title": "Focused",
           "description": "Focus ring uses the accent token, matching buttons and links.",
           "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input ds-input--focus\" value=\"you@example.com\">\n</label>",
+          "usage": "<Input label=\"Email\" defaultValue=\"you@example.com\" autoFocus />",
           "specs": [
             { "label": "Outline", "token": "color/accent/default" },
             { "label": "Outline width", "value": "2px" }
@@ -109,6 +116,7 @@
           "title": "Disabled",
           "description": "Dimmed surface signals the field cannot be edited.",
           "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" value=\"you@example.com\" disabled>\n</label>",
+          "usage": "<Input label=\"Email\" defaultValue=\"you@example.com\" disabled />",
           "specs": [
             { "label": "Background", "token": "color/bg/surface" },
             { "label": "Opacity", "value": "70%" }
@@ -142,6 +150,7 @@
           "title": "Raised",
           "description": "Default elevation. Use for standalone surfaces on the canvas.",
           "code": "<div class=\"ds-card\">\n  <strong class=\"ds-card-title\">Weekly report</strong>\n  <p class=\"ds-card-body\">Your team shipped 12 changes this week.</p>\n  <button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button>\n</div>",
+          "usage": "<Card>\n  <Card.Title>Weekly report</Card.Title>\n  <Card.Body>Your team shipped 12 changes this week.</Card.Body>\n  <Button variant=\"secondary\" size=\"sm\">View</Button>\n</Card>",
           "specs": [
             { "label": "Surface", "token": "color/bg/canvas" },
             { "label": "Border", "token": "color/border/default" },
@@ -154,6 +163,7 @@
           "title": "Flat",
           "description": "No shadow. Use when cards sit inside another surface.",
           "code": "<div class=\"ds-card ds-card--flat\">\n  <strong class=\"ds-card-title\">Weekly report</strong>\n  <p class=\"ds-card-body\">Your team shipped 12 changes this week.</p>\n</div>",
+          "usage": "<Card elevation=\"flat\">\n  <Card.Title>Weekly report</Card.Title>\n  <Card.Body>Your team shipped 12 changes this week.</Card.Body>\n</Card>",
           "specs": [
             { "label": "Shadow", "value": "none" },
             { "label": "Border", "token": "color/border/default" }
@@ -184,6 +194,7 @@
           "title": "Accent",
           "description": "Draws attention to a count or unread state.",
           "code": "<span class=\"ds-badge\">3</span>",
+          "usage": "<Badge>3</Badge>",
           "specs": [
             { "label": "Background", "token": "color/accent/default" },
             { "label": "Text", "token": "color/text/on-accent" },
@@ -195,6 +206,7 @@
           "title": "Neutral",
           "description": "Quiet label for status that should not pull focus.",
           "code": "<span class=\"ds-badge ds-badge--neutral\">New</span>",
+          "usage": "<Badge tone=\"neutral\">New</Badge>",
           "specs": [
             { "label": "Background", "token": "color/gray/200" },
             { "label": "Text", "token": "color/text/primary" }

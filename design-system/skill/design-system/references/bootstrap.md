@@ -50,13 +50,34 @@ card on the foundations index. Fields the build reads:
 - `status` — maturity badge and nav dot: `stable | beta | deprecated | planned`.
   Omit → `stable`. This is doc metadata, separate from `codeConnected`.
 - `description` — one line, shown under the title and on the card.
-- `preview` — a small HTML snippet rendered live in a themed stage at the top of
-  the page and as the card thumbnail. Use the built-in demo classes so it stays
-  themed by the tokens (no per-component CSS needed):
-  `ds-btn` (`--primary|--secondary|--ghost`, `--sm`), `ds-field` + `ds-input`,
-  `ds-card` (`ds-card-title`, `ds-card-body`), `ds-badge` (`--neutral`),
-  `ds-tag` (`ds-tag-x`). Keep it to a few representative variants; escape any
-  `<`, `>`, `&` since the string is emitted verbatim into the page.
+- `preview` — a small HTML snippet rendered live in a themed stage as the card
+  thumbnail on the index. Use the built-in demo classes so it stays themed by the
+  tokens (no per-component CSS needed): `ds-btn` (`--primary|--secondary|--ghost`,
+  `--sm|--lg`, plus `disabled`), `ds-field` + `ds-input` (`--focus`, `disabled`),
+  `ds-card` (`--flat`, with `ds-card-title`/`ds-card-body`), `ds-badge`
+  (`--neutral`), `ds-tag` (`ds-tag-x`). Escape any `<`, `>`, `&`.
+- `examples` — the variant gallery on the component page. Each entry renders a
+  labeled card: a live stage plus a tabbed **Usage / CSS** panel (a tab appears
+  only when it has content). Fields: `title`, `description` (optional), `code`,
+  `usage` (optional), and `specs` — rows of `{ label, token }` or
+  `{ label, value }`. With no `examples`, the page falls back to a single stage
+  built from `preview`.
+- The three code fields each have a distinct job — author them so an engineer can
+  both *call* and *build* the component without leaving the page:
+  - `code` — demo HTML using the `ds-*` classes. It **only powers the live
+    preview** and is never shown as-is to the reader. A rendering artifact.
+  - `usage` — the real component call a developer writes
+    (`<Button variant="primary">Save changes</Button>`). Shown in the **Usage**
+    tab. Author it for every code-connected example. When absent (e.g. a
+    not-yet-built component) the tab falls back to `code`, honestly labeled
+    **HTML** instead of **Usage**.
+  - `specs` — the styling contract. Rendered in the **CSS** tab as generated,
+    token-referencing CSS (`property: var(--token); /* resolved value */`), not a
+    lookup table — so the tokens live in liftable code. `token` rows resolve to
+    the token's current value in a trailing comment; `value` rows use a literal
+    like `45%` or `transparent`. A label maps to a CSS property via `CSS_PROP` in
+    `build.mjs`; unmapped labels are emitted as comments so the block stays valid
+    CSS. Add a label to `CSS_PROP` when you introduce a new spec dimension.
 - `anatomy`, `props`, `states`, `tokensUsed` — the reference tables.
 - `usage.do` / `usage.dont` — the guidance columns.
 - `usage.import` — optional one-line import statement, shown as a code block.
@@ -64,3 +85,14 @@ card on the foundations index. Fields the build reads:
 
 Add a demo class to `SITE_CSS` in `build.mjs` only when a new component type has
 no existing `ds-*` class that fits — reuse before inventing.
+
+## Component templates
+
+`inventory/component-templates.json` is a catalog of common components that are
+not in the Figma file yet (Checkbox, Select, Tabs, Dialog, Toast, …). The build
+renders each one whose name is not already in `components.json` as a `planned`
+placeholder page — labeled as a template, with "Preview pending" stages and the
+intended variants scaffolded — so the docs show the roadmap. To promote a
+template when the real component ships: cut its entry from the templates file,
+paste it into `components.json`, set `status` and `codeConnected`, and fill in
+the real `preview`, `examples`, and specs. Delete entries you will not build.

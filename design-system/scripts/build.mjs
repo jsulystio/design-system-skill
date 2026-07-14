@@ -184,7 +184,7 @@ const SHELL_JS = `
       const prev = b.textContent; b.textContent = 'Copied'; b.classList.add('is-copied');
       setTimeout(() => { b.textContent = prev; b.classList.remove('is-copied'); }, 1200);
     });
-  });
+  }));
 `;
 
 function navMarkup(up) {
@@ -196,7 +196,10 @@ function navMarkup(up) {
   }).join('');
   return `
     <a href="${up}index.html" class="side-lead">Foundations</a>
-    <div class="side-filter"><input id="navfilter" type="search" placeholder="Filter components" autocomplete="off" aria-label="Filter components"></div>
+    <div class="side-filter">
+      <svg class="side-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="navfilter" type="search" placeholder="Search components..." autocomplete="off" aria-label="Search components">
+    </div>
     <span class="side-label">Components</span>
     <div class="nav-groups">${groupsHtml}</div>`;
 }
@@ -246,33 +249,74 @@ function compCard(c) {
   </a>`;
 }
 
-function isColorToken(name) {
-  const rec = flat[name];
-  return rec ? rec.type === 'COLOR' : name.startsWith('color/');
-}
 function tokenValue(name) {
   const rec = flat[name];
   if (!rec) return '';
   return cssValue(name, rec, 'light') ?? String(rec.light ?? '');
 }
-function specRow(s) {
-  if (s.token) {
-    const chip = isColorToken(s.token) ? `<span class="chip sm" style="background: var(${cssVar(s.token)})"></span>` : '';
-    return `<tr><td>${esc(s.label)}</td><td>${chip}<code>${esc(s.token)}</code> <span class="spec-val">${esc(tokenValue(s.token))}</span></td></tr>`;
-  }
-  return `<tr><td>${esc(s.label)}</td><td><span class="spec-val">${esc(s.value ?? '')}</span></td></tr>`;
+// Maps a spec label to the CSS property it drives. Anything not listed here is
+// emitted as a comment (see specsToCss) so the generated block stays valid CSS
+// and never invents a property name.
+const CSS_PROP = {
+  background: 'background', surface: 'background', fill: 'background',
+  text: 'color', color: 'color',
+  border: 'border-color',
+  radius: 'border-radius',
+  padding: 'padding', 'padding x': 'padding-inline', 'padding y': 'padding-block',
+  gap: 'gap',
+  weight: 'font-weight', 'font weight': 'font-weight',
+  size: 'font-size', 'font size': 'font-size',
+  shadow: 'box-shadow', elevation: 'box-shadow',
+  outline: 'outline-color', 'outline width': 'outline-width',
+  opacity: 'opacity', cursor: 'cursor',
+};
+
+// Turn a variant's spec rows into liftable, token-referencing CSS — the same
+// contract the Specs table encoded, but as code an engineer can implement from.
+// Token rows become `prop: var(--token); /* resolved value */`; literal rows use
+// the value verbatim. A label with no known CSS property is kept as a comment so
+// the block is always valid CSS and never guesses syntax.
+function specsToCss(ex, comp) {
+  const specs = ex.specs || [];
+  if (!specs.length) return '';
+  const base = `.${slug(comp?.name || 'component')}`;
+  const mod = ex.title ? `--${slug(ex.title)}` : '';
+  const lines = specs.map((s) => {
+    const prop = CSS_PROP[(s.label || '').trim().toLowerCase()];
+    if (s.token) {
+      const val = tokenValue(s.token);
+      const note = val ? ` /* ${val} */` : '';
+      return prop
+        ? `  ${prop}: var(${cssVar(s.token)});${note}`
+        : `  /* ${s.label}: var(${cssVar(s.token)})${val ? ` — ${val}` : ''} */`;
+    }
+    return prop
+      ? `  ${prop}: ${s.value ?? ''};`
+      : `  /* ${s.label}: ${s.value ?? ''} */`;
+  });
+  return `${base}${mod} {\n${lines.join('\n')}\n}`;
 }
-function renderExample(ex) {
-  const code = ex.code || '';
+
+function renderExample(ex, comp) {
+  const code = ex.code || '';           // demo HTML: only ever powers the live preview
+  const usage = ex.usage || '';         // the real component call a developer writes
   const desc = ex.description ? `<p class="variant-desc">${esc(ex.description)}</p>` : '';
   const stageInner = code || '<span class="stage-empty">Preview pending</span>';
-  const specs = (ex.specs || []).map(specRow).join('');
+  const css = specsToCss(ex, comp);     // the styling contract, generated from specs
 
-  // Tabbed detail: Specs / HTML, like the reference systems. Only build tabs for
-  // the panels that have content; a single panel renders without a tablist.
+  // Usage answers "how do I call this"; CSS answers "how is it built" — the token
+  // per property, resolved value inline. Together they let an engineer implement
+  // the component without leaving the page. Usage falls back to the raw demo HTML
+  // (honestly labeled) only when no component call is authored yet.
+  const [snippet, snippetLabel] = usage ? [usage, 'Usage'] : [code, 'HTML'];
+  const codeBlock = (s) =>
+    `<div class="code-wrap"><pre class="code"><code>${esc(s)}</code></pre><div class="code-actions"><button class="copy" type="button">Copy</button></div></div>`;
+
+  // Only build tabs for panels that have content; a single panel renders without
+  // a tablist.
   const panels = [];
-  if (specs) panels.push(['specs', 'Specs', `<table class="scale specs-table"><tbody>${specs}</tbody></table>`]);
-  if (code) panels.push(['code', 'HTML', `<div class="code-actions"><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(code)}</code></pre>`]);
+  if (snippet) panels.push(['usage', snippetLabel, codeBlock(snippet)]);
+  if (css) panels.push(['css', 'CSS', codeBlock(css)]);
 
   let detail = '';
   if (panels.length === 1) {
@@ -331,7 +375,7 @@ function componentPage(c) {
   const dos = (c.usage?.do || []).map((d) => `<li>${esc(d)}</li>`).join('');
   const donts = (c.usage?.dont || []).map((d) => `<li>${esc(d)}</li>`).join('');
   const code = c._template
-    ? `<p class="template-note">Template &mdash; not yet detected in the Figma file. When this component ships, move its entry into <code>inventory/components.json</code> and fill in the real description, tokens, specs, and preview code.</p>`
+    ? `<p class="template-note">Template not yet found in the Figma file. Once this component ships, move it to <code>inventory/components.json</code> and add the final description, tokens, specs, and preview code.</p>`
     : c.codeConnected
       ? `<p class="connected">Code-connected &rarr; <code>${esc(c.codePath || '')}</code></p>`
       : `<p class="unconnected">Not yet code-connected. Engineers should not hand-build this until a mapping exists.</p>`;
@@ -339,7 +383,7 @@ function componentPage(c) {
     ? c.examples
     : (c.preview ? [{ title: 'Preview', code: c.preview }] : []);
   const variants = examples.length
-    ? `<section><h2>Variants</h2>${examples.map(renderExample).join('')}</section>`
+    ? `<section><h2>Variants</h2>${examples.map((ex) => renderExample(ex, c)).join('')}</section>`
     : '';
   const importLine = c.usage?.import
     ? `<section><h2>Import</h2><div class="snippet snippet--solo"><div class="snippet-bar"><span>Import</span><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(c.usage.import)}</code></pre></div></section>`
@@ -366,7 +410,7 @@ function componentPage(c) {
 write(p('site/assets/tokens.css'), fs.readFileSync(p('tokens/variables.css'), 'utf8'));
 
 const SITE_CSS = `
-:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 61px; }
+:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 61px; --side-w: 260px; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -376,7 +420,7 @@ body {
   font-size: 16px; line-height: 1.65;
 }
 a { color: inherit; }
-code, .mono { font-family: var(--font-family-mono, ui-monospace, monospace); font-size: 0.86em; }
+code, .mono { font-family: inherit; font-size: inherit; }
 .topbar {
   display: flex; align-items: center; gap: 12px;
   padding: 14px var(--gap); border-bottom: 1px solid var(--color-border-default, #e6e4dd);
@@ -392,22 +436,37 @@ code, .mono { font-family: var(--font-family-mono, ui-monospace, monospace); fon
   display: none; flex-direction: column; justify-content: center; gap: 4px;
   width: 38px; height: 38px; padding: 0 9px; cursor: pointer;
   border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px);
-  background: transparent;
+  background: transparent; flex: none;
 }
 .menu span { display: block; height: 2px; border-radius: 2px; background: var(--color-text-primary, #141413); transition: transform .2s ease, opacity .2s ease; }
 body.nav-open .menu span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 body.nav-open .menu span:nth-child(2) { opacity: 0; }
 body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 15; }
-.layout { display: grid; grid-template-columns: 232px 1fr; gap: var(--gap); max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gap); }
-.side { padding-top: 32px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: var(--topbar-h); align-self: start; max-height: calc(100vh - var(--topbar-h)); overflow-y: auto; }
+.layout {
+  display: block;
+  padding-left: var(--side-w);
+  min-height: calc(100vh - var(--topbar-h));
+}
+.side {
+  position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+  width: var(--side-w); z-index: 20;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 24px 16px; overflow-y: auto;
+  background: var(--color-bg-canvas, #fff);
+  border-right: 1px solid var(--color-border-default, #e6e4dd);
+}
 .side a { display: flex; align-items: center; text-decoration: none; padding: 6px 8px; border-radius: 6px; font-size: 14px; color: var(--color-text-secondary, #64625c); }
 .side a:hover { background: var(--color-bg-surface, #f5f4ef); color: var(--color-text-primary, #141413); }
 .side-lead { color: var(--color-text-primary, #141413) !important; font-weight: 500; }
 .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary, #8a887f); margin: 18px 8px 4px; }
-.side-filter { margin: 12px 0 4px; }
+.side-filter { position: relative; margin: 12px 0 4px; }
+.side-filter-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--color-text-secondary, #8a887f); pointer-events: none;
+}
 .side-filter input {
-  width: 100%; font: inherit; font-size: 13px; padding: 7px 10px;
+  width: 100%; font: inherit; font-size: 13px; padding: 7px 10px 7px 30px;
   border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px);
   background: var(--color-bg-surface, #f5f4ef); color: inherit;
 }
@@ -418,7 +477,7 @@ body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45de
 .dot.st-stable { background: #3f9142; } .dot.st-beta { background: #b5850b; } .dot.st-deprecated { background: #c0392b; } .dot.st-planned { background: #a8a69c; }
 .st-badge { display: inline-block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; line-height: 1.5; }
 .st-badge.st-stable { color: #3f9142; } .st-badge.st-beta { color: #b5850b; } .st-badge.st-deprecated { color: #c0392b; } .st-badge.st-planned { color: var(--color-text-secondary, #8a887f); }
-.content { padding: 40px 0 96px; min-width: 0; }
+.content { padding: 40px var(--gap) 96px; min-width: 0; max-width: calc(var(--maxw) + 2 * var(--gap)); }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-accent-default, #4a43c9); margin: 0 0 8px; }
 h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 12px; }
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary, #64625c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border-default, #e6e4dd); }
@@ -490,7 +549,7 @@ table.scale td:first-child { width: 40%; }
 .stage--variant { margin: 16px 18px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); }
 .stage-empty { color: var(--color-text-secondary, #8a887f); font-size: 13px; font-style: italic; }
 
-/* Tabs: Specs / HTML */
+/* Tabs: Usage / CSS */
 .tabs { border-top: 1px solid var(--color-border-default, #e6e4dd); }
 .tablist { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--color-border-default, #e6e4dd); }
 .tab { font: inherit; font-size: 13px; cursor: pointer; padding: 10px 12px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-text-secondary, #64625c); }
@@ -498,12 +557,9 @@ table.scale td:first-child { width: 40%; }
 .tab.is-active { color: var(--color-text-primary, #141413); border-bottom-color: var(--color-accent-default, #4a43c9); }
 .tabpanel { padding: 16px 18px; }
 .tabpanel.is-hidden { display: none; }
-.specs-table { font-size: 13px; width: 100%; }
-.specs-table td { padding: 6px 0; border-bottom: 1px solid var(--color-border-default, #eeece5); }
-.specs-table tr:last-child td { border-bottom: 0; }
-.specs-table td:first-child { width: 42%; color: var(--color-text-secondary, #64625c); }
-.spec-val { color: var(--color-text-secondary, #8a887f); }
-.code-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.code-wrap { display: flex; align-items: flex-start; gap: 12px; }
+.code-wrap .code { flex: 1; min-width: 0; }
+.code-actions { flex: none; }
 .tabpanel .code { border: 0; border-radius: 0; background: transparent; margin: 0; padding: 0; }
 
 /* Solo snippet (import block) */
@@ -523,17 +579,13 @@ table.scale td:first-child { width: 40%; }
 @media (max-width: 720px) {
   .menu { display: flex; }
   .backdrop:not([hidden]) { display: block; }
-  .layout { grid-template-columns: 1fr; padding-top: 8px; }
+  .layout { padding-left: 0; padding-top: 8px; }
   .side {
-    position: fixed; top: 0; left: 0; bottom: 0; width: 82%; max-width: 320px; z-index: 20;
-    padding: 24px 18px; margin: 0; max-height: none; overflow-y: auto;
-    background: var(--color-bg-canvas, #fff); border-right: 1px solid var(--color-border-default, #e6e4dd);
+    top: 0; width: 82%; max-width: 320px;
     transform: translateX(-100%); transition: transform .22s ease;
   }
   body.nav-open .side { transform: translateX(0); box-shadow: var(--shadow-md, 0 4px 16px rgba(20,20,19,0.10)); }
   .usage { grid-template-columns: 1fr; }
-  .variant-detail { grid-template-columns: 1fr; }
-  .snippet { border-left: 0; border-top: 1px solid var(--color-border-default, #e6e4dd); }
 }
 `;
 write(p('site/assets/site.css'), SITE_CSS.trim() + '\n');
