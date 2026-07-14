@@ -58,48 +58,45 @@ card on the foundations index. Fields the build reads:
   `--sm|--lg`, plus `disabled`), `ds-field` + `ds-input` (`--focus`, `disabled`),
   `ds-card` (`--flat`, with `ds-card-title`/`ds-card-body`), `ds-badge`
   (`--neutral`), `ds-tag` (`ds-tag-x`). Escape any `<`, `>`, `&`.
-- `image` — path to an exported Figma visual (`assets/components/<slug>.png`,
-  relative to `design-system/`). Shown as the card thumbnail, in the page's
-  Anatomy section, and embedded in DESIGN-SYSTEM.md. When present it replaces
-  the `preview` fallback, so components without demo HTML still get a real
-  visual. Export via the Figma MCP `download_assets` tool (scale big variant
-  grids to 0.25–0.5).
-- `examples` — the variant gallery on the component page. Each entry renders a
-  labeled card: a live stage plus a tabbed **Usage / CSS** panel (a tab appears
-  only when it has content). Fields: `title`, `description` (optional), `code`,
-  `usage` (optional), and `specs` — rows of `{ label, token }` or
-  `{ label, value }`. With no `examples`, the page falls back to a single stage
-  built from `preview`.
-- The three code fields each have a distinct job — author them so an engineer can
-  both *call* and *build* the component without leaving the page:
-  - `code` — demo HTML using the `ds-*` classes. It **only powers the live
-    preview** and is never shown as-is to the reader. A rendering artifact.
-  - `usage` — the real component call a developer writes
-    (`<Button variant="primary">Save changes</Button>`). Shown in the **Usage**
-    tab. Author it for every code-connected example. When absent (e.g. a
-    not-yet-built component) the tab falls back to `code`, honestly labeled
-    **HTML** instead of **Usage**.
-  - `specs` — the styling contract. Rendered in the **CSS** tab as generated,
-    token-referencing CSS (`property: var(--token); /* resolved value */`), not a
-    lookup table — so the tokens live in liftable code. `token` rows resolve to
-    the token's current value in a trailing comment; `value` rows use a literal
-    like `45%` or `transparent`. A label maps to a CSS property via `CSS_PROP` in
-    `build.mjs`; unmapped labels are emitted as comments so the block stays valid
-    CSS. Add a label to `CSS_PROP` when you introduce a new spec dimension.
-- `anatomy`, `props`, `states`, `tokensUsed` — the reference tables.
+- Component **visuals are live, not images.** The rendered HTML lives in
+  `design-system/demos/registry.mjs` (keyed by slug), styled by the token-based
+  `ds-*` classes in `demos/demos.css`. Per slug you can supply `preview` (card
+  cover + hero), `variants` (`[{title, description?, html, tsx}]`), `anatomy`
+  (`{html, parts}` — one instance + the numbered part list), and `states`
+  (`[{label, html}]` — the interaction grid). Because it is token-based it
+  restyles itself when tokens change — no Figma export, no per-change token
+  cost. A component with no registry entry still renders a spec-only page.
+- The **Variants** gallery comes from the demo registry's `variants`
+  (`[{title, description?, html, tsx}]`): each renders a live stage plus a
+  copyable **TSX** call (the component a developer writes — `<Button
+  type="primary">Save changes</Button>`). There is intentionally no CSS/HTML
+  excerpt: the live preview shows the look, "Tokens used" names the styling
+  tokens, and TSX is what devs actually copy. If a component has no registry
+  entry, the gallery falls back to TSX-only rows from any inventory `examples`
+  (`{title, usage}`).
+- `anatomy`, `props`, `states`, `tokensUsed` — the reference data.
+  `states` renders as the interactive **States** section (the demo registry
+  supplies the live per-state HTML); `props` renders the **API** table.
+- The **Specs** redline table (Property → Token → resolved value, with color
+  swatches) comes from `design-system/demos/specs.mjs` (rows of
+  `{prop, token}` or `{prop, value}`). Token rows resolve to the current value
+  at build time, so specs never drift; literal rows cover fixed sizes. This is
+  what an engineer implements from and a designer cross-checks against; it also
+  appears in DESIGN-SYSTEM.md. A slug with no specs entry falls back to the
+  compact "Tokens used" list.
 - `usage.do` / `usage.dont` — the guidance columns.
 - `usage.import` — optional one-line import statement, shown as a code block.
 - `codeConnected` / `codePath` — whether an engineer-owned component exists yet.
 
-Add a demo class to `SITE_CSS` in `build.mjs` only when a new component type has
-no existing `ds-*` class that fits — reuse before inventing.
+Add a `ds-*` class to `demos/demos.css` only when a new component type has no
+existing class that fits — reuse before inventing.
 
 ## The template catalog and the roadmap file
 
 `inventory/components.json` ships pre-filled with the **AlignUI 2.0 template
 catalog**: every Base and Product component from the team's template Figma file
 (Buttons, Selects, Modals, Sidebar, Tables, …) with the props, states, anatomy,
-and an exported visual (`assets/components/*.png`) of the real component sets.
+and a live token-based demo (in `demos/registry.mjs`) of the real component sets.
 Entries with `codeConnected: false` are design-stable but not built — coding
 agents scaffold them from their spec (see `references/build-ui.md`) instead of
 inventing an API. Delete entries the project will never use so the docs stay
@@ -112,6 +109,6 @@ build renders each (whose name is not already in `components.json`) as a
 
 When bootstrapping a client file that was duplicated from the template, match
 extracted components against the catalog by name first — the goal is to keep
-the template's naming and props, not to re-derive them. Refresh the component
-visuals from the client's file (export the component-set nodes to
-`assets/components/<slug>.png`) so the docs show the client's actual UI.
+the template's naming and props, not to re-derive them. The live demos in
+`demos/registry.mjs` carry over as-is; adjust them only where the client's
+component genuinely differs from the template.

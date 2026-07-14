@@ -23,6 +23,22 @@ import {
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../..');
 const p = (...a) => path.join(ROOT, ...a);
 
+// Live demo HTML per component slug (token-based, restyles from the tokens —
+// no Figma export). Kept in design-system/demos/, separate from the semantic
+// spec in inventory/components.json. A missing entry just yields a spec-only page.
+let DEMOS = {};
+try {
+  ({ demos: DEMOS } = await import('../demos/registry.mjs'));
+} catch { DEMOS = {}; }
+const demoFor = (c) => DEMOS[slug(c.name)] || null;
+
+// Redline specs per slug (color/padding/height/…). A missing file is fine.
+let SPECS = {};
+try {
+  ({ specs: SPECS } = await import('../demos/specs.mjs'));
+} catch { SPECS = {}; }
+const specsFor = (c) => SPECS[slug(c.name)] || null;
+
 const raw = read(p('tokens/figma.raw.json'));
 const inventory = exists(p('inventory/components.json'))
   ? read(p('inventory/components.json'))
@@ -218,6 +234,7 @@ function shell(title, body, depth = 0) {
 <title>${esc(title)} &middot; ${esc(name)}</title>
 <link rel="stylesheet" href="${up}assets/tokens.css">
 <link rel="stylesheet" href="${up}assets/site.css">
+<link rel="stylesheet" href="${up}assets/demos.css">
 </head>
 <body>
 <header class="topbar">
@@ -245,104 +262,13 @@ function scaleRow(t) {
   return `<tr><td><code>${esc(t.name)}</code></td><td class="mono">${esc(t.light ?? '')}</td></tr>`;
 }
 function compCard(c) {
-  const img = c.image ? c.image.split('/').pop() : null;
-  const inner = img
-    ? `<img class="thumb-img" src="assets/components/${esc(img)}" alt="" loading="lazy">`
-    : (c.preview || '<span class="stage-empty">Preview pending</span>');
+  const d = demoFor(c);
+  const inner = (d && d.preview) || c.preview || '<span class="stage-empty">Preview pending</span>';
   const cls = c._template ? 'comp-card comp-card--template' : 'comp-card';
   return `<a class="${cls}" href="components/${slug(c.name)}.html">
-    <div class="stage stage--thumb">${inner}</div>
-    <div class="comp-card-meta"><strong>${esc(c.name)} ${statusBadge(c)}</strong><span>${esc(c.description || '')}</span></div>
+    <div class="stage stage--thumb ds-demo">${inner}</div>
+    <div class="comp-card-meta"><strong>${esc(c.name)} ${statusBadge(c)}</strong><span>${esc(c.tagline || c.description || '')}</span></div>
   </a>`;
-}
-
-function tokenValue(name) {
-  const rec = flat[name];
-  if (!rec) return '';
-  return cssValue(name, rec, 'light') ?? String(rec.light ?? '');
-}
-// Maps a spec label to the CSS property it drives. Anything not listed here is
-// emitted as a comment (see specsToCss) so the generated block stays valid CSS
-// and never invents a property name.
-const CSS_PROP = {
-  background: 'background', surface: 'background', fill: 'background',
-  text: 'color', color: 'color',
-  border: 'border-color',
-  radius: 'border-radius',
-  padding: 'padding', 'padding x': 'padding-inline', 'padding y': 'padding-block',
-  gap: 'gap',
-  weight: 'font-weight', 'font weight': 'font-weight',
-  size: 'font-size', 'font size': 'font-size',
-  shadow: 'box-shadow', elevation: 'box-shadow',
-  outline: 'outline-color', 'outline width': 'outline-width',
-  opacity: 'opacity', cursor: 'cursor',
-};
-
-// Turn a variant's spec rows into liftable, token-referencing CSS — the same
-// contract the Specs table encoded, but as code an engineer can implement from.
-// Token rows become `prop: var(--token); /* resolved value */`; literal rows use
-// the value verbatim. A label with no known CSS property is kept as a comment so
-// the block is always valid CSS and never guesses syntax.
-function specsToCss(ex, comp) {
-  const specs = ex.specs || [];
-  if (!specs.length) return '';
-  const base = `.${slug(comp?.name || 'component')}`;
-  const mod = ex.title ? `--${slug(ex.title)}` : '';
-  const lines = specs.map((s) => {
-    const prop = CSS_PROP[(s.label || '').trim().toLowerCase()];
-    if (s.token) {
-      const val = tokenValue(s.token);
-      const note = val ? ` /* ${val} */` : '';
-      return prop
-        ? `  ${prop}: var(${cssVar(s.token)});${note}`
-        : `  /* ${s.label}: var(${cssVar(s.token)})${val ? ` — ${val}` : ''} */`;
-    }
-    return prop
-      ? `  ${prop}: ${s.value ?? ''};`
-      : `  /* ${s.label}: ${s.value ?? ''} */`;
-  });
-  return `${base}${mod} {\n${lines.join('\n')}\n}`;
-}
-
-function renderExample(ex, comp) {
-  const code = ex.code || '';           // demo HTML: only ever powers the live preview
-  const usage = ex.usage || '';         // the real component call a developer writes
-  const desc = ex.description ? `<p class="variant-desc">${esc(ex.description)}</p>` : '';
-  const stageInner = code || '<span class="stage-empty">Preview pending</span>';
-  const css = specsToCss(ex, comp);     // the styling contract, generated from specs
-
-  // Usage answers "how do I call this"; CSS answers "how is it built" — the token
-  // per property, resolved value inline. Together they let an engineer implement
-  // the component without leaving the page. Usage falls back to the raw demo HTML
-  // (honestly labeled) only when no component call is authored yet.
-  const [snippet, snippetLabel] = usage ? [usage, 'Usage'] : [code, 'HTML'];
-  const codeBlock = (s) =>
-    `<div class="code-wrap"><pre class="code"><code>${esc(s)}</code></pre><div class="code-actions"><button class="copy" type="button">Copy</button></div></div>`;
-
-  // Only build tabs for panels that have content; a single panel renders without
-  // a tablist.
-  const panels = [];
-  if (snippet) panels.push(['usage', snippetLabel, codeBlock(snippet)]);
-  if (css) panels.push(['css', 'CSS', codeBlock(css)]);
-
-  let detail = '';
-  if (panels.length === 1) {
-    detail = `<div class="tabs tabs--single"><div class="tabpanel" data-panel="${panels[0][0]}">${panels[0][2]}</div></div>`;
-  } else if (panels.length > 1) {
-    const tabs = panels.map((pan, i) =>
-      `<button class="tab${i === 0 ? ' is-active' : ''}" type="button" role="tab" aria-selected="${i === 0}" data-tab="${pan[0]}">${pan[1]}</button>`
-    ).join('');
-    const bodies = panels.map((pan, i) =>
-      `<div class="tabpanel${i === 0 ? '' : ' is-hidden'}" role="tabpanel" data-panel="${pan[0]}">${pan[2]}</div>`
-    ).join('');
-    detail = `<div class="tabs"><div class="tablist" role="tablist">${tabs}</div>${bodies}</div>`;
-  }
-
-  return `<div class="variant">
-    <div class="variant-head"><h3>${esc(ex.title || '')}</h3>${desc}</div>
-    <div class="stage stage--variant">${stageInner}</div>
-    ${detail}
-  </div>`;
 }
 
 function foundationsPage() {
@@ -370,67 +296,117 @@ function foundationsPage() {
   return shell('Foundations', body, 0);
 }
 
-// Interaction states are folded into the API table (one `state` row) instead of
-// a separate States section — a states list of just ["default"] is noise.
-function meaningfulStates(c) {
-  const st = c.states || [];
-  return st.length > 1 || (st.length === 1 && st[0].toLowerCase() !== 'default') ? st : [];
+// A copyable code block (TSX only — the component call a developer writes).
+function codeBlock(code) {
+  return `<div class="code-wrap"><pre class="code"><code>${esc(code)}</code></pre><div class="code-actions"><button class="copy" type="button">Copy</button></div></div>`;
 }
-function imageFile(c) {
-  return c.image ? c.image.split('/').pop() : null;
+
+// One variant card: a live stage (rendered with the tokens) + its TSX call.
+function renderVariant(v) {
+  const desc = v.description ? `<p class="variant-desc">${esc(v.description)}</p>` : '';
+  const stage = v.html
+    ? `<div class="stage stage--variant ds-demo">${v.html}</div>`
+    : '';
+  const tsx = v.tsx ? codeBlock(v.tsx) : '';
+  return `<div class="variant">
+    <div class="variant-head"><h3>${esc(v.title || '')}</h3>${desc}</div>
+    ${stage}
+    ${tsx ? `<div class="variant-code">${tsx}</div>` : ''}
+  </div>`;
+}
+
+// Bridge inventory `examples` (title/usage/description) to the variant shape,
+// so components without a demo-registry entry still list their variants (TSX
+// only, no live stage).
+function variantsFor(c) {
+  const d = demoFor(c);
+  if (d && d.variants && d.variants.length) return d.variants;
+  return (c.examples || [])
+    .filter((ex) => ex.usage || ex.title)
+    .map((ex) => ({ title: ex.title, description: ex.description, tsx: ex.usage }));
 }
 
 function componentPage(c) {
+  const d = demoFor(c);
+
+  // Import
+  const importLine = c.usage?.import
+    ? `<section><h2>Import</h2><div class="snippet snippet--solo"><div class="snippet-bar"><span>Import</span><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(c.usage.import)}</code></pre></div></section>`
+    : '';
+
+  // Variants (live stage + TSX)
+  const variants = variantsFor(c);
+  const variantsSection = variants.length
+    ? `<section><h2>Variants</h2>${variants.map(renderVariant).join('')}</section>`
+    : '';
+
+  // Anatomy: ONE live instance + the numbered part list (what it is made of).
+  const parts = c.anatomy || d?.anatomy?.parts || [];
+  const partList = parts.map((a) => `<li>${esc(a)}</li>`).join('');
+  const anatomyStage = d?.anatomy?.html
+    ? `<div class="stage stage--variant ds-demo ds-anatomy-stage">${d.anatomy.html}</div>`
+    : '';
+  const anatomy = (partList || anatomyStage)
+    ? `<section><h2>Anatomy</h2>${anatomyStage}${partList ? `<ol class="anatomy">${partList}</ol>` : ''}</section>`
+    : '';
+
+  // Interaction states: a playable instance + a forced-state grid.
+  const stateItems = (d?.states || []).map((s) =>
+    `<figure class="state-cell"><div class="stage stage--state ds-demo">${s.html}</div><figcaption>${esc(s.label)}</figcaption></figure>`
+  ).join('');
+  const statesSection = stateItems
+    ? `<section><h2>States</h2>
+        <p class="section-note">Hover, focus, or click the live component above to try its states. Every state is shown below.</p>
+        <div class="state-grid">${stateItems}</div>
+      </section>`
+    : '';
+
+  // API — props only. Interaction states now have their own section.
   const propRows = (c.props || []).map((pr) =>
     `<tr><td><code>${esc(pr.name)}</code></td><td>${(pr.values || []).map((v) => `<span class="tag">${esc(v)}</span>`).join(' ')}</td></tr>`
   );
-  const states = meaningfulStates(c);
-  if (states.length) {
-    propRows.push(`<tr><td><code>state</code> <span class="muted">(interaction)</span></td><td>${states.map((s) => `<span class="tag">${esc(s)}</span>`).join(' ')}</td></tr>`);
-  }
   const api = propRows.length
     ? `<section><h2>API</h2><table class="scale"><tbody>${propRows.join('')}</tbody></table></section>`
     : '';
 
-  // Anatomy: the component's real Figma render next to the numbered part list.
-  const img = imageFile(c);
-  const anatomyItems = (c.anatomy || []).map((a) => `<li>${esc(a)}</li>`).join('');
-  const visual = img
-    ? `<figure class="anatomy-visual"><img src="../assets/components/${esc(img)}" alt="${esc(c.name)} — variants from the Figma file" loading="lazy"></figure>`
-    : '';
-  const anatomy = (anatomyItems || visual)
-    ? `<section><h2>Anatomy</h2>${visual}${anatomyItems ? `<ol class="anatomy">${anatomyItems}</ol>` : ''}</section>`
+  // Specs: the redline table (property → token → resolved value). Engineers
+  // implement from it; designers cross-check the rendered preview against it.
+  const specRows = (specsFor(c) || []).map((r) => {
+    if (r.token) {
+      const rec = flat[r.token];
+      const val = rec ? (cssValue(r.token, rec, 'light') ?? String(rec.light ?? '')) : '';
+      const sw = rec?.type === 'COLOR' ? `<span class="chip sm" style="background: var(${cssVar(r.token)})"></span>` : '';
+      return `<tr><td>${esc(r.prop)}</td><td>${sw}<code>${esc(r.token)}</code></td><td class="mono">${esc(val)}</td></tr>`;
+    }
+    return `<tr><td>${esc(r.prop)}</td><td class="muted">literal</td><td class="mono">${esc(r.value ?? '')}</td></tr>`;
+  }).join('');
+  const specsSection = specRows
+    ? `<section><h2>Specs</h2><p class="section-note">Every value is a token (or a fixed literal). Cross-check the preview against these; the resolved value updates when the token changes.</p><table class="specs"><thead><tr><th>Property</th><th>Token</th><th>Value</th></tr></thead><tbody>${specRows}</tbody></table></section>`
     : '';
 
   const tokensUsed = (c.tokensUsed || []).map((t) =>
     `<li><span class="chip sm" style="background: var(${cssVar(t)})"></span><code>${esc(t)}</code></li>`
   ).join('');
-  const dos = (c.usage?.do || []).map((d) => `<li>${esc(d)}</li>`).join('');
-  const donts = (c.usage?.dont || []).map((d) => `<li>${esc(d)}</li>`).join('');
+  const dos = (c.usage?.do || []).map((x) => `<li>${esc(x)}</li>`).join('');
+  const donts = (c.usage?.dont || []).map((x) => `<li>${esc(x)}</li>`).join('');
   const code = c._template
-    ? `<p class="template-note">Not in the Figma file yet — this page is the agreed spec. Once it ships, move it to <code>inventory/components.json</code> and add the final tokens, specs, and preview.</p>`
+    ? `<p class="template-note">Not in the Figma file yet — this page is the agreed spec. Once it ships, move it to <code>inventory/components.json</code> and add the final tokens and a demo.</p>`
     : c.codeConnected
       ? `<p class="connected">Code-connected &rarr; <code>${esc(c.codePath || '')}</code></p>`
       : `<p class="unconnected">In the design system, not yet in code. Scaffold it from this spec (see the build-ui flow) instead of hand-rolling a different API.</p>`;
-  const examples = (c.examples && c.examples.length)
-    ? c.examples
-    : ((!img && c.preview) ? [{ title: 'Preview', code: c.preview }] : []);
-  const variants = examples.length
-    ? `<section><h2>Variants</h2>${examples.map((ex) => renderExample(ex, c)).join('')}</section>`
-    : '';
-  const importLine = c.usage?.import
-    ? `<section><h2>Import</h2><div class="snippet snippet--solo"><div class="snippet-bar"><span>Import</span><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(c.usage.import)}</code></pre></div></section>`
-    : '';
+
   const body = `
     <div class="crumb"><a href="../index.html">Foundations</a> / ${esc(c.category || 'Components')} / ${esc(c.name)}</div>
     <div class="comp-head"><h1>${esc(c.name)}</h1>${statusBadge(c)}</div>
     <p class="lede">${esc(c.description || '')}</p>
     ${code}
     ${importLine}
+    ${variantsSection}
     ${anatomy}
-    ${variants}
+    ${specsSection}
+    ${statesSection}
     ${api}
-    ${tokensUsed ? `<section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>` : ''}
+    ${(!specsSection && tokensUsed) ? `<section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>` : ''}
     ${(dos || donts) ? `<section class="usage">
       <div><h2>Do</h2><ul class="do">${dos}</ul></div>
       <div><h2>Don't</h2><ul class="dont">${donts}</ul></div>
@@ -438,17 +414,11 @@ function componentPage(c) {
   return shell(c.name, body, 1);
 }
 
-// Copy generated variables.css into docs so the hosted site is self-contained.
+// Copy generated variables.css + the live-demo styles into the site so the
+// hosted docs are self-contained.
 write(p('site/assets/tokens.css'), fs.readFileSync(p('tokens/variables.css'), 'utf8'));
-
-// Copy component visuals (exported from Figma) into the site.
-if (exists(p('assets/components'))) {
-  fs.mkdirSync(p('site/assets/components'), { recursive: true });
-  for (const f of fs.readdirSync(p('assets/components'))) {
-    if (f.endsWith('.png') || f.endsWith('.svg') || f.endsWith('.jpg')) {
-      fs.copyFileSync(p('assets/components', f), p('site/assets/components', f));
-    }
-  }
+if (exists(p('demos/demos.css'))) {
+  write(p('site/assets/demos.css'), fs.readFileSync(p('demos/demos.css'), 'utf8'));
 }
 
 const SITE_CSS = `
@@ -542,11 +512,11 @@ table.scale td:first-child { width: 40%; }
 .comp-card:hover { border-color: var(--color-primary-base, #335cff); }
 .comp-card-meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; }
 .comp-card-meta strong { font-weight: 500; display: flex; align-items: center; gap: 8px; }
-.comp-card-meta span { color: var(--color-text-sub-600, #5c5c5c); font-size: 13px; }
+.comp-card-meta > span { color: var(--color-text-sub-600, #5c5c5c); font-size: 13px; line-height: 1.4; min-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .crumb { font-size: 13px; color: var(--color-text-sub-600, #a3a3a3); margin-bottom: 12px; }
 .crumb a { color: inherit; }
 .stage { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 36px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); background: var(--color-bg-weak-50, #f7f7f7); }
-.stage--thumb { padding: 22px; min-height: 104px; justify-content: center; border: 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 0; }
+.stage--thumb { padding: 22px; height: 132px; box-sizing: border-box; overflow: hidden; justify-content: center; border: 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 0; }
 .code { background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 0; }
 .tag { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: var(--radius-full, 999px); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); margin: 2px 0; }
 .tags { line-height: 2.2; }
@@ -561,10 +531,26 @@ table.scale td:first-child { width: 40%; }
   color: var(--color-primary-base, #335cff);
   border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 999px;
 }
-.anatomy-visual { margin: 0; padding: 20px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); background: var(--color-bg-weak-50, #f7f7f7); max-height: 440px; overflow: auto; }
-.anatomy-visual img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
 .muted { color: var(--color-text-soft-400, #a3a3a3); font-size: 12px; }
-.thumb-img { max-width: 100%; max-height: 120px; object-fit: contain; }
+.section-note { font-size: 14px; color: var(--color-text-sub-600, #64625c); margin: -4px 0 16px; }
+
+/* Specs (redline) table */
+table.specs { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.specs th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-soft-400, #a3a3a3); font-weight: 500; padding: 0 12px 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+table.specs td { padding: 9px 12px; border-bottom: 1px solid var(--color-stroke-soft-200, #eeece5); vertical-align: middle; }
+table.specs td:first-child { color: var(--color-text-sub-600, #64625c); width: 34%; }
+table.specs td.mono { width: 30%; color: var(--color-text-strong-950, #141413); }
+table.specs code { font-size: 13px; }
+
+/* Variant TSX block sits under the live stage */
+.variant-code { padding: 0 18px 16px; }
+.variant-code .code-wrap { align-items: stretch; }
+
+/* Interaction states grid */
+.state-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.state-cell { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.stage--state { padding: 20px; min-height: 76px; justify-content: center; margin: 0; }
+.state-cell figcaption { font-size: 12px; color: var(--color-text-secondary, #64625c); text-align: center; }
 .tokenlist li { padding: 6px 0; }
 .usage { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .do li, .dont li { padding: 6px 0 6px 22px; position: relative; }
@@ -573,28 +559,8 @@ table.scale td:first-child { width: 40%; }
 .connected { font-size: 14px; color: var(--color-primary-base, #335cff); }
 .unconnected { font-size: 14px; color: var(--color-text-sub-600, #a3a3a3); }
 
-/* --- Demo component styles: opted into by inventory \`preview\` snippets. --- */
-/* These render live with the design tokens, so previews stay honest. */
-.ds-btn { display: inline-flex; align-items: center; gap: var(--space-8, 8px); font: inherit; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); line-height: 1; cursor: pointer; padding: var(--space-12, 12px) var(--space-24, 24px); border-radius: var(--radius-8, 8px); border: 1px solid transparent; }
-.ds-btn--primary { background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff); }
-.ds-btn--secondary { background: var(--color-bg-white-0, #fff); color: var(--color-text-strong-950, #171717); border-color: var(--color-stroke-soft-200, #ebebeb); }
-.ds-btn--ghost { background: transparent; color: var(--color-primary-base, #335cff); }
-.ds-btn--sm { padding: var(--space-8, 8px) var(--space-12, 12px); font-size: var(--font-size-xs, 12px); }
-.ds-btn--lg { padding: var(--space-16, 16px) var(--space-32, 32px); font-size: var(--font-size-md, 16px); }
-.ds-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
-.ds-field { display: inline-flex; flex-direction: column; gap: var(--space-8, 8px); text-align: left; }
-.ds-field-label { font-size: var(--font-size-sm, 14px); color: var(--color-text-sub-600, #5c5c5c); }
-.ds-input { font: inherit; font-size: var(--font-size-sm, 14px); min-width: 220px; padding: var(--space-12, 12px); border-radius: var(--radius-8, 8px); border: 1px solid var(--color-stroke-soft-200, #ebebeb); background: var(--color-bg-white-0, #fff); color: var(--color-text-strong-950, #171717); }
-.ds-input:focus, .ds-input--focus { outline: 2px solid var(--color-primary-base, #335cff); outline-offset: 1px; }
-.ds-input[disabled] { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-sub-600, #5c5c5c); opacity: 0.7; cursor: not-allowed; }
-.ds-card { display: flex; flex-direction: column; gap: var(--space-8, 8px); align-items: flex-start; max-width: 280px; text-align: left; padding: var(--space-24, 24px); border-radius: var(--radius-16, 16px); border: 1px solid var(--color-stroke-soft-200, #ebebeb); background: var(--color-bg-white-0, #fff); box-shadow: var(--shadow-sm, 0 1px 2px rgba(23,23,23,0.08)); }
-.ds-card--flat { box-shadow: none; }
-.ds-card-title { font-weight: var(--font-weight-medium, 500); }
-.ds-card-body { margin: 0; color: var(--color-text-sub-600, #5c5c5c); font-size: var(--font-size-sm, 14px); }
-.ds-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; padding: 0 var(--space-8, 8px); height: 20px; font-size: var(--font-size-xs, 12px); font-weight: var(--font-weight-medium, 500); border-radius: var(--radius-full, 999px); background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff); }
-.ds-badge--neutral { background: var(--color-bg-soft-200, #ebebeb); color: var(--color-text-strong-950, #171717); }
-.ds-tag { display: inline-flex; align-items: center; gap: var(--space-8, 8px); font-size: var(--font-size-sm, 14px); padding: var(--space-4, 4px) var(--space-12, 12px); border-radius: var(--radius-full, 999px); background: var(--color-bg-white-0, #fff); border: 1px solid var(--color-stroke-soft-200, #ebebeb); color: var(--color-text-sub-600, #5c5c5c); }
-.ds-tag-x { cursor: pointer; font-size: 15px; line-height: 1; color: var(--color-text-sub-600, #a3a3a3); }
+/* Live component demos (.ds-* classes) live in design-system/demos/demos.css,
+   linked separately, so the demo styles are one file the whole team edits. */
 
 /* --- Variant gallery on component pages --- */
 .variant { margin: 0 0 20px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); overflow: hidden; }
@@ -691,23 +657,38 @@ function mdComponent(c) {
   lines.push('');
   lines.push(meta.map((m) => `- ${m}`).join('\n'));
   if (c.description) lines.push('', c.description);
-  const img = imageFile(c);
-  if (img) lines.push('', `![${c.name} — variants from the Figma file](assets/components/${img})`);
   if (c.usage?.import) lines.push('', '```js', c.usage.import, '```');
-  const states = meaningfulStates(c);
-  if (c.props?.length || states.length) {
-    lines.push('', '**API**', '', '| Prop | Values |', '|---|---|');
+  const states = c.states || [];
+  if (c.props?.length) {
+    lines.push('', '**Props**', '', '| Prop | Values |', '|---|---|');
     for (const pr of c.props || []) lines.push(`| \`${pr.name}\` | ${(pr.values || []).map((v) => `\`${v}\``).join(' ')} |`);
-    if (states.length) lines.push(`| \`state\` (interaction) | ${states.map((s) => `\`${s}\``).join(' ')} |`);
   }
+  if (states.length) lines.push('', `**Interaction states:** ${states.join(', ')}`);
   if (c.anatomy?.length) lines.push('', `**Anatomy:** ${c.anatomy.map((a, i) => `${i + 1}. ${a}`).join(' ')}`);
-  if (c.tokensUsed?.length) lines.push('', `**Tokens used:** ${c.tokensUsed.map((t) => `\`${t}\``).join(', ')}`);
-  for (const ex of c.examples || []) {
-    if (!ex.usage && !(ex.specs || []).length) continue;
+  // Specs redline: property → token → resolved value. The implementable contract.
+  const specRows = specsFor(c);
+  if (specRows && specRows.length) {
+    lines.push('', '**Specs**', '', '| Property | Token | Value |', '|---|---|---|');
+    for (const r of specRows) {
+      if (r.token) {
+        const rec = flat[r.token];
+        const val = rec ? (cssValue(r.token, rec, 'light') ?? String(rec.light ?? '')) : '';
+        lines.push(`| ${r.prop} | \`${r.token}\` | \`${val}\` |`);
+      } else {
+        lines.push(`| ${r.prop} | (literal) | \`${r.value ?? ''}\` |`);
+      }
+    }
+  } else if (c.tokensUsed?.length) {
+    lines.push('', `**Tokens used:** ${c.tokensUsed.map((t) => `\`${t}\``).join(', ')}`);
+  }
+  // TSX usage only — the component call a developer writes. (The live rendered
+  // preview lives on the docs site; the styling contract is the tokens above.)
+  const dvariants = (demoFor(c)?.variants) || [];
+  const exVariants = dvariants.length ? dvariants : (c.examples || []).map((ex) => ({ title: ex.title, description: ex.description, tsx: ex.usage }));
+  for (const ex of exVariants) {
+    if (!ex.tsx) continue;
     lines.push('', `**${ex.title || 'Example'}**${ex.description ? ` — ${ex.description}` : ''}`);
-    if (ex.usage) lines.push('', '```jsx', ex.usage, '```');
-    const css = specsToCss(ex, c);
-    if (css) lines.push('', '```css', css, '```');
+    lines.push('', '```jsx', ex.tsx, '```');
   }
   const dos = c.usage?.do || [], donts = c.usage?.dont || [];
   if (dos.length || donts.length) {

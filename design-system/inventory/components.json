@@ -7,6 +7,7 @@
       "category": "Actions",
       "status": "stable",
       "description": "Primary action trigger. AlignUI API: three types (primary, neutral, error) crossed with four styles (filled, stroke, lighter, ghost) and four sizes.",
+      "tagline": "The main action on a screen",
       "preview": "<button class=\"ds-btn ds-btn--primary\">Save changes</button><button class=\"ds-btn ds-btn--secondary\">Cancel</button><button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
       "examples": [
         {
@@ -189,8 +190,7 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/button.tsx",
-      "image": "assets/components/button.png"
+      "codePath": "src/components/ui/button.tsx"
     },
     {
       "name": "Text Input",
@@ -198,6 +198,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Single-line text field with label and hint text. Types cover the common input formats; siblings Tag Input, Counter Input, and Digit Input share the same state model.",
+      "tagline": "Single-line field for short text",
       "preview": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><input class=\"ds-input\" placeholder=\"you@example.com\"></label>",
       "examples": [
         {
@@ -340,15 +341,15 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/text-input.tsx",
-      "image": "assets/components/text-input.png"
+      "codePath": "src/components/ui/text-input.tsx"
     },
     {
       "name": "Badge",
       "figmaNodeId": "118:2324",
       "category": "Data display",
-      "status": "beta",
+      "status": "stable",
       "description": "Small status or count indicator. Four styles (filled, light, lighter, stroke) across the 10-color palette; Status Badge is the semantic sibling (completed, pending, failed).",
+      "tagline": "Small status or count label",
       "preview": "<span class=\"ds-badge\">3</span><span class=\"ds-badge ds-badge--neutral\">New</span><span class=\"ds-badge ds-badge--neutral\">12</span>",
       "examples": [
         {
@@ -461,15 +462,15 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/badge.tsx",
-      "image": "assets/components/badge.png"
+      "codePath": "src/components/ui/badge.tsx"
     },
     {
       "name": "Tag",
       "figmaNodeId": "431:16147",
       "category": "Data display",
-      "status": "planned",
+      "status": "stable",
       "description": "Removable label for categorizing items. Leading content can be an icon, avatar, flag, or logo; dismiss icon is a toggle.",
+      "tagline": "Removable label for categorizing",
       "preview": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span><span class=\"ds-tag\">Engineering<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
       "examples": [
         {
@@ -578,8 +579,7 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/tag.tsx",
-      "image": "assets/components/tag.png"
+      "codePath": "src/components/ui/tag.tsx"
     },
     {
       "name": "Widget Box",
@@ -587,6 +587,7 @@
       "category": "Layout",
       "status": "stable",
       "description": "Surface that groups related content and actions — the container behind every dashboard widget in the template's Product Components.",
+      "tagline": "Container that groups related content",
       "preview": "<div class=\"ds-card\"><strong class=\"ds-card-title\">Weekly report</strong><p class=\"ds-card-body\">Your team shipped 12 changes this week.</p><button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button></div>",
       "examples": [
         {
@@ -669,15 +670,14 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/widget-box.tsx",
-      "image": "assets/components/widget-box.png"
+      "codePath": "src/components/ui/widget-box.tsx"
     },
     {
       "name": "Compact Button",
       "category": "Actions",
       "status": "stable",
       "description": "Small icon-only button (20/24px) for dense UI: dismiss, expand, inline actions. Optional full-radius.",
-      "image": "assets/components/compact-button.png",
+      "tagline": "Tiny icon-only button for dense UI",
       "anatomy": [
         "Container",
         "Icon"
@@ -740,7 +740,7 @@
       "category": "Actions",
       "status": "stable",
       "description": "Text-styled action for navigation and inline actions, with optional underline.",
-      "image": "assets/components/link-button.png",
+      "tagline": "A text link styled as an action",
       "anatomy": [
         "Label",
         "Icon (optional, leading or trailing)"
@@ -804,7 +804,7 @@
       "category": "Actions",
       "status": "stable",
       "description": "Third-party auth button (Apple, Google, GitHub, X, Facebook, Dropbox, LinkedIn) in filled or stroke style, full or icon-only.",
-      "image": "assets/components/social-button.png",
+      "tagline": "Sign in with a third-party account",
       "anatomy": [
         "Container",
         "Brand icon",
@@ -870,7 +870,7 @@
       "category": "Actions",
       "status": "stable",
       "description": "Elevated, gradient-edged button for marketing moments and standout CTAs.",
-      "image": "assets/components/fancy-button.png",
+      "tagline": "Standout gradient button for CTAs",
       "anatomy": [
         "Container",
         "Label",
@@ -927,7 +927,7 @@
       "category": "Actions",
       "status": "stable",
       "description": "A row of 2–6 connected buttons acting as one control (view switchers, bulk actions). Segments support text, icons, or both.",
-      "image": "assets/components/button-group.png",
+      "tagline": "Connected buttons acting as one control",
       "anatomy": [
         "Group container",
         "Button Group Item (per segment: label, optional left/right icon)"
@@ -985,7 +985,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Binary control with indeterminate support. Ships in three layers: bare Checkbox, Checkbox Label (label + description, flippable), and Checkbox Card (selectable card with icon/avatar/logo leading content).",
-      "image": "assets/components/checkbox.png",
+      "tagline": "Select one or more options",
       "anatomy": [
         "Box",
         "Check / indeterminate indicator",
@@ -1047,7 +1047,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Selects exactly one option. Same three layers as Checkbox: bare Radio, Radio Label, and Radio Card (basic, left icon, avatar, card provider, brand, company).",
-      "image": "assets/components/radio.png",
+      "tagline": "Select exactly one option",
       "anatomy": [
         "Circle",
         "Selected dot",
@@ -1101,7 +1101,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Immediate on/off toggle. Layers: bare Switch, Switch Label (description, flip), Switch Card, and Integration Switch (brand logo + description row for settings/integration lists).",
-      "image": "assets/components/switch.png",
+      "tagline": "Toggle a setting on or off",
       "anatomy": [
         "Track",
         "Thumb",
@@ -1155,7 +1155,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Dropdown-triggering field. Value can carry an icon, flag, avatar, or logo. Compact Select (borderless trigger), Compact Select for Input (embedded in Text Input), and Inline Select are the sibling variants.",
-      "image": "assets/components/select.png",
+      "tagline": "Pick a value from a dropdown",
       "anatomy": [
         "Label (optional)",
         "Trigger container",
@@ -1229,7 +1229,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Multi-line text field with optional label, hint text, and character counter.",
-      "image": "assets/components/text-area.png",
+      "tagline": "Multi-line field for longer text",
       "anatomy": [
         "Label (optional)",
         "Field container",
@@ -1281,7 +1281,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Text field that turns entries into dismissible Tags.",
-      "image": "assets/components/tag-input.png",
+      "tagline": "Type entries that become tags",
       "anatomy": [
         "Label (optional)",
         "Field container",
@@ -1334,7 +1334,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Numeric stepper field with increment/decrement controls.",
-      "image": "assets/components/counter-input.png",
+      "tagline": "Number field with +/- steppers",
       "anatomy": [
         "Label (optional)",
         "Decrement button",
@@ -1386,7 +1386,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Fixed-length code entry (OTP / 2FA), one box per digit.",
-      "image": "assets/components/digit-input.png",
+      "tagline": "One box per digit for codes (OTP)",
       "anatomy": [
         "Digit boxes",
         "Hint text (optional)"
@@ -1427,7 +1427,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Single-value or range slider on a horizontal track, with optional thumb tooltip and label/sublabel.",
-      "image": "assets/components/slider.png",
+      "tagline": "Drag to set a value or range",
       "anatomy": [
         "Track",
         "Filled range",
@@ -1484,7 +1484,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Star/heart rating plus survey-style rating bars (emoji, number, star, heart scales). Rating & Review adds description and link button layouts.",
-      "image": "assets/components/rating.png",
+      "tagline": "Star or heart ratings and reviews",
       "anatomy": [
         "Rating items (empty / half / full)",
         "Value label (optional)",
@@ -1542,7 +1542,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Calendar for single dates or ranges. Composed from Date Selector (month navigation), Day Labels, Day Cells (with marked/disabled/range states), and Period Range presets; footer holds buttons and hint text.",
-      "image": "assets/components/date-picker.png",
+      "tagline": "Choose a date or date range",
       "anatomy": [
         "Date selector (month + arrows)",
         "Day labels",
@@ -1593,7 +1593,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Time selection list with optional secondary time (timezone) display, duration selector, and availability status rows. Composed with Select and Scroll parts.",
-      "image": "assets/components/time-picker.png",
+      "tagline": "Choose a time from a list",
       "anatomy": [
         "Time items list",
         "Duration selector (optional)",
@@ -1642,7 +1642,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Dropzone (File Upload Area), per-file progress cards (in progress / success / error) with format icons, and Image Upload for avatar/logo slots.",
-      "image": "assets/components/file-upload.png",
+      "tagline": "Drop or pick files to upload",
       "anatomy": [
         "Upload area (icon, copy, browse button)",
         "Upload cards (file name, size, progress, status)",
@@ -1700,7 +1700,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Color selection surface: spectrum area, hue/opacity sliders, hex + opacity inputs, and preset Color Dots in the 10-color palette.",
-      "image": "assets/components/color-picker.png",
+      "tagline": "Choose a color visually or by hex",
       "anatomy": [
         "Spectrum",
         "Hue slider",
@@ -1750,7 +1750,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Shared form furniture: Label (required mark, sublabel, info icon, link button), Hint Text (default / error / disabled), and Password Strength meter (empty / weak / moderate / strong).",
-      "image": "assets/components/label-hint-text.png",
+      "tagline": "Labels and helper text for forms",
       "anatomy": [
         "Label row",
         "Hint row (icon + text)",
@@ -1795,7 +1795,7 @@
       "category": "Forms",
       "status": "stable",
       "description": "Rich-text editing toolbar in four width presets, built from toolbar items (text, dropdown, color, icon) and a 10-color swatch palette.",
-      "image": "assets/components/rich-editor.png",
+      "tagline": "Formatting toolbar for rich text",
       "anatomy": [
         "Toolbar",
         "Toolbar items",
@@ -1845,7 +1845,7 @@
       "category": "Navigation",
       "status": "stable",
       "description": "Hierarchy trail of 3–5 items with arrow, slash, or dot dividers. Items can be icon-only, text-only, or both.",
-      "image": "assets/components/breadcrumbs.png",
+      "tagline": "Trail showing where you are",
       "anatomy": [
         "Item (icon and/or text)",
         "Divider",
@@ -1899,7 +1899,7 @@
       "category": "Navigation",
       "status": "stable",
       "description": "Page cells composed into a Pagination Group (basic, full-radius, or grouped style) with first/last and next/previous toggles plus optional totals info.",
-      "image": "assets/components/pagination.png",
+      "tagline": "Page-by-page navigation controls",
       "anatomy": [
         "Previous / first controls",
         "Page cells",
@@ -1948,7 +1948,7 @@
       "category": "Navigation",
       "status": "stable",
       "description": "Horizontal (2–6 tabs) or vertical (2–8, card or list style) tab navigation. Items support icons and count badges.",
-      "image": "assets/components/tab-menu.png",
+      "tagline": "Switch between sections with tabs",
       "anatomy": [
         "Tab list",
         "Tab item (label, optional icon, optional badge)",
@@ -2001,7 +2001,7 @@
       "category": "Navigation",
       "status": "stable",
       "description": "Pill-style switcher of 2–3 options with optional label; items can carry a left icon or be icon-only.",
-      "image": "assets/components/segmented-control.png",
+      "tagline": "Pill switch between a few options",
       "anatomy": [
         "Container",
         "Item (label and/or icon)",
@@ -2048,7 +2048,7 @@
       "category": "Navigation",
       "status": "stable",
       "description": "Multi-step progress in horizontal or vertical orientation (3–5 steps), plus a full sidebar variant and compact Stepper Dots.",
-      "image": "assets/components/step-indicator.png",
+      "tagline": "Show progress through a set of steps",
       "anatomy": [
         "Step item (number/check, label)",
         "Connector",
@@ -2103,7 +2103,7 @@
       "category": "Feedback",
       "status": "stable",
       "description": "One component covers Alert, Notification, and Toast: five statuses (error, warning, success, information, feature) × four styles (filled, light, lighter, stroke) × three sizes, with optional description, link buttons, and dismiss.",
-      "image": "assets/components/alert.png",
+      "tagline": "Inline message, notification, or toast",
       "anatomy": [
         "Container",
         "Status icon",
@@ -2170,7 +2170,7 @@
       "category": "Feedback",
       "status": "stable",
       "description": "Full-width top-of-screen announcement using the same status × style matrix as Alert, with optional description, link button, and dismiss.",
-      "image": "assets/components/banner.png",
+      "tagline": "Full-width announcement at the top",
       "anatomy": [
         "Container",
         "Status icon",
@@ -2226,7 +2226,7 @@
       "category": "Feedback",
       "status": "stable",
       "description": "Linear bar (0–100% in 10% steps) with label layouts (top/right, optional bottom caption) and a Circular variant (48–80px, optional center number). Bar color communicates status.",
-      "image": "assets/components/progress-bar.png",
+      "tagline": "Show how far along a task is",
       "anatomy": [
         "Track",
         "Filled line",
@@ -2280,7 +2280,7 @@
       "category": "Feedback",
       "status": "stable",
       "description": "Hover/focus hint with 8 tail placements and three sizes; Large adds a description, icon, and dismiss. Tail can be hidden; dark and light modes built in.",
-      "image": "assets/components/tooltip.png",
+      "tagline": "Small hint shown on hover or focus",
       "anatomy": [
         "Bubble",
         "Tail (optional)",
@@ -2337,7 +2337,7 @@
       "category": "Data display",
       "status": "stable",
       "description": "User/entity representation in 9 sizes (20–80px) with image, initials, icon, memoji, or illustration content; bottom status (online, offline, busy, away, company) and top status (verified, pin, favorite, add, remove, notification) indicators; Avatar Group and Compact Avatar Group for collections.",
-      "image": "assets/components/avatar.png",
+      "tagline": "Picture or initials for a person",
       "anatomy": [
         "Container",
         "Image / initials / icon",
@@ -2402,7 +2402,7 @@
       "category": "Data display",
       "status": "stable",
       "description": "Semantic sibling of Badge for workflow states: completed, pending, failed, information, disabled — in light or stroke style, with optional dot.",
-      "image": "assets/components/status-badge.png",
+      "tagline": "Label for a workflow state",
       "anatomy": [
         "Container",
         "Dot or icon (optional)",
@@ -2462,7 +2462,7 @@
       "category": "Data display",
       "status": "stable",
       "description": "Tables compose from Table Header Cell (with Sorting Icons) and Table Row Cell — no monolithic component. Row cells set text priority (leading, regular, passive) and can embed Button, Button Group, Switch, Rating, Progress Bar, Status Badge, Badge Group, or Avatar Group.",
-      "image": "assets/components/table.png",
+      "tagline": "Rows and columns of data",
       "anatomy": [
         "Header cell (label, sort icon)",
         "Row cell (content by priority)",
@@ -2517,7 +2517,7 @@
       "category": "Data display",
       "status": "stable",
       "description": "Expandable disclosure row with optional left icon and a flippable chevron position.",
-      "image": "assets/components/accordion.png",
+      "tagline": "Expandable row that hides detail",
       "anatomy": [
         "Header (title, optional icon)",
         "Chevron",
@@ -2562,7 +2562,7 @@
       "category": "Data display",
       "status": "stable",
       "description": "Chronological event list with typed rows: default, file attachment, comment, avatar group, and task status (success, warning, pending, error), plus filter chips.",
-      "image": "assets/components/activity-feed.png",
+      "tagline": "Timeline of recent events",
       "anatomy": [
         "Feed item (avatar/icon, text, timestamp)",
         "Attachment / comment / task row (per type)",
@@ -2609,7 +2609,7 @@
       "category": "Data display",
       "status": "stable",
       "description": "Notification panel composed of header, tab menu (2–4 tabs), typed items (basic, button, file, message) separated by content dividers, and a footer with shortcut links.",
-      "image": "assets/components/notification-feed.png",
+      "tagline": "Panel listing notifications",
       "anatomy": [
         "Header (title, actions)",
         "Tab menu",
@@ -2664,7 +2664,7 @@
       "category": "Layout",
       "status": "stable",
       "description": "Separator in nine flavors: plain line, spaced line, text, text-and-line, solid text, and icon/text button variants (with grouped-button forms) — used inside dropdowns, tables, and modals.",
-      "image": "assets/components/content-divider.png",
+      "tagline": "Line or label separating content",
       "anatomy": [
         "Line",
         "Text or control (optional)"
@@ -2710,7 +2710,7 @@
       "category": "Layout",
       "status": "stable",
       "description": "Custom scrollbar in two visual weights (default, lighter) and three widths (medium 20, small 16, x-small 12).",
-      "image": "assets/components/scroll.png",
+      "tagline": "Styled scrollbar for panels",
       "anatomy": [
         "Track",
         "Thumb"
@@ -2756,7 +2756,7 @@
       "category": "Overlays",
       "status": "stable",
       "description": "Composed surface: Modal Header (basic, left icon, or status: error/warning/success/information; 56/80px) + free content + Modal Footer (basic, checkbox, toggle, stepper, link button, stretch) over the Modal Overlay scrim. Status Modals are ready-made confirmations.",
-      "image": "assets/components/modal.png",
+      "tagline": "A dialog that overlays the page",
       "anatomy": [
         "Overlay",
         "Header (title, optional description or status icon, close)",
@@ -2823,7 +2823,7 @@
       "category": "Overlays",
       "status": "stable",
       "description": "Side panel composed from Drawer Header (basic or left icon; small/large) + free content + Drawer Footer (basic, checkbox, toggle, stepper, link button, stretch).",
-      "image": "assets/components/drawer.png",
+      "tagline": "Panel that slides in from the side",
       "anatomy": [
         "Overlay",
         "Panel",
@@ -2880,7 +2880,7 @@
       "category": "Overlays",
       "status": "stable",
       "description": "Anchored floating panel with 12 tail placements (tail hideable) and an optional footer (stretch buttons or stepper) for multi-step hints and tours.",
-      "image": "assets/components/popover.png",
+      "tagline": "Floating panel anchored to an element",
       "anatomy": [
         "Panel",
         "Tail",
@@ -2945,7 +2945,7 @@
       "category": "Overlays",
       "status": "stable",
       "description": "Menu items for selects, context menus, and command surfaces. Items (small 36 / large 56) carry avatars, flags, or logos plus optional checkbox, sublabel, badge, shortcut, toggle, or button; misc items add search, buttons, and captions. The container is a 16px-radius surface with the md shadow, assembled per use.",
-      "image": "assets/components/dropdown.png",
+      "tagline": "Menu of items and actions",
       "anatomy": [
         "Container (assembled)",
         "Item (leading content, label, trailing content)",
@@ -3003,7 +3003,7 @@
       "category": "Overlays",
       "status": "stable",
       "description": "⌘K palette composed from a search input, typed result items (basic, avatar, left icon, brand, company, country; 48/64px), and a shortcut footer.",
-      "image": "assets/components/command-menu.png",
+      "tagline": "⌘K search-and-run palette",
       "anatomy": [
         "Search input",
         "Result items",
@@ -3047,7 +3047,7 @@
       "category": "Product",
       "status": "stable",
       "description": "App navigation panel with collapsed mode, composed from Sidebar Header, Header Card, Sidebar Items, Feature Cards (six types × four styles), User Profile Card, and Sidebar Footer.",
-      "image": "assets/components/sidebar.png",
+      "tagline": "Main app navigation panel",
       "anatomy": [
         "Header (logo / workspace card)",
         "Nav items (icon, label, badge)",
@@ -3102,7 +3102,7 @@
       "category": "Product",
       "status": "stable",
       "description": "Top app bar with page context and actions, composed from Topbar Items, Item Buttons, and User Profile.",
-      "image": "assets/components/topbar.png",
+      "tagline": "Top app bar with page actions",
       "anatomy": [
         "Page title / context",
         "Search (optional)",
@@ -3149,7 +3149,7 @@
       "category": "Product",
       "status": "stable",
       "description": "Page-level (88px) and section-level (80px) headers in five types: basic, avatar, left icon, brand, company — title, description, and action slot.",
-      "image": "assets/components/page-header.png",
+      "tagline": "Title and actions for a page",
       "anatomy": [
         "Leading content (optional)",
         "Title",
@@ -3204,7 +3204,7 @@
       "category": "Product",
       "status": "stable",
       "description": "Illustrated placeholder shown when a widget or view has no data: illustration tile, message, and optional action.",
-      "image": "assets/components/empty-state.png",
+      "tagline": "Placeholder when there's no data",
       "anatomy": [
         "Illustration",
         "Message",
