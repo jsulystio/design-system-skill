@@ -29,7 +29,9 @@ and component inventory without forcing a design-system-first workflow.
 3. Run `node design-system/scripts/build.mjs` then
    `node design-system/scripts/lint.mjs`. Open `design-system/site/index.html`
    and confirm the foundations and component pages look right. The lint run
-   should use your real `screens.json`, not the sample.
+   should use your real `screens.json`, not the sample. The build also
+   regenerates `DESIGN-SYSTEM.md` — the agent-readable handoff spec — so
+   commit it with the rest.
 
 4. Present the proposed names, screen coverage, and any drift the linter found
    to the person for approval before committing. Extraction is noisy, so expect
@@ -56,6 +58,12 @@ card on the foundations index. Fields the build reads:
   `--sm|--lg`, plus `disabled`), `ds-field` + `ds-input` (`--focus`, `disabled`),
   `ds-card` (`--flat`, with `ds-card-title`/`ds-card-body`), `ds-badge`
   (`--neutral`), `ds-tag` (`ds-tag-x`). Escape any `<`, `>`, `&`.
+- `image` — path to an exported Figma visual (`assets/components/<slug>.png`,
+  relative to `design-system/`). Shown as the card thumbnail, in the page's
+  Anatomy section, and embedded in DESIGN-SYSTEM.md. When present it replaces
+  the `preview` fallback, so components without demo HTML still get a real
+  visual. Export via the Figma MCP `download_assets` tool (scale big variant
+  grids to 0.25–0.5).
 - `examples` — the variant gallery on the component page. Each entry renders a
   labeled card: a live stage plus a tabbed **Usage / CSS** panel (a tab appears
   only when it has content). Fields: `title`, `description` (optional), `code`,
@@ -86,13 +94,24 @@ card on the foundations index. Fields the build reads:
 Add a demo class to `SITE_CSS` in `build.mjs` only when a new component type has
 no existing `ds-*` class that fits — reuse before inventing.
 
-## Component templates
+## The template catalog and the roadmap file
 
-`inventory/component-templates.json` is a catalog of common components that are
-not in the Figma file yet (Checkbox, Select, Tabs, Dialog, Toast, …). The build
-renders each one whose name is not already in `components.json` as a `planned`
-placeholder page — labeled as a template, with "Preview pending" stages and the
-intended variants scaffolded — so the docs show the roadmap. To promote a
-template when the real component ships: cut its entry from the templates file,
-paste it into `components.json`, set `status` and `codeConnected`, and fill in
-the real `preview`, `examples`, and specs. Delete entries you will not build.
+`inventory/components.json` ships pre-filled with the **AlignUI 2.0 template
+catalog**: every Base and Product component from the team's template Figma file
+(Buttons, Selects, Modals, Sidebar, Tables, …) with the props, states, anatomy,
+and an exported visual (`assets/components/*.png`) of the real component sets.
+Entries with `codeConnected: false` are design-stable but not built — coding
+agents scaffold them from their spec (see `references/build-ui.md`) instead of
+inventing an API. Delete entries the project will never use so the docs stay
+honest.
+
+`inventory/component-templates.json` is the project's **roadmap file**: add
+components you have agreed to build that are not in Figma or code yet. The
+build renders each (whose name is not already in `components.json`) as a
+`planned` placeholder page. When one ships, move it into `components.json`.
+
+When bootstrapping a client file that was duplicated from the template, match
+extracted components against the catalog by name first — the goal is to keep
+the template's naming and props, not to re-derive them. Refresh the component
+visuals from the client's file (export the component-set nodes to
+`assets/components/<slug>.png`) so the docs show the client's actual UI.

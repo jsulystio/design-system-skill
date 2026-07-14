@@ -1,12 +1,12 @@
 {
-  "note": "Sample snapshot of what the working Figma file uses. Replace inventory/screens.json with a real export to lint your actual screens.",
+  "note": "Sample snapshot of what the working Figma file uses. Replace inventory/screens.json with a real export to lint your actual screens. One issue is intentional so you can see the linter work: the Skip link uses an unbound, off-palette color.",
   "nodes": [
     { "screen": "Onboarding", "name": "Continue button", "component": "Button",
-      "fills": [{ "hex": "#4A43C9", "bound": true }], "spacing": [{ "value": 12, "bound": true }] },
+      "fills": [{ "hex": "#335cff", "bound": true }], "spacing": [{ "value": 12, "bound": true }] },
     { "screen": "Onboarding", "name": "Skip link", "fills": [{ "hex": "#3A0CA3", "bound": false }] },
-    { "screen": "Library", "name": "Item card", "component": "Card",
-      "fills": [{ "hex": "#F7F6F2", "bound": true }], "spacing": [{ "value": 24, "bound": true }] },
-    { "screen": "Library", "name": "Hover hint", "component": "Tooltip", "fills": [{ "hex": "#1F1E1B", "bound": true }] },
-    { "screen": "Library", "name": "Filter row gap", "spacing": [{ "value": 10, "bound": false }] }
+    { "screen": "Library", "name": "Item card", "component": "Widget Box",
+      "fills": [{ "hex": "#f7f7f7", "bound": true }], "spacing": [{ "value": 24, "bound": true }] },
+    { "screen": "Library", "name": "Hover hint", "component": "Tooltip", "fills": [{ "hex": "#171717", "bound": true }] },
+    { "screen": "Library", "name": "Filter row gap", "spacing": [{ "value": 14, "bound": false }] }
   ]
 }

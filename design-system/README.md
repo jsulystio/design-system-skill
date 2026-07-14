@@ -4,6 +4,9 @@ A self-contained `design-system/` folder you add to **any existing repository**.
 It never touches your repo root, has zero npm dependencies, and treats
 **Figma variables as the source of truth**. From that one source it generates:
 
+- `DESIGN-SYSTEM.md` **the whole system as one agent-readable spec** — every
+  token and component contract. This is the handoff artifact: tell any coding
+  agent to read it before building UI and the output uses your tokens.
 - `tokens/tokens.json` normalized design tokens (light and dark)
 - `tokens/variables.css` CSS custom properties for your app
 - `tokens/tailwind.theme.js` a Tailwind theme wired to those variables
@@ -11,8 +14,35 @@ It never touches your repo root, has zero npm dependencies, and treats
 - `code-connect/` maps Figma components to your real code components
 - `skill/design-system/` a Claude skill for the parts that need judgment
 
+The bundled sample data is not lorem-ipsum: it is the **AlignUI 2.0 template
+structure** (the design system file we duplicate for client projects) — gray +
+slate neutral scales, 9 accent hues, semantic `bg/text/icon/stroke/state/primary`
+tokens, the AlignUI type scale, and a component catalog matching the template's
+Base Components pages. A new project is usable before its Figma file exists.
+
 Everything lives under `design-system/`. Generated output goes in
 `design-system/site/`, so it cannot collide with a `docs/` your app already has.
+
+## Give the system to a coding agent
+
+Two steps, once:
+
+```bash
+node design-system/scripts/build.mjs      # regenerates DESIGN-SYSTEM.md
+node design-system/install.mjs --agents   # points AGENTS.md / CLAUDE.md at it
+```
+
+After that, any coding agent working in the repo is instructed to read
+`design-system/DESIGN-SYSTEM.md` before touching UI: use tokens only, reuse the
+component catalog, scaffold planned components from their spec, and self-check
+with the code linter:
+
+```bash
+node design-system/scripts/lint.mjs --code src/   # flags hardcoded colors that bypass tokens
+```
+
+No agent-side setup? Just paste one line into any tool: *"Read
+`design-system/DESIGN-SYSTEM.md` and follow it, then build …"*.
 
 ---
 
@@ -113,6 +143,11 @@ globally, and in `tailwind.config.js`:
 ```js
 theme: { extend: require('./design-system/tokens/tailwind.theme.js') }
 ```
+
+Every build also refreshes `design-system/DESIGN-SYSTEM.md` (committed), and
+`lint.mjs --code src/` keeps the app honest: any hardcoded hex color that is
+not a token fails the lint, with a `design-system-ignore` comment as the
+explicit escape hatch. Run both linters in CI to gate design *and* code drift.
 
 ---
 

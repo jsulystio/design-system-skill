@@ -1,9 +1,16 @@
 {
   "name": "Design system",
   "fileKey": "REPLACE_WITH_FIGMA_FILE_KEY",
+  "template": {
+    "name": "AlignUI Design System 2.0",
+    "note": "Duplicate the team's AlignUI template file for each client, then put the duplicate's file key above. The bundled tokens and component catalog mirror this template."
+  },
   "pull": {
     "mode": "import",
     "importPath": "import/variables.export.json"
+  },
+  "lint": {
+    "codePaths": ["src"]
   },
   "host": { "provider": "github-pages" },
   "storybook": { "framework": "auto" }

@@ -3,8 +3,12 @@
 //   tokens/tokens.json       DTCG-style tokens with light/dark values
 //   tokens/variables.css     CSS custom properties (:root + dark overrides)
 //   tokens/tailwind.theme.js Tailwind theme referencing the CSS vars
+//   DESIGN-SYSTEM.md         the whole system as one agent-readable spec
 //   site/                    a static, self-updating guideline site
 //
+// DESIGN-SYSTEM.md is the handoff artifact: a developer (or a coding agent)
+// reads that one file and can build UI that matches the system without
+// opening Figma. It is committed on purpose, unlike the other outputs.
 // The docs site is themed BY the tokens it documents, so the page you read
 // is a live sample of the system. No dependencies, pure Node stdlib.
 
@@ -241,7 +245,10 @@ function scaleRow(t) {
   return `<tr><td><code>${esc(t.name)}</code></td><td class="mono">${esc(t.light ?? '')}</td></tr>`;
 }
 function compCard(c) {
-  const inner = c.preview || '<span class="stage-empty">Preview pending</span>';
+  const img = c.image ? c.image.split('/').pop() : null;
+  const inner = img
+    ? `<img class="thumb-img" src="assets/components/${esc(img)}" alt="" loading="lazy">`
+    : (c.preview || '<span class="stage-empty">Preview pending</span>');
   const cls = c._template ? 'comp-card comp-card--template' : 'comp-card';
   return `<a class="${cls}" href="components/${slug(c.name)}.html">
     <div class="stage stage--thumb">${inner}</div>
@@ -339,7 +346,7 @@ function renderExample(ex, comp) {
 }
 
 function foundationsPage() {
-  const order = ['color', 'space', 'radius', 'font', 'shadow'];
+  const order = ['color', 'space', 'radius', 'type', 'font', 'shadow'];
   const cats = [...order.filter((c) => groups[c]), ...Object.keys(groups).filter((c) => !order.includes(c))];
   const sections = cats.map((cat) => {
     const items = groups[cat];
@@ -363,25 +370,51 @@ function foundationsPage() {
   return shell('Foundations', body, 0);
 }
 
+// Interaction states are folded into the API table (one `state` row) instead of
+// a separate States section — a states list of just ["default"] is noise.
+function meaningfulStates(c) {
+  const st = c.states || [];
+  return st.length > 1 || (st.length === 1 && st[0].toLowerCase() !== 'default') ? st : [];
+}
+function imageFile(c) {
+  return c.image ? c.image.split('/').pop() : null;
+}
+
 function componentPage(c) {
-  const props = (c.props || []).map((pr) =>
+  const propRows = (c.props || []).map((pr) =>
     `<tr><td><code>${esc(pr.name)}</code></td><td>${(pr.values || []).map((v) => `<span class="tag">${esc(v)}</span>`).join(' ')}</td></tr>`
-  ).join('');
-  const anatomy = (c.anatomy || []).map((a) => `<li>${esc(a)}</li>`).join('');
-  const states = (c.states || []).map((s) => `<span class="tag">${esc(s)}</span>`).join(' ');
+  );
+  const states = meaningfulStates(c);
+  if (states.length) {
+    propRows.push(`<tr><td><code>state</code> <span class="muted">(interaction)</span></td><td>${states.map((s) => `<span class="tag">${esc(s)}</span>`).join(' ')}</td></tr>`);
+  }
+  const api = propRows.length
+    ? `<section><h2>API</h2><table class="scale"><tbody>${propRows.join('')}</tbody></table></section>`
+    : '';
+
+  // Anatomy: the component's real Figma render next to the numbered part list.
+  const img = imageFile(c);
+  const anatomyItems = (c.anatomy || []).map((a) => `<li>${esc(a)}</li>`).join('');
+  const visual = img
+    ? `<figure class="anatomy-visual"><img src="../assets/components/${esc(img)}" alt="${esc(c.name)} — variants from the Figma file" loading="lazy"></figure>`
+    : '';
+  const anatomy = (anatomyItems || visual)
+    ? `<section><h2>Anatomy</h2>${visual}${anatomyItems ? `<ol class="anatomy">${anatomyItems}</ol>` : ''}</section>`
+    : '';
+
   const tokensUsed = (c.tokensUsed || []).map((t) =>
     `<li><span class="chip sm" style="background: var(${cssVar(t)})"></span><code>${esc(t)}</code></li>`
   ).join('');
   const dos = (c.usage?.do || []).map((d) => `<li>${esc(d)}</li>`).join('');
   const donts = (c.usage?.dont || []).map((d) => `<li>${esc(d)}</li>`).join('');
   const code = c._template
-    ? `<p class="template-note">Template not yet found in the Figma file. Once this component ships, move it to <code>inventory/components.json</code> and add the final description, tokens, specs, and preview code.</p>`
+    ? `<p class="template-note">Not in the Figma file yet — this page is the agreed spec. Once it ships, move it to <code>inventory/components.json</code> and add the final tokens, specs, and preview.</p>`
     : c.codeConnected
       ? `<p class="connected">Code-connected &rarr; <code>${esc(c.codePath || '')}</code></p>`
-      : `<p class="unconnected">Not yet code-connected. Engineers should not hand-build this until a mapping exists.</p>`;
+      : `<p class="unconnected">In the design system, not yet in code. Scaffold it from this spec (see the build-ui flow) instead of hand-rolling a different API.</p>`;
   const examples = (c.examples && c.examples.length)
     ? c.examples
-    : (c.preview ? [{ title: 'Preview', code: c.preview }] : []);
+    : ((!img && c.preview) ? [{ title: 'Preview', code: c.preview }] : []);
   const variants = examples.length
     ? `<section><h2>Variants</h2>${examples.map((ex) => renderExample(ex, c)).join('')}</section>`
     : '';
@@ -394,28 +427,37 @@ function componentPage(c) {
     <p class="lede">${esc(c.description || '')}</p>
     ${code}
     ${importLine}
+    ${anatomy}
     ${variants}
-    <section><h2>Anatomy</h2><ul class="anatomy">${anatomy}</ul></section>
-    <section><h2>Properties</h2><table class="scale"><tbody>${props}</tbody></table></section>
-    <section><h2>States</h2><p class="tags">${states}</p></section>
-    <section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>
-    <section class="usage">
+    ${api}
+    ${tokensUsed ? `<section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>` : ''}
+    ${(dos || donts) ? `<section class="usage">
       <div><h2>Do</h2><ul class="do">${dos}</ul></div>
       <div><h2>Don't</h2><ul class="dont">${donts}</ul></div>
-    </section>`;
+    </section>` : ''}`;
   return shell(c.name, body, 1);
 }
 
 // Copy generated variables.css into docs so the hosted site is self-contained.
 write(p('site/assets/tokens.css'), fs.readFileSync(p('tokens/variables.css'), 'utf8'));
 
+// Copy component visuals (exported from Figma) into the site.
+if (exists(p('assets/components'))) {
+  fs.mkdirSync(p('site/assets/components'), { recursive: true });
+  for (const f of fs.readdirSync(p('assets/components'))) {
+    if (f.endsWith('.png') || f.endsWith('.svg') || f.endsWith('.jpg')) {
+      fs.copyFileSync(p('assets/components', f), p('site/assets/components', f));
+    }
+  }
+}
+
 const SITE_CSS = `
 :root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 61px; --side-w: 260px; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: var(--color-bg-canvas, #fff);
-  color: var(--color-text-primary, #141413);
+  background: var(--color-bg-white-0, #fff);
+  color: var(--color-text-strong-950, #171717);
   font-family: var(--font-family-sans, ui-sans-serif, system-ui, sans-serif);
   font-size: 16px; line-height: 1.65;
 }
@@ -423,22 +465,22 @@ a { color: inherit; }
 code, .mono { font-family: inherit; font-size: inherit; }
 .topbar {
   display: flex; align-items: center; gap: 12px;
-  padding: 14px var(--gap); border-bottom: 1px solid var(--color-border-default, #e6e4dd);
-  position: sticky; top: 0; background: var(--color-bg-canvas, #fff); z-index: 25;
+  padding: 14px var(--gap); border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb);
+  position: sticky; top: 0; background: var(--color-bg-white-0, #fff); z-index: 25;
 }
 .brand { font-weight: 500; text-decoration: none; letter-spacing: -0.01em; margin-right: auto; }
 .theme {
   font: inherit; font-size: 13px; cursor: pointer; padding: 6px 12px;
-  border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-full, 999px);
   background: transparent; color: inherit;
 }
 .menu {
   display: none; flex-direction: column; justify-content: center; gap: 4px;
   width: 38px; height: 38px; padding: 0 9px; cursor: pointer;
-  border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px);
   background: transparent; flex: none;
 }
-.menu span { display: block; height: 2px; border-radius: 2px; background: var(--color-text-primary, #141413); transition: transform .2s ease, opacity .2s ease; }
+.menu span { display: block; height: 2px; border-radius: 2px; background: var(--color-text-strong-950, #171717); transition: transform .2s ease, opacity .2s ease; }
 body.nav-open .menu span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 body.nav-open .menu span:nth-child(2) { opacity: 0; }
 body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
@@ -453,108 +495,121 @@ body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45de
   width: var(--side-w); z-index: 20;
   display: flex; flex-direction: column; gap: 2px;
   padding: 24px 16px; overflow-y: auto;
-  background: var(--color-bg-canvas, #fff);
-  border-right: 1px solid var(--color-border-default, #e6e4dd);
+  background: var(--color-bg-white-0, #fff);
+  border-right: 1px solid var(--color-stroke-soft-200, #ebebeb);
 }
-.side a { display: flex; align-items: center; text-decoration: none; padding: 6px 8px; border-radius: 6px; font-size: 14px; color: var(--color-text-secondary, #64625c); }
-.side a:hover { background: var(--color-bg-surface, #f5f4ef); color: var(--color-text-primary, #141413); }
-.side-lead { color: var(--color-text-primary, #141413) !important; font-weight: 500; }
-.side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary, #8a887f); margin: 18px 8px 4px; }
+.side a { display: flex; align-items: center; text-decoration: none; padding: 6px 8px; border-radius: 6px; font-size: 14px; color: var(--color-text-sub-600, #5c5c5c); }
+.side a:hover { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-strong-950, #171717); }
+.side-lead { color: var(--color-text-strong-950, #171717) !important; font-weight: 500; }
+.side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-sub-600, #a3a3a3); margin: 18px 8px 4px; }
 .side-filter { position: relative; margin: 12px 0 4px; }
 .side-filter-icon {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  color: var(--color-text-secondary, #8a887f); pointer-events: none;
+  color: var(--color-text-sub-600, #a3a3a3); pointer-events: none;
 }
 .side-filter input {
   width: 100%; font: inherit; font-size: 13px; padding: 7px 10px 7px 30px;
-  border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px);
-  background: var(--color-bg-surface, #f5f4ef); color: inherit;
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px);
+  background: var(--color-bg-weak-50, #f7f7f7); color: inherit;
 }
-.side-filter input:focus { outline: 2px solid var(--color-accent-default, #4a43c9); outline-offset: 1px; }
+.side-filter input:focus { outline: 2px solid var(--color-primary-base, #335cff); outline-offset: 1px; }
 .nav-group { margin-bottom: 6px; }
-.nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary, #8a887f); margin: 12px 8px 2px; font-weight: 500; }
-.dot { display: inline-block; width: 7px; height: 7px; border-radius: 999px; margin-right: 9px; flex: none; background: var(--color-text-secondary, #8a887f); }
+.nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-sub-600, #a3a3a3); margin: 12px 8px 2px; font-weight: 500; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 999px; margin-right: 9px; flex: none; background: var(--color-text-sub-600, #a3a3a3); }
 .dot.st-stable { background: #3f9142; } .dot.st-beta { background: #b5850b; } .dot.st-deprecated { background: #c0392b; } .dot.st-planned { background: #a8a69c; }
 .st-badge { display: inline-block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; line-height: 1.5; }
-.st-badge.st-stable { color: #3f9142; } .st-badge.st-beta { color: #b5850b; } .st-badge.st-deprecated { color: #c0392b; } .st-badge.st-planned { color: var(--color-text-secondary, #8a887f); }
+.st-badge.st-stable { color: #3f9142; } .st-badge.st-beta { color: #b5850b; } .st-badge.st-deprecated { color: #c0392b; } .st-badge.st-planned { color: var(--color-text-sub-600, #a3a3a3); }
 .content { padding: 40px var(--gap) 96px; min-width: 0; max-width: calc(var(--maxw) + 2 * var(--gap)); }
-.eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-accent-default, #4a43c9); margin: 0 0 8px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-primary-base, #335cff); margin: 0 0 8px; }
 h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 12px; }
-h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary, #64625c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border-default, #e6e4dd); }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-sub-600, #5c5c5c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 .comp-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .comp-head h1 { margin: 0; }
-.lede { font-size: 18px; color: var(--color-text-secondary, #64625c); max-width: 60ch; margin: 12px 0 24px; }
+.lede { font-size: 18px; color: var(--color-text-sub-600, #5c5c5c); max-width: 60ch; margin: 12px 0 24px; }
 .hero { padding: 24px 0 8px; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .swatch { margin: 0; }
-.chip { height: 56px; border-radius: var(--radius-md, 8px); border: 1px solid var(--color-border-default, #e6e4dd); }
+.chip { height: 56px; border-radius: var(--radius-8, 8px); border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 .chip.sm { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
 .swatch figcaption { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; font-size: 12px; }
-.swatch figcaption span { color: var(--color-text-secondary, #8a887f); }
+.swatch figcaption span { color: var(--color-text-sub-600, #a3a3a3); }
 table.scale { border-collapse: collapse; width: 100%; font-size: 14px; }
-table.scale td { padding: 8px 12px; border-bottom: 1px solid var(--color-border-default, #eeece5); }
+table.scale td { padding: 8px 12px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 table.scale td:first-child { width: 40%; }
-.cat-head { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary, #8a887f); font-weight: 500; margin: 28px 0 12px; }
+.cat-head { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-sub-600, #a3a3a3); font-weight: 500; margin: 28px 0 12px; }
 .comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
-.comp-card { display: flex; flex-direction: column; text-decoration: none; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); overflow: hidden; transition: border-color .15s ease; }
-.comp-card:hover { border-color: var(--color-accent-default, #4a43c9); }
+.comp-card { display: flex; flex-direction: column; text-decoration: none; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); overflow: hidden; transition: border-color .15s ease; }
+.comp-card:hover { border-color: var(--color-primary-base, #335cff); }
 .comp-card-meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; }
 .comp-card-meta strong { font-weight: 500; display: flex; align-items: center; gap: 8px; }
-.comp-card-meta span { color: var(--color-text-secondary, #64625c); font-size: 13px; }
-.crumb { font-size: 13px; color: var(--color-text-secondary, #8a887f); margin-bottom: 12px; }
+.comp-card-meta span { color: var(--color-text-sub-600, #5c5c5c); font-size: 13px; }
+.crumb { font-size: 13px; color: var(--color-text-sub-600, #a3a3a3); margin-bottom: 12px; }
 .crumb a { color: inherit; }
-.stage { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 36px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-lg, 16px); background: var(--color-bg-surface, #f5f4ef); }
-.stage--thumb { padding: 22px; min-height: 104px; justify-content: center; border: 0; border-bottom: 1px solid var(--color-border-default, #e6e4dd); border-radius: 0; }
-.code { background: var(--color-bg-surface, #f5f4ef); border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 0; }
-.tag { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: var(--radius-full, 999px); background: var(--color-bg-surface, #f5f4ef); border: 1px solid var(--color-border-default, #e6e4dd); margin: 2px 0; }
+.stage { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 36px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); background: var(--color-bg-weak-50, #f7f7f7); }
+.stage--thumb { padding: 22px; min-height: 104px; justify-content: center; border: 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 0; }
+.code { background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 0; }
+.tag { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: var(--radius-full, 999px); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); margin: 2px 0; }
 .tags { line-height: 2.2; }
-.anatomy, .tokenlist, .do, .dont { padding-left: 0; list-style: none; }
-.anatomy li { padding: 6px 0; border-bottom: 1px solid var(--color-border-default, #eeece5); }
+.tokenlist, .do, .dont { padding-left: 0; list-style: none; }
+.anatomy { margin: 16px 0 0; padding-left: 0; counter-reset: part; list-style: none; }
+.anatomy li { padding: 6px 0 6px 34px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); position: relative; }
+.anatomy li::before {
+  counter-increment: part; content: counter(part);
+  position: absolute; left: 0; top: 7px;
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: var(--font-weight-medium, 500);
+  color: var(--color-primary-base, #335cff);
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 999px;
+}
+.anatomy-visual { margin: 0; padding: 20px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); background: var(--color-bg-weak-50, #f7f7f7); max-height: 440px; overflow: auto; }
+.anatomy-visual img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+.muted { color: var(--color-text-soft-400, #a3a3a3); font-size: 12px; }
+.thumb-img { max-width: 100%; max-height: 120px; object-fit: contain; }
 .tokenlist li { padding: 6px 0; }
 .usage { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .do li, .dont li { padding: 6px 0 6px 22px; position: relative; }
-.do li::before { content: "+"; position: absolute; left: 0; color: var(--color-accent-default, #4a43c9); }
-.dont li::before { content: "\\2013"; position: absolute; left: 0; color: var(--color-text-secondary, #8a887f); }
-.connected { font-size: 14px; color: var(--color-accent-default, #4a43c9); }
-.unconnected { font-size: 14px; color: var(--color-text-secondary, #8a887f); }
+.do li::before { content: "+"; position: absolute; left: 0; color: var(--color-primary-base, #335cff); }
+.dont li::before { content: "\\2013"; position: absolute; left: 0; color: var(--color-text-sub-600, #a3a3a3); }
+.connected { font-size: 14px; color: var(--color-primary-base, #335cff); }
+.unconnected { font-size: 14px; color: var(--color-text-sub-600, #a3a3a3); }
 
 /* --- Demo component styles: opted into by inventory \`preview\` snippets. --- */
 /* These render live with the design tokens, so previews stay honest. */
-.ds-btn { display: inline-flex; align-items: center; gap: var(--space-2, 8px); font: inherit; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); line-height: 1; cursor: pointer; padding: var(--space-3, 12px) var(--space-5, 24px); border-radius: var(--radius-md, 8px); border: 1px solid transparent; }
-.ds-btn--primary { background: var(--color-accent-default, #4a43c9); color: var(--color-text-on-accent, #fff); }
-.ds-btn--secondary { background: var(--color-bg-canvas, #fff); color: var(--color-text-primary, #141413); border-color: var(--color-border-default, #e6e4dd); }
-.ds-btn--ghost { background: transparent; color: var(--color-accent-default, #4a43c9); }
-.ds-btn--sm { padding: var(--space-2, 8px) var(--space-3, 12px); font-size: var(--font-size-xs, 12px); }
-.ds-btn--lg { padding: var(--space-4, 16px) var(--space-6, 32px); font-size: var(--font-size-md, 16px); }
+.ds-btn { display: inline-flex; align-items: center; gap: var(--space-8, 8px); font: inherit; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); line-height: 1; cursor: pointer; padding: var(--space-12, 12px) var(--space-24, 24px); border-radius: var(--radius-8, 8px); border: 1px solid transparent; }
+.ds-btn--primary { background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff); }
+.ds-btn--secondary { background: var(--color-bg-white-0, #fff); color: var(--color-text-strong-950, #171717); border-color: var(--color-stroke-soft-200, #ebebeb); }
+.ds-btn--ghost { background: transparent; color: var(--color-primary-base, #335cff); }
+.ds-btn--sm { padding: var(--space-8, 8px) var(--space-12, 12px); font-size: var(--font-size-xs, 12px); }
+.ds-btn--lg { padding: var(--space-16, 16px) var(--space-32, 32px); font-size: var(--font-size-md, 16px); }
 .ds-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
-.ds-field { display: inline-flex; flex-direction: column; gap: var(--space-2, 8px); text-align: left; }
-.ds-field-label { font-size: var(--font-size-sm, 14px); color: var(--color-text-secondary, #64625c); }
-.ds-input { font: inherit; font-size: var(--font-size-sm, 14px); min-width: 220px; padding: var(--space-3, 12px); border-radius: var(--radius-md, 8px); border: 1px solid var(--color-border-default, #e6e4dd); background: var(--color-bg-canvas, #fff); color: var(--color-text-primary, #141413); }
-.ds-input:focus, .ds-input--focus { outline: 2px solid var(--color-accent-default, #4a43c9); outline-offset: 1px; }
-.ds-input[disabled] { background: var(--color-bg-surface, #f5f4ef); color: var(--color-text-secondary, #64625c); opacity: 0.7; cursor: not-allowed; }
-.ds-card { display: flex; flex-direction: column; gap: var(--space-2, 8px); align-items: flex-start; max-width: 280px; text-align: left; padding: var(--space-5, 24px); border-radius: var(--radius-lg, 16px); border: 1px solid var(--color-border-default, #e6e4dd); background: var(--color-bg-canvas, #fff); box-shadow: var(--shadow-sm, 0 1px 2px rgba(20,20,19,0.08)); }
+.ds-field { display: inline-flex; flex-direction: column; gap: var(--space-8, 8px); text-align: left; }
+.ds-field-label { font-size: var(--font-size-sm, 14px); color: var(--color-text-sub-600, #5c5c5c); }
+.ds-input { font: inherit; font-size: var(--font-size-sm, 14px); min-width: 220px; padding: var(--space-12, 12px); border-radius: var(--radius-8, 8px); border: 1px solid var(--color-stroke-soft-200, #ebebeb); background: var(--color-bg-white-0, #fff); color: var(--color-text-strong-950, #171717); }
+.ds-input:focus, .ds-input--focus { outline: 2px solid var(--color-primary-base, #335cff); outline-offset: 1px; }
+.ds-input[disabled] { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-sub-600, #5c5c5c); opacity: 0.7; cursor: not-allowed; }
+.ds-card { display: flex; flex-direction: column; gap: var(--space-8, 8px); align-items: flex-start; max-width: 280px; text-align: left; padding: var(--space-24, 24px); border-radius: var(--radius-16, 16px); border: 1px solid var(--color-stroke-soft-200, #ebebeb); background: var(--color-bg-white-0, #fff); box-shadow: var(--shadow-sm, 0 1px 2px rgba(23,23,23,0.08)); }
 .ds-card--flat { box-shadow: none; }
 .ds-card-title { font-weight: var(--font-weight-medium, 500); }
-.ds-card-body { margin: 0; color: var(--color-text-secondary, #64625c); font-size: var(--font-size-sm, 14px); }
-.ds-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; padding: 0 var(--space-2, 8px); height: 20px; font-size: var(--font-size-xs, 12px); font-weight: var(--font-weight-medium, 500); border-radius: var(--radius-full, 999px); background: var(--color-accent-default, #4a43c9); color: var(--color-text-on-accent, #fff); }
-.ds-badge--neutral { background: var(--color-gray-200, #e1dfd6); color: var(--color-text-primary, #141413); }
-.ds-tag { display: inline-flex; align-items: center; gap: var(--space-2, 8px); font-size: var(--font-size-sm, 14px); padding: var(--space-1, 4px) var(--space-3, 12px); border-radius: var(--radius-full, 999px); background: var(--color-bg-canvas, #fff); border: 1px solid var(--color-border-default, #e6e4dd); color: var(--color-text-secondary, #64625c); }
-.ds-tag-x { cursor: pointer; font-size: 15px; line-height: 1; color: var(--color-text-secondary, #8a887f); }
+.ds-card-body { margin: 0; color: var(--color-text-sub-600, #5c5c5c); font-size: var(--font-size-sm, 14px); }
+.ds-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; padding: 0 var(--space-8, 8px); height: 20px; font-size: var(--font-size-xs, 12px); font-weight: var(--font-weight-medium, 500); border-radius: var(--radius-full, 999px); background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff); }
+.ds-badge--neutral { background: var(--color-bg-soft-200, #ebebeb); color: var(--color-text-strong-950, #171717); }
+.ds-tag { display: inline-flex; align-items: center; gap: var(--space-8, 8px); font-size: var(--font-size-sm, 14px); padding: var(--space-4, 4px) var(--space-12, 12px); border-radius: var(--radius-full, 999px); background: var(--color-bg-white-0, #fff); border: 1px solid var(--color-stroke-soft-200, #ebebeb); color: var(--color-text-sub-600, #5c5c5c); }
+.ds-tag-x { cursor: pointer; font-size: 15px; line-height: 1; color: var(--color-text-sub-600, #a3a3a3); }
 
 /* --- Variant gallery on component pages --- */
-.variant { margin: 0 0 20px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-lg, 16px); overflow: hidden; }
+.variant { margin: 0 0 20px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); overflow: hidden; }
 .variant-head { padding: 16px 18px 0; }
-.variant-head h3 { margin: 0; font-size: 16px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--color-text-primary, #141413); border: 0; padding: 0; }
-.variant-desc { margin: 4px 0 0; color: var(--color-text-secondary, #64625c); font-size: 14px; }
-.stage--variant { margin: 16px 18px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); }
-.stage-empty { color: var(--color-text-secondary, #8a887f); font-size: 13px; font-style: italic; }
+.variant-head h3 { margin: 0; font-size: 16px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--color-text-strong-950, #171717); border: 0; padding: 0; }
+.variant-desc { margin: 4px 0 0; color: var(--color-text-sub-600, #5c5c5c); font-size: 14px; }
+.stage--variant { margin: 16px 18px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); }
+.stage-empty { color: var(--color-text-sub-600, #a3a3a3); font-size: 13px; font-style: italic; }
 
 /* Tabs: Usage / CSS */
-.tabs { border-top: 1px solid var(--color-border-default, #e6e4dd); }
-.tablist { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--color-border-default, #e6e4dd); }
-.tab { font: inherit; font-size: 13px; cursor: pointer; padding: 10px 12px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-text-secondary, #64625c); }
-.tab:hover { color: var(--color-text-primary, #141413); }
-.tab.is-active { color: var(--color-text-primary, #141413); border-bottom-color: var(--color-accent-default, #4a43c9); }
+.tabs { border-top: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.tablist { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.tab { font: inherit; font-size: 13px; cursor: pointer; padding: 10px 12px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--color-text-sub-600, #5c5c5c); }
+.tab:hover { color: var(--color-text-strong-950, #171717); }
+.tab.is-active { color: var(--color-text-strong-950, #171717); border-bottom-color: var(--color-primary-base, #335cff); }
 .tabpanel { padding: 16px 18px; }
 .tabpanel.is-hidden { display: none; }
 .code-wrap { display: flex; align-items: flex-start; gap: 12px; }
@@ -563,18 +618,18 @@ table.scale td:first-child { width: 40%; }
 .tabpanel .code { border: 0; border-radius: 0; background: transparent; margin: 0; padding: 0; }
 
 /* Solo snippet (import block) */
-.snippet--solo { border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); }
+.snippet--solo { border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); }
 .snippet-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 6px; }
-.snippet-bar span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary, #8a887f); font-weight: 500; }
+.snippet-bar span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-sub-600, #a3a3a3); font-weight: 500; }
 .snippet--solo .code { border: 0; border-radius: 0; background: transparent; margin: 0; }
 
-.copy { font: inherit; font-size: 12px; cursor: pointer; padding: 3px 11px; border: 1px solid var(--color-border-default, #e6e4dd); border-radius: var(--radius-full, 999px); background: transparent; color: inherit; }
-.copy:hover { border-color: var(--color-accent-default, #4a43c9); }
-.copy.is-copied { color: var(--color-accent-default, #4a43c9); border-color: var(--color-accent-default, #4a43c9); }
+.copy { font: inherit; font-size: 12px; cursor: pointer; padding: 3px 11px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-full, 999px); background: transparent; color: inherit; }
+.copy:hover { border-color: var(--color-primary-base, #335cff); }
+.copy.is-copied { color: var(--color-primary-base, #335cff); border-color: var(--color-primary-base, #335cff); }
 
 /* Template / planned components */
 .comp-card--template { border-style: dashed; }
-.template-note { font-size: 14px; color: var(--color-text-secondary, #64625c); background: var(--color-bg-surface, #f5f4ef); border: 1px dashed var(--color-border-default, #e6e4dd); border-radius: var(--radius-md, 8px); padding: 12px 14px; }
+.template-note { font-size: 14px; color: var(--color-text-sub-600, #5c5c5c); background: var(--color-bg-weak-50, #f7f7f7); border: 1px dashed var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); padding: 12px 14px; }
 
 @media (max-width: 720px) {
   .menu { display: flex; }
@@ -584,7 +639,7 @@ table.scale td:first-child { width: 40%; }
     top: 0; width: 82%; max-width: 320px;
     transform: translateX(-100%); transition: transform .22s ease;
   }
-  body.nav-open .side { transform: translateX(0); box-shadow: var(--shadow-md, 0 4px 16px rgba(20,20,19,0.10)); }
+  body.nav-open .side { transform: translateX(0); box-shadow: var(--shadow-md, 0 4px 16px rgba(23,23,23,0.10)); }
   .usage { grid-template-columns: 1fr; }
 }
 `;
@@ -595,5 +650,176 @@ for (const c of allComponents) {
   write(p('site/components/' + slug(c.name) + '.html'), componentPage(c));
 }
 
+// ---------- DESIGN-SYSTEM.md: the agent-readable handoff spec ----------
+// One self-contained markdown file with every token and every component
+// contract. Feed it to a coding agent ("read design-system/DESIGN-SYSTEM.md,
+// then build X") and the output uses tokens instead of raw values.
+function tailwindKeyFor(name) {
+  const [head, ...rest] = name.split('/');
+  const tail = rest.join('-');
+  if (head === 'color') return `colors.${tail}`;
+  if (head === 'space') return `spacing.${tail}`;
+  if (head === 'radius') return `borderRadius.${tail}`;
+  if (head === 'font' && rest[0] === 'size') return `fontSize.${rest.slice(1).join('-')}`;
+  if (head === 'font' && rest[0] === 'weight') return `fontWeight.${rest.slice(1).join('-')}`;
+  if (head === 'shadow') return `boxShadow.${tail}`;
+  return '';
+}
+
+function mdTokenTable(items, { dark = true } = {}) {
+  const head = dark
+    ? '| Token | CSS variable | Light | Dark |\n|---|---|---|---|'
+    : '| Token | CSS variable | Value |\n|---|---|---|';
+  const rows = items.map((t) => {
+    const l = cssValue(t.name, t, 'light') ?? String(t.light ?? '');
+    const d = cssValue(t.name, t, 'dark') ?? String(t.dark ?? '');
+    return dark
+      ? `| \`${t.name}\` | \`var(${cssVar(t.name)})\` | \`${l}\` | \`${d !== l ? d : l}\` |`
+      : `| \`${t.name}\` | \`var(${cssVar(t.name)})\` | \`${l}\` |`;
+  });
+  return [head, ...rows].join('\n');
+}
+
+function mdComponent(c) {
+  const lines = [];
+  lines.push(`### ${c.name}`);
+  const meta = [
+    `status: ${statusOf(c)}`,
+    `category: ${c.category || 'Components'}`,
+    c.codeConnected ? `code: \`${c.codePath || ''}\`` : 'code: **not built yet — do not hand-roll; scaffold it from this spec and mark it code-connected**',
+  ];
+  lines.push('');
+  lines.push(meta.map((m) => `- ${m}`).join('\n'));
+  if (c.description) lines.push('', c.description);
+  const img = imageFile(c);
+  if (img) lines.push('', `![${c.name} — variants from the Figma file](assets/components/${img})`);
+  if (c.usage?.import) lines.push('', '```js', c.usage.import, '```');
+  const states = meaningfulStates(c);
+  if (c.props?.length || states.length) {
+    lines.push('', '**API**', '', '| Prop | Values |', '|---|---|');
+    for (const pr of c.props || []) lines.push(`| \`${pr.name}\` | ${(pr.values || []).map((v) => `\`${v}\``).join(' ')} |`);
+    if (states.length) lines.push(`| \`state\` (interaction) | ${states.map((s) => `\`${s}\``).join(' ')} |`);
+  }
+  if (c.anatomy?.length) lines.push('', `**Anatomy:** ${c.anatomy.map((a, i) => `${i + 1}. ${a}`).join(' ')}`);
+  if (c.tokensUsed?.length) lines.push('', `**Tokens used:** ${c.tokensUsed.map((t) => `\`${t}\``).join(', ')}`);
+  for (const ex of c.examples || []) {
+    if (!ex.usage && !(ex.specs || []).length) continue;
+    lines.push('', `**${ex.title || 'Example'}**${ex.description ? ` — ${ex.description}` : ''}`);
+    if (ex.usage) lines.push('', '```jsx', ex.usage, '```');
+    const css = specsToCss(ex, c);
+    if (css) lines.push('', '```css', css, '```');
+  }
+  const dos = c.usage?.do || [], donts = c.usage?.dont || [];
+  if (dos.length || donts.length) {
+    lines.push('');
+    for (const d of dos) lines.push(`- Do: ${d}`);
+    for (const d of donts) lines.push(`- Don't: ${d}`);
+  }
+  return lines.join('\n');
+}
+
+function designSystemMd() {
+  const name = raw.meta?.name || 'Design system';
+  const bySeg = (seg) => Object.values(
+    Object.entries(flat).filter(([n]) => n.startsWith(seg)).reduce((acc, [n, r]) => (acc[n] = { name: n, ...r }, acc), {})
+  );
+  const semanticColors = bySeg('color/').filter((t) => t.collection !== 'primitives');
+  const primitiveColors = bySeg('color/').filter((t) => t.collection === 'primitives');
+  const semGroups = new Map();
+  for (const t of semanticColors) {
+    const g = t.name.split('/')[1];
+    if (!semGroups.has(g)) semGroups.set(g, []);
+    semGroups.get(g).push(t);
+  }
+  const primGroups = new Map();
+  for (const t of primitiveColors) {
+    const g = t.name.split('/')[1];
+    if (!primGroups.has(g)) primGroups.set(g, []);
+    primGroups.get(g).push(t);
+  }
+
+  const out = [];
+  out.push(`# ${name} — full specification`);
+  out.push('');
+  out.push(`> Generated by \`design-system/scripts/build.mjs\` from Figma variables${raw.meta?.template ? ` (structure: ${raw.meta.template})` : ''}. Do not edit by hand — change the Figma variables (or \`tokens/figma.raw.json\`) and rebuild. Last built ${new Date().toISOString().slice(0, 10)}.`);
+  out.push('');
+  out.push('## How to use this file (read this first, especially if you are an AI agent)');
+  out.push('');
+  out.push(`This file is the complete contract of the ${name}. When building any UI in this repository:`);
+  out.push('');
+  out.push('1. **Never hardcode a color, radius, spacing, shadow, or font value.** Every visual value must come from a token below, consumed as a CSS variable (`var(--color-bg-white-0)`) or a Tailwind theme key (`bg-bg-white-0`, from `design-system/tokens/tailwind.theme.js`).');
+  out.push('2. **Use semantic color tokens** (`color/bg/*`, `color/text/*`, `color/icon/*`, `color/stroke/*`, `color/state/*`, `color/primary/*`) in product UI. Primitive scales (`color/blue/500`, …) exist to define semantics — do not use them directly in components.');
+  out.push('3. **Check the component catalog below before writing a new component.** If the component exists and is code-connected, import it from the listed path. If it exists but is not built yet, scaffold it from its spec (props, states, tokens) rather than inventing your own API.');
+  out.push('4. **Dark mode is automatic** when you use the tokens: `variables.css` swaps values under `[data-theme="dark"]` / `prefers-color-scheme`. Never write `dark:`-style one-off colors that bypass tokens.');
+  out.push('5. **State colors map to intent**, not to hue: success=green, error=red, warning=orange, information=blue, away=yellow, feature=purple, verified=sky, highlighted=pink, stable=teal, faded=gray. Pick by meaning.');
+  out.push('6. After generating UI code, run `node design-system/scripts/lint.mjs --code <dir>` to verify nothing drifted from the tokens.');
+  out.push('');
+  out.push('**Consumption artifacts** (regenerate with `node design-system/scripts/build.mjs`):');
+  out.push('');
+  out.push('| Artifact | Use |');
+  out.push('|---|---|');
+  out.push('| `design-system/tokens/variables.css` | Import once, globally. Defines every CSS variable, light + dark. |');
+  out.push('| `design-system/tokens/tailwind.theme.js` | `theme: { extend: require("./design-system/tokens/tailwind.theme.js") }` |');
+  out.push('| `design-system/tokens/tokens.json` | DTCG-style JSON, for any other toolchain. |');
+  out.push('| `design-system/site/` | Human-readable docs site of the same content. |');
+  out.push('');
+  out.push('Naming convention: token `color/bg/white-0` → CSS `var(--color-bg-white-0)` → Tailwind `colors["bg-white-0"]` (class `bg-bg-white-0`, `text-text-strong-950`, `border-stroke-soft-200`, …).');
+
+  out.push('', '## Color — semantic tokens (use these in UI)', '');
+  const SEM_ORDER = ['bg', 'text', 'icon', 'stroke', 'primary', 'state', 'static'];
+  const SEM_NOTES = {
+    bg: 'Backgrounds, from page canvas (`white-0`) to inverted surfaces (`strong-950`).',
+    text: 'Text colors by emphasis: strong → sub → soft → disabled.',
+    icon: 'Icon colors, same emphasis ladder as text.',
+    stroke: 'Borders and dividers.',
+    primary: 'The brand/action color. Rebrand a project by repointing these (and the alpha primitives) — nothing else changes.',
+    state: 'Intent colors. Per state: `lighter` (tinted bg), `light` (borders/accents on tint), `base` (the color), `dark` (text on tint).',
+    static: 'Never flip in dark mode.',
+  };
+  const semKeys = [...SEM_ORDER.filter((k) => semGroups.has(k)), ...[...semGroups.keys()].filter((k) => !SEM_ORDER.includes(k))];
+  for (const key of semKeys) {
+    out.push(`### color/${key}`, '');
+    if (SEM_NOTES[key]) out.push(SEM_NOTES[key], '');
+    out.push(mdTokenTable(semGroups.get(key)), '');
+  }
+
+  out.push('## Color — primitive scales (define semantics only; do not use directly)', '');
+  for (const [key, items] of primGroups) {
+    if (semGroups.has(key)) continue;
+    out.push(`### color/${key}`, '');
+    out.push(mdTokenTable(items, { dark: false }), '');
+  }
+
+  const simpleSection = (title, seg, note, dark = false) => {
+    const items = bySeg(seg);
+    if (!items.length) return;
+    out.push(`## ${title}`, '');
+    if (note) out.push(note, '');
+    out.push(mdTokenTable(items, { dark }), '');
+  };
+  simpleSection('Radius', 'radius/', 'Pixel radii. `radius/full` is a pill/circle.');
+  simpleSection('Spacing', 'space/', 'A 4px grid. Use these for padding, gaps, and margins.');
+  simpleSection('Typography', 'type/', 'Text styles as CSS `font` shorthand (`weight size/line-height family`). Titles for headings, Label for UI text and buttons (medium weight), Paragraph for body copy, Subheading for uppercase eyebrows/overlines.');
+  simpleSection('Font primitives', 'font/');
+  simpleSection('Shadows', 'shadow/', 'Elevation. `xs` for cards and inputs, `sm` for dropdowns/popovers, `md` for modals and drawers.');
+
+  out.push('## Components', '');
+  out.push('Status legend: **stable**/**beta** exist in Figma (and in code when a path is listed); **planned** components have an agreed spec but no Figma/code yet — build them from the spec, then promote them in `design-system/inventory/components.json`.', '');
+  for (const [cat, items] of componentGroups()) {
+    out.push(`## Components — ${cat}`, '');
+    for (const c of items) out.push(mdComponent(c), '', '---', '');
+  }
+
+  out.push('## Changing the system', '');
+  out.push('- Figma variables are the single source of truth. Change flows one way: Figma → `tokens/figma.raw.json` → build → code/docs.');
+  out.push('- To change a value (color, radius, spacing): edit the Figma variable (or ask the design-system skill to "propagate" the change), re-pull, and rebuild. Never patch generated files.');
+  out.push('- To add a component: add it to Figma and the inventory (or promote a planned template), then rebuild.');
+  out.push('- Lint for drift: `node design-system/scripts/lint.mjs` (Figma screens) and `node design-system/scripts/lint.mjs --code src/` (your source code).');
+  out.push('');
+  return out.join('\n');
+}
+
+write(p('DESIGN-SYSTEM.md'), designSystemMd());
+
 const plannedCount = plannedTemplates.length;
-console.log(`Built: ${Object.keys(flat).length} tokens, ${allComponents.length} component pages${plannedCount ? ` (${plannedCount} planned from templates)` : ''} -> site/`);
+console.log(`Built: ${Object.keys(flat).length} tokens, ${allComponents.length} component pages${plannedCount ? ` (${plannedCount} planned from templates)` : ''} -> site/ + DESIGN-SYSTEM.md`);

@@ -5,10 +5,17 @@ Figma all the way to code — without doing it by hand.**
 
 You design in Figma as you normally would. This tool reads your Figma variables
 (your colors, spacing, type, and so on) and turns them into a tidy set of
-reusable values, a live documentation website, and code your engineers can drop
-straight in. When you change something in Figma, one command updates everything
-else to match. No copy-pasting hex codes, no "which blue was that again?", no
-design that quietly drifts away from the build.
+reusable values, a live documentation website, and — the part developers care
+about — **one file, `design-system/DESIGN-SYSTEM.md`, that contains the entire
+system**: every token, every component, every rule. A developer feeds that file
+to any coding agent ("read `design-system/DESIGN-SYSTEM.md`, then build the
+settings page") and gets UI that matches the design instead of guessing at it.
+When you change something in Figma, one command updates everything else to
+match.
+
+It ships pre-loaded with our **AlignUI-based template** — the same structure as
+the design system file we copy for every client — so a new project has a full
+token set and a ~40-component catalog before anyone opens Figma.
 
 Most of the time you just **talk to Claude in plain English** — it does the
 mechanical work for you.
@@ -17,10 +24,10 @@ mechanical work for you.
 
 ## Who this is for
 
-- **Designers** — the main audience. Keep designing in Figma; let this keep your
-  system organized and in sync. You don't need to write code.
-- **Engineers** — get the real, up-to-date colors and components instead of
-  guessing at handoff.
+- **Designers** — keep designing in Figma; let this keep your system organized
+  and in sync. You don't need to write code.
+- **Developers** — point your coding agent at `DESIGN-SYSTEM.md` and build
+  token-true UI; a code linter checks nothing drifted.
 - **Anyone inheriting a project** — open the docs site and instantly understand
   the system.
 
@@ -29,12 +36,16 @@ mechanical work for you.
 ## What you get
 
 - **Design tokens** — your colors, spacing, and type saved as reusable values
-  (light and dark themes included).
+  (light and dark themes included), as CSS variables and a Tailwind theme.
+- **`DESIGN-SYSTEM.md`** — the whole system as one agent-readable spec file.
+  This is the handoff: developers give it to Claude/Cursor/any agent and the
+  generated code uses your tokens and components.
 - **A live docs website** — one page per component, styled by the very tokens it
   documents, so it's always accurate.
-- **Ready-to-use code** — a theme file engineers plug straight into the app.
-- **A drift checker** — flags anything in your designs that doesn't match the
-  system *before* it reaches engineering.
+- **A drift checker, both directions** — flags design values that aren't tokens
+  *and* hardcoded colors in the app code (`lint.mjs --code src/`).
+- **The Pixel8 template built in** — AlignUI-structured tokens and component
+  catalog as the starting point for every client project.
 
 ---
 
@@ -45,7 +56,9 @@ Claude Code and say things like:
 
 | Just say… | And Claude will… |
 |---|---|
-| *"Set up the design system"* | Create everything and pull your Figma colors/components into a first system |
+| *"Set up the design system from the template"* | Scaffold the AlignUI-based template so the project starts with a complete system |
+| *"Bootstrap from my Figma file"* | Pull your real Figma colors/components into the system |
+| *"Build the settings page"* | Build the UI using your tokens and component catalog, then lint its own output |
 | *"Resolve the drift"* | Find anything that doesn't match the system and propose fixes for your approval |
 | *"Make the primary color warmer and buttons less round"* | Turn that into the exact changes and update your tokens, docs, and code |
 
@@ -110,8 +123,9 @@ node design-system/scripts/build.mjs
 npx serve design-system/site        # opens a preview of the docs site
 ```
 
-If step 3 prints `Built: 46 tokens, 5 component pages` and a docs site opens,
-you're good.
+If step 3 prints `Built: 261 tokens, 52 component pages` and a docs site opens,
+you're good — that's the built-in AlignUI-based template, usable before you
+connect any Figma file.
 
 ---
 

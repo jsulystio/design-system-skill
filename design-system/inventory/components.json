@@ -1,271 +1,3236 @@
 {
+  "_comment": "Full AlignUI 2.0 template inventory: every Base + Product component, documented from the template Figma file (props/states mirror the real component sets; visuals in assets/components/ are exported from it). The first five entries carry hand-authored variant examples and demo previews; the rest are design-stable but not code-connected — scaffold them from their spec (build-ui flow) and fill in codePath/examples as they ship.",
   "components": [
     {
       "name": "Button",
-      "figmaNodeId": "10:2",
+      "figmaNodeId": "129:1422",
       "category": "Actions",
       "status": "stable",
-      "description": "Primary action trigger. One primary button per view.",
+      "description": "Primary action trigger. AlignUI API: three types (primary, neutral, error) crossed with four styles (filled, stroke, lighter, ghost) and four sizes.",
       "preview": "<button class=\"ds-btn ds-btn--primary\">Save changes</button><button class=\"ds-btn ds-btn--secondary\">Cancel</button><button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
       "examples": [
         {
-          "title": "Primary",
+          "title": "Primary filled",
           "description": "The main action on a view. Use exactly one.",
           "code": "<button class=\"ds-btn ds-btn--primary\">Save changes</button>",
-          "usage": "<Button variant=\"primary\">Save changes</Button>",
+          "usage": "<Button type=\"primary\" style=\"filled\">Save changes</Button>",
           "specs": [
-            { "label": "Background", "token": "color/accent/default" },
-            { "label": "Text", "token": "color/text/on-accent" },
-            { "label": "Radius", "token": "radius/md" },
-            { "label": "Padding Y", "token": "space/3" },
-            { "label": "Padding X", "token": "space/5" },
-            { "label": "Weight", "token": "font/weight/medium" }
+            {
+              "label": "Background",
+              "token": "color/primary/base"
+            },
+            {
+              "label": "Text",
+              "token": "color/static/white"
+            },
+            {
+              "label": "Radius",
+              "token": "radius/10"
+            },
+            {
+              "label": "Padding Y",
+              "token": "space/10"
+            },
+            {
+              "label": "Padding X",
+              "token": "space/16"
+            },
+            {
+              "label": "Weight",
+              "token": "font/weight/medium"
+            }
           ]
         },
         {
-          "title": "Secondary",
+          "title": "Neutral stroke",
           "description": "A supporting action shown alongside primary.",
           "code": "<button class=\"ds-btn ds-btn--secondary\">Cancel</button>",
-          "usage": "<Button variant=\"secondary\">Cancel</Button>",
+          "usage": "<Button type=\"neutral\" style=\"stroke\">Cancel</Button>",
           "specs": [
-            { "label": "Background", "token": "color/bg/canvas" },
-            { "label": "Text", "token": "color/text/primary" },
-            { "label": "Border", "token": "color/border/default" },
-            { "label": "Radius", "token": "radius/md" }
+            {
+              "label": "Background",
+              "token": "color/bg/white-0"
+            },
+            {
+              "label": "Text",
+              "token": "color/text/sub-600"
+            },
+            {
+              "label": "Border",
+              "token": "color/stroke/soft-200"
+            },
+            {
+              "label": "Radius",
+              "token": "radius/10"
+            }
           ]
         },
         {
           "title": "Ghost",
           "description": "Low-emphasis action for tertiary or inline use.",
           "code": "<button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
-          "usage": "<Button variant=\"ghost\">Learn more</Button>",
+          "usage": "<Button type=\"primary\" style=\"ghost\">Learn more</Button>",
           "specs": [
-            { "label": "Background", "value": "transparent" },
-            { "label": "Text", "token": "color/accent/default" }
+            {
+              "label": "Background",
+              "value": "transparent"
+            },
+            {
+              "label": "Text",
+              "token": "color/primary/base"
+            }
           ]
         },
         {
           "title": "Sizes",
-          "description": "Three sizes share one shape; padding and text scale.",
-          "code": "<button class=\"ds-btn ds-btn--primary ds-btn--sm\">Small</button>\n<button class=\"ds-btn ds-btn--primary\">Medium</button>\n<button class=\"ds-btn ds-btn--primary ds-btn--lg\">Large</button>",
-          "usage": "<Button variant=\"primary\" size=\"sm\">Small</Button>\n<Button variant=\"primary\">Medium</Button>\n<Button variant=\"primary\" size=\"lg\">Large</Button>",
+          "description": "Four sizes share one shape: medium 40px, small 36px, x-small 32px, 2x-small 28px.",
+          "code": "<button class=\"ds-btn ds-btn--primary ds-btn--sm\">Small</button>\n<button class=\"ds-btn ds-btn--primary\">Medium</button>",
+          "usage": "<Button size=\"small\">Small</Button>\n<Button size=\"medium\">Medium</Button>",
           "specs": [
-            { "label": "sm padding", "token": "space/2" },
-            { "label": "md padding", "token": "space/3" },
-            { "label": "lg padding", "token": "space/4" }
+            {
+              "label": "medium padding",
+              "token": "space/10"
+            },
+            {
+              "label": "small padding",
+              "token": "space/8"
+            },
+            {
+              "label": "x-small padding",
+              "token": "space/6"
+            }
           ]
         },
         {
           "title": "Disabled",
           "description": "Non-interactive. Keep the label so intent stays clear.",
           "code": "<button class=\"ds-btn ds-btn--primary\" disabled>Save changes</button>",
-          "usage": "<Button variant=\"primary\" disabled>Save changes</Button>",
+          "usage": "<Button type=\"primary\" disabled>Save changes</Button>",
           "specs": [
-            { "label": "Opacity", "value": "45%" },
-            { "label": "Cursor", "value": "not-allowed" }
+            {
+              "label": "Background",
+              "token": "color/bg/weak-50"
+            },
+            {
+              "label": "Text",
+              "token": "color/text/disabled-300"
+            },
+            {
+              "label": "Cursor",
+              "value": "not-allowed"
+            }
           ]
         }
       ],
-      "anatomy": ["Container", "Label", "Icon (optional, leading or trailing)"],
-      "props": [
-        { "name": "variant", "values": ["primary", "secondary", "ghost"] },
-        { "name": "size", "values": ["sm", "md", "lg"] }
+      "anatomy": [
+        "Container",
+        "Label",
+        "Icon (optional, leading or trailing, or icon-only)"
       ],
-      "states": ["default", "hover", "focus", "disabled", "loading"],
-      "tokensUsed": ["color/accent/default", "color/text/on-accent", "radius/md", "space/3", "space/5", "font/weight/medium"],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "primary",
+            "neutral",
+            "error"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "filled",
+            "stroke",
+            "lighter",
+            "ghost"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall",
+            "2xsmall"
+          ]
+        },
+        {
+          "name": "onlyIcon",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/static/white",
+        "color/stroke/soft-200",
+        "radius/10",
+        "space/10",
+        "space/16",
+        "font/weight/medium"
+      ],
       "usage": {
         "import": "import { Button } from '@/components/ui/button'",
-        "do": ["Use one primary button to mark the main action", "Keep labels to a verb, e.g. Save changes"],
-        "dont": ["Stack two primary buttons side by side", "Use a button for navigation, use a link"]
+        "do": [
+          "Use one primary-filled button per view",
+          "Use type=\"error\" only for destructive actions"
+        ],
+        "dont": [
+          "Stack two primary buttons side by side",
+          "Use a button for navigation, use a Link Button"
+        ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/button.tsx"
+      "codePath": "src/components/ui/button.tsx",
+      "image": "assets/components/button.png"
     },
     {
-      "name": "Input",
-      "figmaNodeId": "10:8",
+      "name": "Text Input",
+      "figmaNodeId": "266:5251",
       "category": "Forms",
       "status": "stable",
-      "description": "Single-line text field with label and optional helper text.",
+      "description": "Single-line text field with label and hint text. Types cover the common input formats; siblings Tag Input, Counter Input, and Digit Input share the same state model.",
       "preview": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><input class=\"ds-input\" placeholder=\"you@example.com\"></label>",
       "examples": [
         {
           "title": "Default",
           "description": "Resting field with a visible label.",
           "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" placeholder=\"you@example.com\">\n</label>",
-          "usage": "<Input label=\"Email\" placeholder=\"you@example.com\" />",
+          "usage": "<TextInput type=\"email\" label=\"Email\" placeholder=\"you@example.com\" />",
           "specs": [
-            { "label": "Background", "token": "color/bg/canvas" },
-            { "label": "Border", "token": "color/border/default" },
-            { "label": "Text", "token": "color/text/primary" },
-            { "label": "Radius", "token": "radius/md" },
-            { "label": "Padding", "token": "space/3" }
+            {
+              "label": "Background",
+              "token": "color/bg/white-0"
+            },
+            {
+              "label": "Border",
+              "token": "color/stroke/soft-200"
+            },
+            {
+              "label": "Text",
+              "token": "color/text/strong-950"
+            },
+            {
+              "label": "Radius",
+              "token": "radius/10"
+            },
+            {
+              "label": "Padding",
+              "token": "space/10"
+            }
           ]
         },
         {
-          "title": "Focused",
-          "description": "Focus ring uses the accent token, matching buttons and links.",
+          "title": "Focus",
+          "description": "Focus ring uses the primary token, matching buttons and links.",
           "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input ds-input--focus\" value=\"you@example.com\">\n</label>",
-          "usage": "<Input label=\"Email\" defaultValue=\"you@example.com\" autoFocus />",
+          "usage": "<TextInput label=\"Email\" defaultValue=\"you@example.com\" autoFocus />",
           "specs": [
-            { "label": "Outline", "token": "color/accent/default" },
-            { "label": "Outline width", "value": "2px" }
+            {
+              "label": "Outline",
+              "token": "color/primary/base"
+            },
+            {
+              "label": "Outline width",
+              "value": "2px"
+            }
+          ]
+        },
+        {
+          "title": "Error",
+          "description": "Error state colors the border and hint text by intent.",
+          "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" value=\"not-an-email\" style=\"border-color: var(--color-state-error-base)\">\n</label>",
+          "usage": "<TextInput label=\"Email\" error=\"Enter a valid email\" />",
+          "specs": [
+            {
+              "label": "Border",
+              "token": "color/state/error/base"
+            },
+            {
+              "label": "Text",
+              "token": "color/text/strong-950"
+            }
           ]
         },
         {
           "title": "Disabled",
           "description": "Dimmed surface signals the field cannot be edited.",
           "code": "<label class=\"ds-field\">\n  <span class=\"ds-field-label\">Email</span>\n  <input class=\"ds-input\" value=\"you@example.com\" disabled>\n</label>",
-          "usage": "<Input label=\"Email\" defaultValue=\"you@example.com\" disabled />",
+          "usage": "<TextInput label=\"Email\" defaultValue=\"you@example.com\" disabled />",
           "specs": [
-            { "label": "Background", "token": "color/bg/surface" },
-            { "label": "Opacity", "value": "70%" }
+            {
+              "label": "Background",
+              "token": "color/bg/weak-50"
+            },
+            {
+              "label": "Text",
+              "token": "color/text/disabled-300"
+            }
           ]
         }
       ],
-      "anatomy": ["Label", "Field container", "Placeholder / value", "Helper or error text"],
-      "props": [
-        { "name": "state", "values": ["default", "error", "disabled"] },
-        { "name": "size", "values": ["sm", "md"] }
+      "anatomy": [
+        "Label (with optional required mark, sublabel, info icon)",
+        "Field container",
+        "Leading icon (optional)",
+        "Placeholder / value",
+        "Trailing element (optional: icon, button, dropdown)",
+        "Hint text"
       ],
-      "states": ["default", "focus", "filled", "error", "disabled"],
-      "tokensUsed": ["color/bg/surface", "color/border/default", "color/text/primary", "radius/md", "space/3"],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "basic",
+            "email",
+            "phone",
+            "card",
+            "website",
+            "amount",
+            "date",
+            "search",
+            "password",
+            "button",
+            "dropdown",
+            "emoji"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "placeholder",
+        "hover",
+        "focus",
+        "filled",
+        "disabled",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
       "usage": {
-        "import": "import { Input } from '@/components/ui/input'",
-        "do": ["Always pair with a visible label", "Show errors inline below the field"],
-        "dont": ["Use placeholder text as the only label"]
+        "import": "import { TextInput } from '@/components/ui/text-input'",
+        "do": [
+          "Always pair with a visible label",
+          "Show errors as hint text below the field, colored by state/error"
+        ],
+        "dont": [
+          "Use placeholder text as the only label"
+        ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/input.tsx"
+      "codePath": "src/components/ui/text-input.tsx",
+      "image": "assets/components/text-input.png"
     },
     {
-      "name": "Card",
-      "figmaNodeId": "10:14",
+      "name": "Badge",
+      "figmaNodeId": "118:2324",
+      "category": "Data display",
+      "status": "beta",
+      "description": "Small status or count indicator. Four styles (filled, light, lighter, stroke) across the 10-color palette; Status Badge is the semantic sibling (completed, pending, failed).",
+      "preview": "<span class=\"ds-badge\">3</span><span class=\"ds-badge ds-badge--neutral\">New</span><span class=\"ds-badge ds-badge--neutral\">12</span>",
+      "examples": [
+        {
+          "title": "Filled",
+          "description": "Strongest emphasis. Use for counts and unread states.",
+          "code": "<span class=\"ds-badge\">3</span>",
+          "usage": "<Badge style=\"filled\" color=\"blue\">3</Badge>",
+          "specs": [
+            {
+              "label": "Background",
+              "token": "color/primary/base"
+            },
+            {
+              "label": "Text",
+              "token": "color/static/white"
+            },
+            {
+              "label": "Radius",
+              "token": "radius/full"
+            },
+            {
+              "label": "Padding X",
+              "token": "space/8"
+            }
+          ]
+        },
+        {
+          "title": "Lighter",
+          "description": "Quiet tinted label for status that should not pull focus.",
+          "code": "<span class=\"ds-badge ds-badge--neutral\">New</span>",
+          "usage": "<Badge style=\"lighter\" color=\"gray\">New</Badge>",
+          "specs": [
+            {
+              "label": "Background",
+              "token": "color/state/faded/lighter"
+            },
+            {
+              "label": "Text",
+              "token": "color/state/faded/dark"
+            }
+          ]
+        }
+      ],
+      "anatomy": [
+        "Container",
+        "Dot or icon (optional)",
+        "Value"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "basic",
+            "with-dot",
+            "left-icon",
+            "right-icon"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "filled",
+            "light",
+            "lighter",
+            "stroke"
+          ]
+        },
+        {
+          "name": "color",
+          "values": [
+            "gray",
+            "blue",
+            "orange",
+            "red",
+            "green",
+            "yellow",
+            "purple",
+            "sky",
+            "pink",
+            "teal"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "small",
+            "medium"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/state/faded/lighter",
+        "color/state/faded/dark",
+        "color/primary/base",
+        "color/static/white",
+        "radius/full",
+        "space/8"
+      ],
+      "usage": {
+        "import": "import { Badge } from '@/components/ui/badge'",
+        "do": [
+          "Pick the color by intent (state tokens), not decoration"
+        ],
+        "dont": [
+          "Put sentences inside a badge"
+        ]
+      },
+      "codeConnected": true,
+      "codePath": "src/components/ui/badge.tsx",
+      "image": "assets/components/badge.png"
+    },
+    {
+      "name": "Tag",
+      "figmaNodeId": "431:16147",
+      "category": "Data display",
+      "status": "planned",
+      "description": "Removable label for categorizing items. Leading content can be an icon, avatar, flag, or logo; dismiss icon is a toggle.",
+      "preview": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span><span class=\"ds-tag\">Engineering<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
+      "examples": [
+        {
+          "title": "Stroke, dismissible",
+          "description": "Carries a remove control for dismissing the selection.",
+          "code": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
+          "usage": "<Tag style=\"stroke\" onDismiss={...}>Design</Tag>",
+          "specs": [
+            {
+              "label": "Background",
+              "token": "color/bg/white-0"
+            },
+            {
+              "label": "Border",
+              "token": "color/stroke/soft-200"
+            },
+            {
+              "label": "Text",
+              "token": "color/text/sub-600"
+            },
+            {
+              "label": "Radius",
+              "token": "radius/6"
+            },
+            {
+              "label": "Gap",
+              "token": "space/4"
+            }
+          ]
+        },
+        {
+          "title": "Gray, read-only",
+          "description": "No remove control. Use for fixed categories.",
+          "code": "<span class=\"ds-tag\">Design</span>",
+          "usage": "<Tag style=\"gray\">Design</Tag>",
+          "specs": [
+            {
+              "label": "Background",
+              "token": "color/bg/weak-50"
+            },
+            {
+              "label": "Padding X",
+              "token": "space/8"
+            },
+            {
+              "label": "Padding Y",
+              "token": "space/4"
+            }
+          ]
+        }
+      ],
+      "anatomy": [
+        "Container",
+        "Leading content (optional: icon, avatar, flag, logo)",
+        "Label",
+        "Dismiss icon (optional)"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "basic",
+            "left-icon",
+            "avatar",
+            "country",
+            "brand",
+            "company"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "stroke",
+            "gray"
+          ]
+        },
+        {
+          "name": "dismissible",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/bg/weak-50",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "radius/6",
+        "space/4"
+      ],
+      "usage": {
+        "import": "import { Tag } from '@/components/ui/tag'",
+        "do": [
+          "Group tags on one row where possible"
+        ],
+        "dont": [
+          "Use tags for actions, they read as passive labels"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/tag.tsx",
+      "image": "assets/components/tag.png"
+    },
+    {
+      "name": "Widget Box",
+      "figmaNodeId": "2950:5881",
       "category": "Layout",
       "status": "stable",
-      "description": "Surface that groups related content and actions.",
+      "description": "Surface that groups related content and actions — the container behind every dashboard widget in the template's Product Components.",
       "preview": "<div class=\"ds-card\"><strong class=\"ds-card-title\">Weekly report</strong><p class=\"ds-card-body\">Your team shipped 12 changes this week.</p><button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button></div>",
       "examples": [
         {
           "title": "Raised",
           "description": "Default elevation. Use for standalone surfaces on the canvas.",
           "code": "<div class=\"ds-card\">\n  <strong class=\"ds-card-title\">Weekly report</strong>\n  <p class=\"ds-card-body\">Your team shipped 12 changes this week.</p>\n  <button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button>\n</div>",
-          "usage": "<Card>\n  <Card.Title>Weekly report</Card.Title>\n  <Card.Body>Your team shipped 12 changes this week.</Card.Body>\n  <Button variant=\"secondary\" size=\"sm\">View</Button>\n</Card>",
+          "usage": "<WidgetBox>\n  <WidgetBox.Header title=\"Weekly report\" />\n  <WidgetBox.Body>Your team shipped 12 changes this week.</WidgetBox.Body>\n  <Button type=\"neutral\" style=\"stroke\" size=\"small\">View</Button>\n</WidgetBox>",
           "specs": [
-            { "label": "Surface", "token": "color/bg/canvas" },
-            { "label": "Border", "token": "color/border/default" },
-            { "label": "Radius", "token": "radius/lg" },
-            { "label": "Shadow", "token": "shadow/sm" },
-            { "label": "Padding", "token": "space/5" }
+            {
+              "label": "Surface",
+              "token": "color/bg/white-0"
+            },
+            {
+              "label": "Border",
+              "token": "color/stroke/soft-200"
+            },
+            {
+              "label": "Radius",
+              "token": "radius/16"
+            },
+            {
+              "label": "Shadow",
+              "token": "shadow/xs"
+            },
+            {
+              "label": "Padding",
+              "token": "space/16"
+            }
           ]
         },
         {
           "title": "Flat",
-          "description": "No shadow. Use when cards sit inside another surface.",
+          "description": "No shadow. Use when widgets sit inside another surface.",
           "code": "<div class=\"ds-card ds-card--flat\">\n  <strong class=\"ds-card-title\">Weekly report</strong>\n  <p class=\"ds-card-body\">Your team shipped 12 changes this week.</p>\n</div>",
-          "usage": "<Card elevation=\"flat\">\n  <Card.Title>Weekly report</Card.Title>\n  <Card.Body>Your team shipped 12 changes this week.</Card.Body>\n</Card>",
+          "usage": "<WidgetBox elevation=\"flat\">…</WidgetBox>",
           "specs": [
-            { "label": "Shadow", "value": "none" },
-            { "label": "Border", "token": "color/border/default" }
+            {
+              "label": "Shadow",
+              "value": "none"
+            },
+            {
+              "label": "Border",
+              "token": "color/stroke/soft-200"
+            }
           ]
         }
       ],
-      "anatomy": ["Surface", "Header (optional)", "Body", "Footer (optional)"],
-      "props": [{ "name": "elevation", "values": ["flat", "raised"] }],
-      "states": ["default", "hover", "selected"],
-      "tokensUsed": ["color/bg/surface", "color/border/default", "radius/lg", "shadow/sm", "space/5"],
+      "anatomy": [
+        "Surface",
+        "Header (title + optional action)",
+        "Body",
+        "Footer (optional)"
+      ],
+      "props": [
+        {
+          "name": "elevation",
+          "values": [
+            "flat",
+            "raised"
+          ]
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "radius/16",
+        "shadow/xs",
+        "space/16"
+      ],
       "usage": {
-        "import": "import { Card } from '@/components/ui/card'",
-        "do": ["Keep one clear primary action per card"],
-        "dont": ["Nest cards more than one level deep"]
+        "import": "import { WidgetBox } from '@/components/ui/widget-box'",
+        "do": [
+          "Keep one clear primary action per widget"
+        ],
+        "dont": [
+          "Nest widget boxes more than one level deep"
+        ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/card.tsx"
+      "codePath": "src/components/ui/widget-box.tsx",
+      "image": "assets/components/widget-box.png"
     },
     {
-      "name": "Badge",
-      "figmaNodeId": "10:20",
-      "category": "Feedback",
-      "status": "beta",
-      "description": "Small count or status indicator attached to another element.",
-      "preview": "<span class=\"ds-badge\">3</span><span class=\"ds-badge ds-badge--neutral\">New</span><span class=\"ds-badge ds-badge--neutral\">12</span>",
-      "examples": [
+      "name": "Compact Button",
+      "category": "Actions",
+      "status": "stable",
+      "description": "Small icon-only button (20/24px) for dense UI: dismiss, expand, inline actions. Optional full-radius.",
+      "image": "assets/components/compact-button.png",
+      "anatomy": [
+        "Container",
+        "Icon"
+      ],
+      "props": [
         {
-          "title": "Accent",
-          "description": "Draws attention to a count or unread state.",
-          "code": "<span class=\"ds-badge\">3</span>",
-          "usage": "<Badge>3</Badge>",
-          "specs": [
-            { "label": "Background", "token": "color/accent/default" },
-            { "label": "Text", "token": "color/text/on-accent" },
-            { "label": "Radius", "token": "radius/full" },
-            { "label": "Padding X", "token": "space/2" }
+          "name": "style",
+          "values": [
+            "stroke",
+            "ghost",
+            "white",
+            "modifiable"
           ]
         },
         {
-          "title": "Neutral",
-          "description": "Quiet label for status that should not pull focus.",
-          "code": "<span class=\"ds-badge ds-badge--neutral\">New</span>",
-          "usage": "<Badge tone=\"neutral\">New</Badge>",
-          "specs": [
-            { "label": "Background", "token": "color/gray/200" },
-            { "label": "Text", "token": "color/text/primary" }
-          ]
-        }
-      ],
-      "anatomy": ["Container", "Value"],
-      "props": [{ "name": "tone", "values": ["accent", "neutral"] }],
-      "states": ["default"],
-      "tokensUsed": ["color/accent/default", "color/text/on-accent", "radius/full", "space/1"],
-      "usage": {
-        "import": "import { Badge } from '@/components/ui/badge'",
-        "do": ["Use for short counts or one-word status"],
-        "dont": ["Put sentences inside a badge"]
-      },
-      "codeConnected": true,
-      "codePath": "src/components/ui/badge.tsx"
-    },
-    {
-      "name": "Tag",
-      "figmaNodeId": "10:26",
-      "category": "Data display",
-      "status": "planned",
-      "description": "Removable label for categorizing items.",
-      "preview": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span><span class=\"ds-tag\">Engineering<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span><span class=\"ds-tag\">Research<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
-      "examples": [
-        {
-          "title": "Removable",
-          "description": "Carries a remove control for dismissing the selection.",
-          "code": "<span class=\"ds-tag\">Design<span class=\"ds-tag-x\" aria-hidden=\"true\">&times;</span></span>",
-          "specs": [
-            { "label": "Background", "token": "color/bg/canvas" },
-            { "label": "Border", "token": "color/border/default" },
-            { "label": "Text", "token": "color/text/secondary" },
-            { "label": "Radius", "token": "radius/full" },
-            { "label": "Gap", "token": "space/2" }
+          "name": "size",
+          "values": [
+            "large-24",
+            "medium-20"
           ]
         },
         {
-          "title": "Read-only",
-          "description": "No remove control. Use for fixed categories.",
-          "code": "<span class=\"ds-tag\">Design</span>",
-          "specs": [
-            { "label": "Padding X", "token": "space/3" },
-            { "label": "Padding Y", "token": "space/1" }
+          "name": "fullRadius",
+          "values": [
+            "true",
+            "false"
           ]
         }
       ],
-      "anatomy": ["Container", "Label", "Remove control (optional)"],
-      "props": [{ "name": "removable", "values": ["true", "false"] }],
-      "states": ["default", "hover", "focus"],
-      "tokensUsed": ["color/bg/surface", "color/text/secondary", "color/border/default", "radius/full"],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/static/white",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "radius/10",
+        "space/10",
+        "space/16",
+        "font/weight/medium"
+      ],
       "usage": {
-        "import": "import { Tag } from '@/components/ui/tag'",
-        "do": ["Group tags on one row where possible"],
-        "dont": ["Use tags for actions, they read as passive labels"]
+        "import": "import { CompactButton } from '@/components/ui/compact-button'",
+        "do": [
+          "Use inside cards, tags, and list rows where a full Button is too heavy"
+        ],
+        "dont": [
+          "Use for the primary action of a view"
+        ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/tag.tsx"
+      "codePath": "src/components/ui/compact-button.tsx"
+    },
+    {
+      "name": "Link Button",
+      "category": "Actions",
+      "status": "stable",
+      "description": "Text-styled action for navigation and inline actions, with optional underline.",
+      "image": "assets/components/link-button.png",
+      "anatomy": [
+        "Label",
+        "Icon (optional, leading or trailing)"
+      ],
+      "props": [
+        {
+          "name": "style",
+          "values": [
+            "gray",
+            "black",
+            "primary",
+            "error",
+            "modifiable"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small"
+          ]
+        },
+        {
+          "name": "underline",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/static/white",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "radius/10",
+        "space/10",
+        "space/16",
+        "font/weight/medium"
+      ],
+      "usage": {
+        "import": "import { LinkButton } from '@/components/ui/link-button'",
+        "do": [
+          "Use for navigation and low-emphasis actions"
+        ],
+        "dont": [
+          "Mix link buttons and ghost buttons for the same emphasis level"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/link-button.tsx"
+    },
+    {
+      "name": "Social Button",
+      "category": "Actions",
+      "status": "stable",
+      "description": "Third-party auth button (Apple, Google, GitHub, X, Facebook, Dropbox, LinkedIn) in filled or stroke style, full or icon-only.",
+      "image": "assets/components/social-button.png",
+      "anatomy": [
+        "Container",
+        "Brand icon",
+        "Label (optional)"
+      ],
+      "props": [
+        {
+          "name": "brand",
+          "values": [
+            "apple",
+            "google",
+            "github",
+            "x",
+            "facebook",
+            "dropbox",
+            "linkedin"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "filled",
+            "stroke"
+          ]
+        },
+        {
+          "name": "onlyIcon",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/static/white",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "radius/10",
+        "space/10",
+        "space/16",
+        "font/weight/medium"
+      ],
+      "usage": {
+        "import": "import { SocialButton } from '@/components/ui/social-button'",
+        "do": [
+          "Keep every social button the same style on one screen"
+        ],
+        "dont": [
+          "Recolor brand icons — use the official marks"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/social-button.tsx"
+    },
+    {
+      "name": "Fancy Button",
+      "category": "Actions",
+      "status": "stable",
+      "description": "Elevated, gradient-edged button for marketing moments and standout CTAs.",
+      "image": "assets/components/fancy-button.png",
+      "anatomy": [
+        "Container",
+        "Label",
+        "Icon (optional)"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "basic",
+            "primary",
+            "neutral",
+            "destructive"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/static/white",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "radius/10",
+        "space/10",
+        "space/16",
+        "font/weight/medium"
+      ],
+      "usage": {
+        "import": "import { FancyButton } from '@/components/ui/fancy-button'",
+        "do": [
+          "Reserve for one hero action per page"
+        ],
+        "dont": [
+          "Use in dense product UI — use Button"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/fancy-button.tsx"
+    },
+    {
+      "name": "Button Group",
+      "category": "Actions",
+      "status": "stable",
+      "description": "A row of 2–6 connected buttons acting as one control (view switchers, bulk actions). Segments support text, icons, or both.",
+      "image": "assets/components/button-group.png",
+      "anatomy": [
+        "Group container",
+        "Button Group Item (per segment: label, optional left/right icon)"
+      ],
+      "props": [
+        {
+          "name": "quantity",
+          "values": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "small",
+            "xsmall",
+            "2xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/static/white",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "radius/10",
+        "space/10",
+        "space/16",
+        "font/weight/medium"
+      ],
+      "usage": {
+        "import": "import { ButtonGroup } from '@/components/ui/button-group'",
+        "do": [
+          "Keep segment labels one word"
+        ],
+        "dont": [
+          "Use for mutually exclusive form choices — use Radio or Segmented Control"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/button-group.tsx"
+    },
+    {
+      "name": "Checkbox",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Binary control with indeterminate support. Ships in three layers: bare Checkbox, Checkbox Label (label + description, flippable), and Checkbox Card (selectable card with icon/avatar/logo leading content).",
+      "image": "assets/components/checkbox.png",
+      "anatomy": [
+        "Box",
+        "Check / indeterminate indicator",
+        "Label (optional)",
+        "Description (optional)"
+      ],
+      "props": [
+        {
+          "name": "checked",
+          "values": [
+            "true",
+            "false",
+            "indeterminate"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small"
+          ]
+        },
+        {
+          "name": "variant",
+          "values": [
+            "bare",
+            "label",
+            "card"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focused",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/stroke/sub-300",
+        "color/bg/white-0",
+        "color/static/white",
+        "radius/6"
+      ],
+      "usage": {
+        "import": "import { Checkbox } from '@/components/ui/checkbox'",
+        "do": [
+          "Pair every checkbox with a clickable label"
+        ],
+        "dont": [
+          "Use for mutually exclusive options — use Radio"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/checkbox.tsx"
+    },
+    {
+      "name": "Radio",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Selects exactly one option. Same three layers as Checkbox: bare Radio, Radio Label, and Radio Card (basic, left icon, avatar, card provider, brand, company).",
+      "image": "assets/components/radio.png",
+      "anatomy": [
+        "Circle",
+        "Selected dot",
+        "Label (optional)",
+        "Description (optional)"
+      ],
+      "props": [
+        {
+          "name": "checked",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        {
+          "name": "variant",
+          "values": [
+            "bare",
+            "label",
+            "card"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focused",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/stroke/sub-300",
+        "color/bg/white-0",
+        "color/static/white",
+        "radius/full"
+      ],
+      "usage": {
+        "import": "import { Radio } from '@/components/ui/radio'",
+        "do": [
+          "Always show at least two options in a group"
+        ],
+        "dont": [
+          "Use radios when more than one choice can apply"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/radio.tsx"
+    },
+    {
+      "name": "Switch",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Immediate on/off toggle. Layers: bare Switch, Switch Label (description, flip), Switch Card, and Integration Switch (brand logo + description row for settings/integration lists).",
+      "image": "assets/components/switch.png",
+      "anatomy": [
+        "Track",
+        "Thumb",
+        "Label (optional)",
+        "Description (optional)"
+      ],
+      "props": [
+        {
+          "name": "checked",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        {
+          "name": "variant",
+          "values": [
+            "bare",
+            "label",
+            "card",
+            "integration"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/bg/soft-200",
+        "color/static/white",
+        "radius/full"
+      ],
+      "usage": {
+        "import": "import { Switch } from '@/components/ui/switch'",
+        "do": [
+          "Use for settings that apply instantly"
+        ],
+        "dont": [
+          "Use inside a form that needs a submit step — use Checkbox"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/switch.tsx"
+    },
+    {
+      "name": "Select",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Dropdown-triggering field. Value can carry an icon, flag, avatar, or logo. Compact Select (borderless trigger), Compact Select for Input (embedded in Text Input), and Inline Select are the sibling variants.",
+      "image": "assets/components/select.png",
+      "anatomy": [
+        "Label (optional)",
+        "Trigger container",
+        "Leading content (optional)",
+        "Value",
+        "Chevron",
+        "Menu (composed from Dropdown Items)"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "basic",
+            "country",
+            "avatar",
+            "provider",
+            "brand",
+            "company"
+          ]
+        },
+        {
+          "name": "variant",
+          "values": [
+            "default",
+            "compact",
+            "compact-for-input",
+            "inline"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "filled",
+        "hover",
+        "focus",
+        "disabled",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { Select } from '@/components/ui/select'",
+        "do": [
+          "Use for 5+ options where radios would be too long"
+        ],
+        "dont": [
+          "Use for 2–3 options — prefer Radio or Segmented Control"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/select.tsx"
+    },
+    {
+      "name": "Text Area",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Multi-line text field with optional label, hint text, and character counter.",
+      "image": "assets/components/text-area.png",
+      "anatomy": [
+        "Label (optional)",
+        "Field container",
+        "Value",
+        "Character counter (optional)",
+        "Hint text (optional)"
+      ],
+      "props": [
+        {
+          "name": "counter",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "filled",
+        "disabled",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { TextArea } from '@/components/ui/text-area'",
+        "do": [
+          "Give it a sensible default height of 3–4 lines"
+        ],
+        "dont": [
+          "Use for single-line values — use Text Input"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/text-area.tsx"
+    },
+    {
+      "name": "Tag Input",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Text field that turns entries into dismissible Tags.",
+      "image": "assets/components/tag-input.png",
+      "anatomy": [
+        "Label (optional)",
+        "Field container",
+        "Tags",
+        "Input",
+        "Hint text (optional)"
+      ],
+      "props": [
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "filled",
+        "disabled",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { TagInput } from '@/components/ui/tag-input'",
+        "do": [
+          "Show remaining-count limits as hint text"
+        ],
+        "dont": [
+          "Use when options come from a fixed list — use a multi-select"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/tag-input.tsx"
+    },
+    {
+      "name": "Counter Input",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Numeric stepper field with increment/decrement controls.",
+      "image": "assets/components/counter-input.png",
+      "anatomy": [
+        "Label (optional)",
+        "Decrement button",
+        "Value",
+        "Increment button"
+      ],
+      "props": [
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "filled",
+        "disabled",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { CounterInput } from '@/components/ui/counter-input'",
+        "do": [
+          "Disable the decrement/increment control at min/max"
+        ],
+        "dont": [
+          "Use for large free-range numbers — use a Text Input type=amount"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/counter-input.tsx"
+    },
+    {
+      "name": "Digit Input",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Fixed-length code entry (OTP / 2FA), one box per digit.",
+      "image": "assets/components/digit-input.png",
+      "anatomy": [
+        "Digit boxes",
+        "Hint text (optional)"
+      ],
+      "props": [],
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "filled",
+        "disabled",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { DigitInput } from '@/components/ui/digit-input'",
+        "do": [
+          "Auto-advance focus as digits are typed"
+        ],
+        "dont": [
+          "Use for anything other than short verification codes"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/digit-input.tsx"
+    },
+    {
+      "name": "Slider",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Single-value or range slider on a horizontal track, with optional thumb tooltip and label/sublabel.",
+      "image": "assets/components/slider.png",
+      "anatomy": [
+        "Track",
+        "Filled range",
+        "Thumb (one or two)",
+        "Tooltip (optional)",
+        "Label (optional)"
+      ],
+      "props": [
+        {
+          "name": "range",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        {
+          "name": "tooltip",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { Slider } from '@/components/ui/slider'",
+        "do": [
+          "Show the current value (tooltip or label) while dragging"
+        ],
+        "dont": [
+          "Use for precise required values — pair with a Counter Input"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/slider.tsx"
+    },
+    {
+      "name": "Rating",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Star/heart rating plus survey-style rating bars (emoji, number, star, heart scales). Rating & Review adds description and link button layouts.",
+      "image": "assets/components/rating.png",
+      "anatomy": [
+        "Rating items (empty / half / full)",
+        "Value label (optional)",
+        "Description (optional)"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "star",
+            "heart",
+            "emoji",
+            "number"
+          ]
+        },
+        {
+          "name": "variant",
+          "values": [
+            "display",
+            "cell",
+            "bar",
+            "review"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "selected"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { Rating } from '@/components/ui/rating'",
+        "do": [
+          "Support half steps in display mode"
+        ],
+        "dont": [
+          "Mix scale types in one flow"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/rating.tsx"
+    },
+    {
+      "name": "Date Picker",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Calendar for single dates or ranges. Composed from Date Selector (month navigation), Day Labels, Day Cells (with marked/disabled/range states), and Period Range presets; footer holds buttons and hint text.",
+      "image": "assets/components/date-picker.png",
+      "anatomy": [
+        "Date selector (month + arrows)",
+        "Day labels",
+        "Day cells grid",
+        "Period range presets (range mode)",
+        "Footer (optional buttons)"
+      ],
+      "props": [
+        {
+          "name": "mode",
+          "values": [
+            "date",
+            "range"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "marked",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { DatePicker } from '@/components/ui/date-picker'",
+        "do": [
+          "Disable unavailable days instead of erroring after selection"
+        ],
+        "dont": [
+          "Use a picker for well-known typed dates like birthdays — use Text Input type=date"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/date-picker.tsx"
+    },
+    {
+      "name": "Time Picker",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Time selection list with optional secondary time (timezone) display, duration selector, and availability status rows. Composed with Select and Scroll parts.",
+      "image": "assets/components/time-picker.png",
+      "anatomy": [
+        "Time items list",
+        "Duration selector (optional)",
+        "Status selector (optional)"
+      ],
+      "props": [
+        {
+          "name": "direction",
+          "values": [
+            "right",
+            "center"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "selected",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { TimePicker } from '@/components/ui/time-picker'",
+        "do": [
+          "Keep the list scrollable with a sensible default position (now, rounded up)"
+        ],
+        "dont": [
+          "Force second-level precision when minutes are enough"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/time-picker.tsx"
+    },
+    {
+      "name": "File Upload",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Dropzone (File Upload Area), per-file progress cards (in progress / success / error) with format icons, and Image Upload for avatar/logo slots.",
+      "image": "assets/components/file-upload.png",
+      "anatomy": [
+        "Upload area (icon, copy, browse button)",
+        "Upload cards (file name, size, progress, status)",
+        "Format icon"
+      ],
+      "props": [
+        {
+          "name": "variant",
+          "values": [
+            "area",
+            "cards",
+            "image-avatar",
+            "image-company"
+          ]
+        },
+        {
+          "name": "alignment",
+          "values": [
+            "vertical",
+            "horizontal"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "in-progress",
+        "success",
+        "error"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { FileUpload } from '@/components/ui/file-upload'",
+        "do": [
+          "State accepted formats and max size in the dropzone copy"
+        ],
+        "dont": [
+          "Block the whole form while a file uploads"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/file-upload.tsx"
+    },
+    {
+      "name": "Color Picker",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Color selection surface: spectrum area, hue/opacity sliders, hex + opacity inputs, and preset Color Dots in the 10-color palette.",
+      "image": "assets/components/color-picker.png",
+      "anatomy": [
+        "Spectrum",
+        "Hue slider",
+        "Opacity slider",
+        "Hex/opacity inputs",
+        "Preset dots"
+      ],
+      "props": [
+        {
+          "name": "presets",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "selected",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { ColorPicker } from '@/components/ui/color-picker'",
+        "do": [
+          "Offer the token palette as presets first"
+        ],
+        "dont": [
+          "Let product UI pick arbitrary colors that bypass the system"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/color-picker.tsx"
+    },
+    {
+      "name": "Label & Hint Text",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Shared form furniture: Label (required mark, sublabel, info icon, link button), Hint Text (default / error / disabled), and Password Strength meter (empty / weak / moderate / strong).",
+      "image": "assets/components/label-hint-text.png",
+      "anatomy": [
+        "Label row",
+        "Hint row (icon + text)",
+        "Strength bar (password fields)"
+      ],
+      "props": [
+        {
+          "name": "required",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "error",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/text/strong-950",
+        "color/text/sub-600",
+        "color/text/soft-400",
+        "color/state/error/base",
+        "type/label/sm",
+        "type/paragraph/xs"
+      ],
+      "usage": {
+        "import": "import { LabelHintText } from '@/components/ui/label-hint-text'",
+        "do": [
+          "Reuse these parts in every field component so spacing stays identical"
+        ],
+        "dont": [
+          "Color hint text manually — the state prop does it"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/label-hint-text.tsx"
+    },
+    {
+      "name": "Rich Editor",
+      "category": "Forms",
+      "status": "stable",
+      "description": "Rich-text editing toolbar in four width presets, built from toolbar items (text, dropdown, color, icon) and a 10-color swatch palette.",
+      "image": "assets/components/rich-editor.png",
+      "anatomy": [
+        "Toolbar",
+        "Toolbar items",
+        "Color palette dropdown",
+        "Editing surface"
+      ],
+      "props": [
+        {
+          "name": "preset",
+          "values": [
+            "01",
+            "02",
+            "03",
+            "04"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/soft-400",
+        "color/primary/base",
+        "color/state/error/base",
+        "radius/10",
+        "space/10"
+      ],
+      "usage": {
+        "import": "import { RichEditor } from '@/components/ui/rich-editor'",
+        "do": [
+          "Hide advanced controls behind the Show More toggle"
+        ],
+        "dont": [
+          "Offer colors outside the token palette"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/rich-editor.tsx"
+    },
+    {
+      "name": "Breadcrumbs",
+      "category": "Navigation",
+      "status": "stable",
+      "description": "Hierarchy trail of 3–5 items with arrow, slash, or dot dividers. Items can be icon-only, text-only, or both.",
+      "image": "assets/components/breadcrumbs.png",
+      "anatomy": [
+        "Item (icon and/or text)",
+        "Divider",
+        "Current page"
+      ],
+      "props": [
+        {
+          "name": "divider",
+          "values": [
+            "arrow",
+            "slash",
+            "dot"
+          ]
+        },
+        {
+          "name": "quantity",
+          "values": [
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "color/primary/base",
+        "color/stroke/soft-200",
+        "radius/8"
+      ],
+      "usage": {
+        "import": "import { Breadcrumbs } from '@/components/ui/breadcrumbs'",
+        "do": [
+          "Mark the current page as non-clickable"
+        ],
+        "dont": [
+          "Use breadcrumbs on flat, single-level sites"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/breadcrumbs.tsx"
+    },
+    {
+      "name": "Pagination",
+      "category": "Navigation",
+      "status": "stable",
+      "description": "Page cells composed into a Pagination Group (basic, full-radius, or grouped style) with first/last and next/previous toggles plus optional totals info.",
+      "image": "assets/components/pagination.png",
+      "anatomy": [
+        "Previous / first controls",
+        "Page cells",
+        "Ellipsis",
+        "Next / last controls",
+        "Totals info (optional)"
+      ],
+      "props": [
+        {
+          "name": "style",
+          "values": [
+            "basic",
+            "full-radius",
+            "group"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "selected",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "color/primary/base",
+        "color/stroke/soft-200",
+        "radius/8"
+      ],
+      "usage": {
+        "import": "import { Pagination } from '@/components/ui/pagination'",
+        "do": [
+          "Disable prev/next at the ends of the range"
+        ],
+        "dont": [
+          "Use pagination for infinite feeds — use load-more"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/pagination.tsx"
+    },
+    {
+      "name": "Tab Menu",
+      "category": "Navigation",
+      "status": "stable",
+      "description": "Horizontal (2–6 tabs) or vertical (2–8, card or list style) tab navigation. Items support icons and count badges.",
+      "image": "assets/components/tab-menu.png",
+      "anatomy": [
+        "Tab list",
+        "Tab item (label, optional icon, optional badge)",
+        "Active indicator"
+      ],
+      "props": [
+        {
+          "name": "orientation",
+          "values": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "default",
+            "card",
+            "list"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "color/primary/base",
+        "color/stroke/soft-200",
+        "radius/8"
+      ],
+      "usage": {
+        "import": "import { TabMenu } from '@/components/ui/tab-menu'",
+        "do": [
+          "Keep tab labels to one or two words"
+        ],
+        "dont": [
+          "Use tabs for a sequential flow — use Step Indicator"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/tab-menu.tsx"
+    },
+    {
+      "name": "Segmented Control",
+      "category": "Navigation",
+      "status": "stable",
+      "description": "Pill-style switcher of 2–3 options with optional label; items can carry a left icon or be icon-only.",
+      "image": "assets/components/segmented-control.png",
+      "anatomy": [
+        "Container",
+        "Item (label and/or icon)",
+        "Active pill"
+      ],
+      "props": [
+        {
+          "name": "itemType",
+          "values": [
+            "default",
+            "left-icon",
+            "only-icon"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/bg/white-0",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "radius/8",
+        "shadow/xs"
+      ],
+      "usage": {
+        "import": "import { SegmentedControl } from '@/components/ui/segmented-control'",
+        "do": [
+          "Use for instant view switches (list/grid, monthly/yearly)"
+        ],
+        "dont": [
+          "Exceed three segments — use Tab Menu"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/segmented-control.tsx"
+    },
+    {
+      "name": "Step Indicator",
+      "category": "Navigation",
+      "status": "stable",
+      "description": "Multi-step progress in horizontal or vertical orientation (3–5 steps), plus a full sidebar variant and compact Stepper Dots.",
+      "image": "assets/components/step-indicator.png",
+      "anatomy": [
+        "Step item (number/check, label)",
+        "Connector",
+        "Active / completed markers"
+      ],
+      "props": [
+        {
+          "name": "orientation",
+          "values": [
+            "horizontal",
+            "vertical",
+            "sidebar",
+            "dots"
+          ]
+        },
+        {
+          "name": "quantity",
+          "values": [
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "active",
+        "completed"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "color/primary/base",
+        "color/stroke/soft-200",
+        "radius/8"
+      ],
+      "usage": {
+        "import": "import { StepIndicator } from '@/components/ui/step-indicator'",
+        "do": [
+          "Mark completed steps as clickable to go back"
+        ],
+        "dont": [
+          "Use for fewer than three steps"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/step-indicator.tsx"
+    },
+    {
+      "name": "Alert",
+      "category": "Feedback",
+      "status": "stable",
+      "description": "One component covers Alert, Notification, and Toast: five statuses (error, warning, success, information, feature) × four styles (filled, light, lighter, stroke) × three sizes, with optional description, link buttons, and dismiss.",
+      "image": "assets/components/alert.png",
+      "anatomy": [
+        "Container",
+        "Status icon",
+        "Title",
+        "Description (optional)",
+        "Link buttons (optional)",
+        "Dismiss (optional)"
+      ],
+      "props": [
+        {
+          "name": "status",
+          "values": [
+            "error",
+            "warning",
+            "success",
+            "information",
+            "feature"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "filled",
+            "light",
+            "lighter",
+            "stroke"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "xsmall",
+            "small",
+            "large"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "dismissible"
+      ],
+      "tokensUsed": [
+        "color/state/error/lighter",
+        "color/state/error/base",
+        "color/state/error/dark",
+        "radius/12",
+        "space/12",
+        "font/weight/medium"
+      ],
+      "usage": {
+        "import": "import { Alert } from '@/components/ui/alert'",
+        "do": [
+          "Pick status by intent and let the state tokens color it"
+        ],
+        "dont": [
+          "Put critical, must-read content in an auto-dismissing toast"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/alert.tsx"
+    },
+    {
+      "name": "Banner",
+      "category": "Feedback",
+      "status": "stable",
+      "description": "Full-width top-of-screen announcement using the same status × style matrix as Alert, with optional description, link button, and dismiss.",
+      "image": "assets/components/banner.png",
+      "anatomy": [
+        "Container",
+        "Status icon",
+        "Message",
+        "Link button (optional)",
+        "Dismiss (optional)"
+      ],
+      "props": [
+        {
+          "name": "status",
+          "values": [
+            "error",
+            "warning",
+            "success",
+            "information",
+            "feature"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "filled",
+            "light",
+            "lighter",
+            "stroke"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "dismissible"
+      ],
+      "tokensUsed": [
+        "color/state/information/lighter",
+        "color/state/information/base",
+        "color/state/information/dark",
+        "space/12"
+      ],
+      "usage": {
+        "import": "import { Banner } from '@/components/ui/banner'",
+        "do": [
+          "Show at most one banner at a time"
+        ],
+        "dont": [
+          "Use for per-field errors — use Hint Text"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/banner.tsx"
+    },
+    {
+      "name": "Progress Bar",
+      "category": "Feedback",
+      "status": "stable",
+      "description": "Linear bar (0–100% in 10% steps) with label layouts (top/right, optional bottom caption) and a Circular variant (48–80px, optional center number). Bar color communicates status.",
+      "image": "assets/components/progress-bar.png",
+      "anatomy": [
+        "Track",
+        "Filled line",
+        "Label (optional)",
+        "Caption (optional)"
+      ],
+      "props": [
+        {
+          "name": "shape",
+          "values": [
+            "linear",
+            "circular"
+          ]
+        },
+        {
+          "name": "color",
+          "values": [
+            "blue",
+            "red",
+            "orange",
+            "green"
+          ]
+        }
+      ],
+      "states": [
+        "empty",
+        "in-progress",
+        "complete"
+      ],
+      "tokensUsed": [
+        "color/primary/base",
+        "color/bg/soft-200",
+        "color/state/success/base",
+        "color/state/error/base",
+        "radius/full"
+      ],
+      "usage": {
+        "import": "import { ProgressBar } from '@/components/ui/progress-bar'",
+        "do": [
+          "Use a determinate bar whenever progress is knowable"
+        ],
+        "dont": [
+          "Animate to 90% and stall — show real progress"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/progress-bar.tsx"
+    },
+    {
+      "name": "Tooltip",
+      "category": "Feedback",
+      "status": "stable",
+      "description": "Hover/focus hint with 8 tail placements and three sizes; Large adds a description, icon, and dismiss. Tail can be hidden; dark and light modes built in.",
+      "image": "assets/components/tooltip.png",
+      "anatomy": [
+        "Bubble",
+        "Tail (optional)",
+        "Title",
+        "Description (large only)"
+      ],
+      "props": [
+        {
+          "name": "placement",
+          "values": [
+            "top-left",
+            "top-center",
+            "top-right",
+            "bottom-left",
+            "bottom-center",
+            "bottom-right",
+            "left",
+            "right"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "2xsmall",
+            "xsmall",
+            "large"
+          ]
+        }
+      ],
+      "states": [
+        "hidden",
+        "visible"
+      ],
+      "tokensUsed": [
+        "color/bg/strong-950",
+        "color/text/white-0",
+        "radius/6",
+        "space/8"
+      ],
+      "usage": {
+        "import": "import { Tooltip } from '@/components/ui/tooltip'",
+        "do": [
+          "Keep tooltips to a short phrase"
+        ],
+        "dont": [
+          "Put essential information only in a tooltip"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/tooltip.tsx"
+    },
+    {
+      "name": "Avatar",
+      "category": "Data display",
+      "status": "stable",
+      "description": "User/entity representation in 9 sizes (20–80px) with image, initials, icon, memoji, or illustration content; bottom status (online, offline, busy, away, company) and top status (verified, pin, favorite, add, remove, notification) indicators; Avatar Group and Compact Avatar Group for collections.",
+      "image": "assets/components/avatar.png",
+      "anatomy": [
+        "Container",
+        "Image / initials / icon",
+        "Bottom status (optional)",
+        "Top status (optional)"
+      ],
+      "props": [
+        {
+          "name": "size",
+          "values": [
+            "20",
+            "24",
+            "32",
+            "40",
+            "48",
+            "56",
+            "64",
+            "72",
+            "80"
+          ]
+        },
+        {
+          "name": "content",
+          "values": [
+            "image",
+            "initials",
+            "icon"
+          ]
+        },
+        {
+          "name": "group",
+          "values": [
+            "none",
+            "group",
+            "compact-group"
+          ]
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/text/sub-600",
+        "radius/full",
+        "color/state/success/base"
+      ],
+      "usage": {
+        "import": "import { Avatar } from '@/components/ui/avatar'",
+        "do": [
+          "Provide a text alternative for the image"
+        ],
+        "dont": [
+          "Rely on the status dot color alone to convey state"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/avatar.tsx"
+    },
+    {
+      "name": "Status Badge",
+      "category": "Data display",
+      "status": "stable",
+      "description": "Semantic sibling of Badge for workflow states: completed, pending, failed, information, disabled — in light or stroke style, with optional dot.",
+      "image": "assets/components/status-badge.png",
+      "anatomy": [
+        "Container",
+        "Dot or icon (optional)",
+        "Label"
+      ],
+      "props": [
+        {
+          "name": "status",
+          "values": [
+            "completed",
+            "pending",
+            "failed",
+            "information",
+            "disabled"
+          ]
+        },
+        {
+          "name": "style",
+          "values": [
+            "light",
+            "stroke"
+          ]
+        },
+        {
+          "name": "withDot",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/state/success/lighter",
+        "color/state/success/base",
+        "color/state/warning/base",
+        "color/state/error/base",
+        "radius/full",
+        "space/8"
+      ],
+      "usage": {
+        "import": "import { StatusBadge } from '@/components/ui/status-badge'",
+        "do": [
+          "Use in tables and lists where states repeat"
+        ],
+        "dont": [
+          "Invent new status colors — these five map to the state tokens"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/status-badge.tsx"
+    },
+    {
+      "name": "Table",
+      "category": "Data display",
+      "status": "stable",
+      "description": "Tables compose from Table Header Cell (with Sorting Icons) and Table Row Cell — no monolithic component. Row cells set text priority (leading, regular, passive) and can embed Button, Button Group, Switch, Rating, Progress Bar, Status Badge, Badge Group, or Avatar Group.",
+      "image": "assets/components/table.png",
+      "anatomy": [
+        "Header cell (label, sort icon)",
+        "Row cell (content by priority)",
+        "Embedded component (optional)",
+        "Pagination (optional, below)"
+      ],
+      "props": [
+        {
+          "name": "rowSize",
+          "values": [
+            "large-48",
+            "xlarge-64"
+          ]
+        },
+        {
+          "name": "priority",
+          "values": [
+            "leading",
+            "regular",
+            "passive",
+            "none"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/sub-600",
+        "radius/8",
+        "space/12"
+      ],
+      "usage": {
+        "import": "import { Table } from '@/components/ui/table'",
+        "do": [
+          "Left-align text, right-align numbers, one leading column per row"
+        ],
+        "dont": [
+          "Embed more than two interactive components per row"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/table.tsx"
+    },
+    {
+      "name": "Accordion",
+      "category": "Data display",
+      "status": "stable",
+      "description": "Expandable disclosure row with optional left icon and a flippable chevron position.",
+      "image": "assets/components/accordion.png",
+      "anatomy": [
+        "Header (title, optional icon)",
+        "Chevron",
+        "Content panel"
+      ],
+      "props": [
+        {
+          "name": "flipIcon",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/sub-600",
+        "radius/8",
+        "space/12"
+      ],
+      "usage": {
+        "import": "import { Accordion } from '@/components/ui/accordion'",
+        "do": [
+          "Allow multiple items open unless space demands otherwise"
+        ],
+        "dont": [
+          "Hide critical content behind an accordion by default"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/accordion.tsx"
+    },
+    {
+      "name": "Activity Feed",
+      "category": "Data display",
+      "status": "stable",
+      "description": "Chronological event list with typed rows: default, file attachment, comment, avatar group, and task status (success, warning, pending, error), plus filter chips.",
+      "image": "assets/components/activity-feed.png",
+      "anatomy": [
+        "Feed item (avatar/icon, text, timestamp)",
+        "Attachment / comment / task row (per type)",
+        "Filter chips (optional)"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "default",
+            "file",
+            "comment",
+            "avatar-group",
+            "tasks"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/sub-600",
+        "radius/8",
+        "space/12"
+      ],
+      "usage": {
+        "import": "import { ActivityFeed } from '@/components/ui/activity-feed'",
+        "do": [
+          "Group items by day when the feed spans days"
+        ],
+        "dont": [
+          "Mix relative and absolute timestamps in one feed"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/activity-feed.tsx"
+    },
+    {
+      "name": "Notification Feed",
+      "category": "Data display",
+      "status": "stable",
+      "description": "Notification panel composed of header, tab menu (2–4 tabs), typed items (basic, button, file, message) separated by content dividers, and a footer with shortcut links.",
+      "image": "assets/components/notification-feed.png",
+      "anatomy": [
+        "Header (title, actions)",
+        "Tab menu",
+        "Notification items",
+        "Footer"
+      ],
+      "props": [
+        {
+          "name": "itemType",
+          "values": [
+            "basic",
+            "button",
+            "file",
+            "message"
+          ]
+        },
+        {
+          "name": "tabs",
+          "values": [
+            "2",
+            "3",
+            "4"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "color/text/strong-950",
+        "color/text/sub-600",
+        "radius/8",
+        "space/12"
+      ],
+      "usage": {
+        "import": "import { NotificationFeed } from '@/components/ui/notification-feed'",
+        "do": [
+          "Offer mark-all-read in the header"
+        ],
+        "dont": [
+          "Auto-dismiss unread notifications"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/notification-feed.tsx"
+    },
+    {
+      "name": "Content Divider",
+      "category": "Layout",
+      "status": "stable",
+      "description": "Separator in nine flavors: plain line, spaced line, text, text-and-line, solid text, and icon/text button variants (with grouped-button forms) — used inside dropdowns, tables, and modals.",
+      "image": "assets/components/content-divider.png",
+      "anatomy": [
+        "Line",
+        "Text or control (optional)"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "line",
+            "line-spacing",
+            "text-line",
+            "text",
+            "solid-text",
+            "icon-button",
+            "icon-button-group",
+            "text-button",
+            "text-button-group"
+          ]
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/stroke/soft-200",
+        "color/text/soft-400",
+        "type/subheading/xs"
+      ],
+      "usage": {
+        "import": "import { ContentDivider } from '@/components/ui/content-divider'",
+        "do": [
+          "Use the text variants as list section headers"
+        ],
+        "dont": [
+          "Stack dividers without content between them"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/content-divider.tsx"
+    },
+    {
+      "name": "Scroll",
+      "category": "Layout",
+      "status": "stable",
+      "description": "Custom scrollbar in two visual weights (default, lighter) and three widths (medium 20, small 16, x-small 12).",
+      "image": "assets/components/scroll.png",
+      "anatomy": [
+        "Track",
+        "Thumb"
+      ],
+      "props": [
+        {
+          "name": "style",
+          "values": [
+            "default",
+            "lighter"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "medium",
+            "small",
+            "xsmall"
+          ]
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/bg/soft-200",
+        "radius/full"
+      ],
+      "usage": {
+        "import": "import { Scroll } from '@/components/ui/scroll'",
+        "do": [
+          "Use the lighter style over content imagery"
+        ],
+        "dont": [
+          "Hide scrollbars on long lists entirely"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/scroll.tsx"
+    },
+    {
+      "name": "Modal",
+      "category": "Overlays",
+      "status": "stable",
+      "description": "Composed surface: Modal Header (basic, left icon, or status: error/warning/success/information; 56/80px) + free content + Modal Footer (basic, checkbox, toggle, stepper, link button, stretch) over the Modal Overlay scrim. Status Modals are ready-made confirmations.",
+      "image": "assets/components/modal.png",
+      "anatomy": [
+        "Overlay",
+        "Header (title, optional description or status icon, close)",
+        "Body",
+        "Footer (actions)"
+      ],
+      "props": [
+        {
+          "name": "headerType",
+          "values": [
+            "basic",
+            "left-icon",
+            "error",
+            "warning",
+            "success",
+            "information"
+          ]
+        },
+        {
+          "name": "headerSize",
+          "values": [
+            "medium-80",
+            "small-56"
+          ]
+        },
+        {
+          "name": "footerType",
+          "values": [
+            "basic",
+            "checkbox",
+            "toggle",
+            "stepper",
+            "link-button",
+            "stretch"
+          ]
+        }
+      ],
+      "states": [
+        "closed",
+        "open"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "shadow/md",
+        "radius/16",
+        "space/16",
+        "color/text/strong-950"
+      ],
+      "usage": {
+        "import": "import { Modal } from '@/components/ui/modal'",
+        "do": [
+          "Return focus to the trigger on close"
+        ],
+        "dont": [
+          "Stack modals on top of each other"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/modal.tsx"
+    },
+    {
+      "name": "Drawer",
+      "category": "Overlays",
+      "status": "stable",
+      "description": "Side panel composed from Drawer Header (basic or left icon; small/large) + free content + Drawer Footer (basic, checkbox, toggle, stepper, link button, stretch).",
+      "image": "assets/components/drawer.png",
+      "anatomy": [
+        "Overlay",
+        "Panel",
+        "Header",
+        "Body",
+        "Footer"
+      ],
+      "props": [
+        {
+          "name": "headerType",
+          "values": [
+            "basic",
+            "left-icon"
+          ]
+        },
+        {
+          "name": "footerType",
+          "values": [
+            "basic",
+            "checkbox",
+            "toggle",
+            "stepper",
+            "link-button",
+            "stretch"
+          ]
+        }
+      ],
+      "states": [
+        "closed",
+        "open"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "shadow/md",
+        "radius/16",
+        "space/16",
+        "color/text/strong-950"
+      ],
+      "usage": {
+        "import": "import { Drawer } from '@/components/ui/drawer'",
+        "do": [
+          "Use for detail views and multi-field editing that keeps page context"
+        ],
+        "dont": [
+          "Use a drawer for a blocking confirmation — use a Modal"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/drawer.tsx"
+    },
+    {
+      "name": "Popover",
+      "category": "Overlays",
+      "status": "stable",
+      "description": "Anchored floating panel with 12 tail placements (tail hideable) and an optional footer (stretch buttons or stepper) for multi-step hints and tours.",
+      "image": "assets/components/popover.png",
+      "anatomy": [
+        "Panel",
+        "Tail",
+        "Title",
+        "Body",
+        "Footer (optional)"
+      ],
+      "props": [
+        {
+          "name": "placement",
+          "values": [
+            "top-left",
+            "top-center",
+            "top-right",
+            "bottom-left",
+            "bottom-center",
+            "bottom-right",
+            "right-top",
+            "right",
+            "right-bottom",
+            "left-top",
+            "left",
+            "left-bottom"
+          ]
+        },
+        {
+          "name": "footer",
+          "values": [
+            "none",
+            "stretch",
+            "stepper",
+            "text-stepper"
+          ]
+        }
+      ],
+      "states": [
+        "hidden",
+        "visible"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "shadow/md",
+        "radius/16",
+        "space/16",
+        "color/text/strong-950"
+      ],
+      "usage": {
+        "import": "import { Popover } from '@/components/ui/popover'",
+        "do": [
+          "Use the stepper footer for product tours"
+        ],
+        "dont": [
+          "Use a popover for destructive confirmations — use a Modal"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/popover.tsx"
+    },
+    {
+      "name": "Dropdown",
+      "category": "Overlays",
+      "status": "stable",
+      "description": "Menu items for selects, context menus, and command surfaces. Items (small 36 / large 56) carry avatars, flags, or logos plus optional checkbox, sublabel, badge, shortcut, toggle, or button; misc items add search, buttons, and captions. The container is a 16px-radius surface with the md shadow, assembled per use.",
+      "image": "assets/components/dropdown.png",
+      "anatomy": [
+        "Container (assembled)",
+        "Item (leading content, label, trailing content)",
+        "Misc item (search / button / caption)",
+        "Content divider"
+      ],
+      "props": [
+        {
+          "name": "itemType",
+          "values": [
+            "basic",
+            "country",
+            "avatar",
+            "provider",
+            "brand",
+            "company"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "small-36",
+            "large-56"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "selected",
+        "disabled"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "shadow/md",
+        "radius/16",
+        "space/16",
+        "color/text/strong-950"
+      ],
+      "usage": {
+        "import": "import { Dropdown } from '@/components/ui/dropdown'",
+        "do": [
+          "Keep one interaction pattern per menu (select or command, not both)"
+        ],
+        "dont": [
+          "Exceed ~8 visible items without search"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/dropdown.tsx"
+    },
+    {
+      "name": "Command Menu",
+      "category": "Overlays",
+      "status": "stable",
+      "description": "⌘K palette composed from a search input, typed result items (basic, avatar, left icon, brand, company, country; 48/64px), and a shortcut footer.",
+      "image": "assets/components/command-menu.png",
+      "anatomy": [
+        "Search input",
+        "Result items",
+        "Footer (shortcut hints)"
+      ],
+      "props": [
+        {
+          "name": "itemSize",
+          "values": [
+            "small-48",
+            "medium-64"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/stroke/soft-200",
+        "shadow/md",
+        "radius/16",
+        "space/16",
+        "color/text/strong-950"
+      ],
+      "usage": {
+        "import": "import { CommandMenu } from '@/components/ui/command-menu'",
+        "do": [
+          "Order results by recency and match quality"
+        ],
+        "dont": [
+          "Bury primary navigation exclusively in the command menu"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/command-menu.tsx"
+    },
+    {
+      "name": "Sidebar",
+      "category": "Product",
+      "status": "stable",
+      "description": "App navigation panel with collapsed mode, composed from Sidebar Header, Header Card, Sidebar Items, Feature Cards (six types × four styles), User Profile Card, and Sidebar Footer.",
+      "image": "assets/components/sidebar.png",
+      "anatomy": [
+        "Header (logo / workspace card)",
+        "Nav items (icon, label, badge)",
+        "Feature card (optional)",
+        "User profile card",
+        "Footer"
+      ],
+      "props": [
+        {
+          "name": "collapsed",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        {
+          "name": "featureCard",
+          "values": [
+            "true",
+            "false"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/bg/weak-50",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "space/16",
+        "radius/16"
+      ],
+      "usage": {
+        "import": "import { Sidebar } from '@/components/ui/sidebar'",
+        "do": [
+          "Persist the collapsed state per user"
+        ],
+        "dont": [
+          "Nest navigation more than two levels deep"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/sidebar.tsx"
+    },
+    {
+      "name": "Topbar",
+      "category": "Product",
+      "status": "stable",
+      "description": "Top app bar with page context and actions, composed from Topbar Items, Item Buttons, and User Profile.",
+      "image": "assets/components/topbar.png",
+      "anatomy": [
+        "Page title / context",
+        "Search (optional)",
+        "Action buttons",
+        "User profile"
+      ],
+      "props": [
+        {
+          "name": "type",
+          "values": [
+            "default",
+            "with-icon"
+          ]
+        }
+      ],
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/bg/weak-50",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "space/16",
+        "radius/16"
+      ],
+      "usage": {
+        "import": "import { Topbar } from '@/components/ui/topbar'",
+        "do": [
+          "Keep global actions (search, notifications) consistent across pages"
+        ],
+        "dont": [
+          "Duplicate the sidebar's navigation in the topbar"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/topbar.tsx"
+    },
+    {
+      "name": "Page Header",
+      "category": "Product",
+      "status": "stable",
+      "description": "Page-level (88px) and section-level (80px) headers in five types: basic, avatar, left icon, brand, company — title, description, and action slot.",
+      "image": "assets/components/page-header.png",
+      "anatomy": [
+        "Leading content (optional)",
+        "Title",
+        "Description (optional)",
+        "Actions"
+      ],
+      "props": [
+        {
+          "name": "level",
+          "values": [
+            "page",
+            "section"
+          ]
+        },
+        {
+          "name": "type",
+          "values": [
+            "basic",
+            "avatar",
+            "left-icon",
+            "brand",
+            "company"
+          ]
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/bg/white-0",
+        "color/bg/weak-50",
+        "color/stroke/soft-200",
+        "color/text/sub-600",
+        "color/text/strong-950",
+        "space/16",
+        "radius/16"
+      ],
+      "usage": {
+        "import": "import { PageHeader } from '@/components/ui/page-header'",
+        "do": [
+          "Use one page header per view; section headers below it"
+        ],
+        "dont": [
+          "Put more than two actions in the header — overflow the rest"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/page-header.tsx"
+    },
+    {
+      "name": "Empty State",
+      "category": "Product",
+      "status": "stable",
+      "description": "Illustrated placeholder shown when a widget or view has no data: illustration tile, message, and optional action.",
+      "image": "assets/components/empty-state.png",
+      "anatomy": [
+        "Illustration",
+        "Message",
+        "Action (optional)"
+      ],
+      "props": [],
+      "states": [
+        "default"
+      ],
+      "tokensUsed": [
+        "color/bg/weak-50",
+        "color/text/sub-600",
+        "color/text/soft-400",
+        "space/16"
+      ],
+      "usage": {
+        "import": "import { EmptyState } from '@/components/ui/empty-state'",
+        "do": [
+          "Say what will appear here and how to create it"
+        ],
+        "dont": [
+          "Show a bare 'No data' string inside a widget"
+        ]
+      },
+      "codeConnected": false,
+      "codePath": "src/components/ui/empty-state.tsx"
     }
   ]
 }
