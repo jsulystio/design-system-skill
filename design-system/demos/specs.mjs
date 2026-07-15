@@ -10,16 +10,24 @@
 // styling changes. A slug with no entry simply shows the "Tokens used" list.
 
 export const specs = {
-  button: [
-    { prop: 'Height (medium)', value: '40px' },
-    { prop: 'Background', token: 'color/primary/base' },
-    { prop: 'Label', token: 'color/static/white' },
-    { prop: 'Radius', token: 'radius/10' },
-    { prop: 'Padding Y', token: 'space/10' },
-    { prop: 'Padding X', token: 'space/16' },
-    { prop: 'Gap (icon)', token: 'space/6' },
-    { prop: 'Font', token: 'type/label/sm' },
-  ],
+  button: {
+    base: [
+      { prop: 'Height (medium)', value: '40px' },
+      { prop: 'Radius', token: 'radius/10' },
+      { prop: 'Padding Y', token: 'space/10' },
+      { prop: 'Padding X', token: 'space/16' },
+      { prop: 'Gap (icon)', token: 'space/6' },
+      { prop: 'Font', token: 'type/label/sm' },
+    ],
+    byVariant: {
+      Primary: [{ prop: 'Background', token: 'color/primary/base' }, { prop: 'Label', token: 'color/static/white' }],
+      Neutral: [{ prop: 'Background', token: 'color/bg/white-0' }, { prop: 'Border', token: 'color/stroke/soft-200' }, { prop: 'Label', token: 'color/text/sub-600' }],
+      Error: [{ prop: 'Background', token: 'color/state/error/base' }, { prop: 'Label', token: 'color/static/white' }],
+      Lighter: [{ prop: 'Background', token: 'color/primary/alpha-10' }, { prop: 'Label', token: 'color/primary/base' }],
+      Ghost: [{ prop: 'Background', value: 'transparent' }, { prop: 'Label', token: 'color/text/sub-600' }],
+      Sizes: [{ prop: 'Medium height', value: '40px' }, { prop: 'Small height', value: '36px' }, { prop: 'X-Small height', value: '32px' }],
+    },
+  },
   'compact-button': [
     { prop: 'Size', value: '28 × 28px' },
     { prop: 'Icon', value: '16 × 16px' },
@@ -56,22 +64,32 @@ export const specs = {
     { prop: 'Radius (ends)', token: 'radius/8' },
     { prop: 'Padding', token: 'space/8' },
   ],
-  badge: [
-    { prop: 'Min height', value: '20px' },
-    { prop: 'Filled background', token: 'color/primary/base' },
-    { prop: 'Filled text', token: 'color/static/white' },
-    { prop: 'Lighter background', token: 'color/state/information/lighter' },
-    { prop: 'Radius', token: 'radius/full' },
-    { prop: 'Padding X', token: 'space/8' },
-    { prop: 'Font', token: 'type/label/xs' },
-  ],
-  'status-badge': [
-    { prop: 'Completed bg', token: 'color/state/success/lighter' },
-    { prop: 'Completed text', token: 'color/state/success/dark' },
-    { prop: 'Radius', token: 'radius/full' },
-    { prop: 'Padding', value: '2px 8px' },
-    { prop: 'Font', token: 'type/label/xs' },
-  ],
+  badge: {
+    base: [
+      { prop: 'Min height', value: '20px' },
+      { prop: 'Radius', token: 'radius/full' },
+      { prop: 'Padding X', token: 'space/8' },
+      { prop: 'Font', token: 'type/label/xs' },
+    ],
+    byVariant: {
+      Filled: [{ prop: 'Background', token: 'color/primary/base' }, { prop: 'Text', token: 'color/static/white' }],
+      Light: [{ prop: 'Background', token: 'color/state/information/light' }, { prop: 'Text', token: 'color/state/information/dark' }],
+      Lighter: [{ prop: 'Background', token: 'color/state/information/lighter' }, { prop: 'Text', token: 'color/state/information/base' }],
+      'With dot': [{ prop: 'Background', token: 'color/state/success/lighter' }, { prop: 'Text', token: 'color/state/success/base' }, { prop: 'Dot', token: 'color/state/success/base' }],
+    },
+  },
+  'status-badge': {
+    base: [
+      { prop: 'Radius', token: 'radius/full' },
+      { prop: 'Padding', value: '2px 8px' },
+      { prop: 'Font', token: 'type/label/xs' },
+    ],
+    byVariant: {
+      Completed: [{ prop: 'Background', token: 'color/state/success/lighter' }, { prop: 'Text', token: 'color/state/success/dark' }],
+      Pending: [{ prop: 'Background', token: 'color/state/warning/lighter' }, { prop: 'Text', token: 'color/state/warning/dark' }],
+      Failed: [{ prop: 'Background', token: 'color/state/error/lighter' }, { prop: 'Text', token: 'color/state/error/dark' }],
+    },
+  },
   tag: [
     { prop: 'Background', token: 'color/bg/white-0' },
     { prop: 'Border', token: 'color/stroke/soft-200' },
@@ -250,15 +268,21 @@ export const specs = {
     { prop: 'Upcoming', token: 'color/bg/soft-200' },
     { prop: 'Font', token: 'type/label/xs' },
   ],
-  alert: [
-    { prop: 'Radius', token: 'radius/12' },
-    { prop: 'Padding Y', token: 'space/12' },
-    { prop: 'Padding X', token: 'space/16' },
-    { prop: 'Success bg', token: 'color/state/success/lighter' },
-    { prop: 'Success text', token: 'color/state/success/dark' },
-    { prop: 'Icon size', value: '20 × 20px' },
-    { prop: 'Font', token: 'type/paragraph/sm' },
-  ],
+  alert: {
+    base: [
+      { prop: 'Radius', token: 'radius/12' },
+      { prop: 'Padding Y', token: 'space/12' },
+      { prop: 'Padding X', token: 'space/16' },
+      { prop: 'Icon size', value: '20 × 20px' },
+      { prop: 'Font', token: 'type/paragraph/sm' },
+    ],
+    byVariant: {
+      Success: [{ prop: 'Background', token: 'color/state/success/lighter' }, { prop: 'Text', token: 'color/state/success/dark' }],
+      Error: [{ prop: 'Background', token: 'color/state/error/lighter' }, { prop: 'Text', token: 'color/state/error/dark' }],
+      Warning: [{ prop: 'Background', token: 'color/state/warning/lighter' }, { prop: 'Text', token: 'color/state/warning/dark' }],
+      Information: [{ prop: 'Background', token: 'color/state/information/lighter' }, { prop: 'Text', token: 'color/state/information/dark' }],
+    },
+  },
   banner: [
     { prop: 'Background', token: 'color/state/information/lighter' },
     { prop: 'Text', token: 'color/state/information/dark' },

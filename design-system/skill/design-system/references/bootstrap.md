@@ -77,13 +77,23 @@ card on the foundations index. Fields the build reads:
 - `anatomy`, `props`, `states`, `tokensUsed` — the reference data.
   `states` renders as the interactive **States** section (the demo registry
   supplies the live per-state HTML); `props` renders the **API** table.
-- The **Specs** redline table (Property → Token → resolved value, with color
-  swatches) comes from `design-system/demos/specs.mjs` (rows of
-  `{prop, token}` or `{prop, value}`). Token rows resolve to the current value
-  at build time, so specs never drift; literal rows cover fixed sizes. This is
-  what an engineer implements from and a designer cross-checks against; it also
-  appears in DESIGN-SYSTEM.md. A slug with no specs entry falls back to the
-  compact "Tokens used" list.
+- **Specs are per-variant**, not one component-wide table — a size or type
+  changes color/padding/height. They come from `design-system/demos/specs.mjs`,
+  which per slug is either a flat array (shared for every variant) or
+  `{ base, byVariant }`: `base` holds rows shared by all variants (radius,
+  padding, font…), and `byVariant` keys extra rows by the variant's title
+  (e.g. `Primary`/`Neutral` background + label colors). Each variant card shows
+  a collapsible **Specs** table = base + its own rows, as Property → Token →
+  resolved value with color swatches. Rows are `{prop, token}` (resolves to the
+  current value at build time, so specs never drift) or `{prop, value}` (fixed
+  literal like `40px`). Same per-variant tables appear in DESIGN-SYSTEM.md. A
+  slug with no specs falls back to the compact "Tokens used" list.
+- Each variant card shows a **Specs / Code** tabbed panel. The Code tab shows
+  the component-API call (`tsx` from the demo registry) **and** the equivalent
+  Tailwind token classes, which `build.mjs` auto-generates from that variant's
+  spec rows (`color/primary/base` → `bg-primary-base`, `radius/10` →
+  `rounded-10`, `space/16` → `px-16`, …) — real, copy-pasteable code that stays
+  in lockstep with the specs.
 - `usage.do` / `usage.dont` — the guidance columns.
 - `usage.import` — optional one-line import statement, shown as a code block.
 - `codeConnected` / `codePath` — whether an engineer-owned component exists yet.

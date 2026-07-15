@@ -37,7 +37,6 @@ let SPECS = {};
 try {
   ({ specs: SPECS } = await import('../demos/specs.mjs'));
 } catch { SPECS = {}; }
-const specsFor = (c) => SPECS[slug(c.name)] || null;
 
 const raw = read(p('tokens/figma.raw.json'));
 const inventory = exists(p('inventory/components.json'))
@@ -214,14 +213,22 @@ function navMarkup(up) {
     ).join('');
     return `<div class="nav-group"><p class="nav-group-title">${esc(cat)}</p>${links}</div>`;
   }).join('');
+  // Foundations sub-sections link to the anchors on the index page.
+  const foundations = [['Color', 'color'], ['Spacing', 'space'], ['Radius', 'radius'], ['Typography', 'type'], ['Shadows', 'shadow']];
+  const foundationLinks = foundations
+    .filter(([, id]) => groups[id])
+    .map(([label, id]) => `<a href="${up}index.html#${id}" data-name="${esc(label.toLowerCase())}">${esc(label)}</a>`)
+    .join('');
   return `
     <a href="${up}index.html" class="side-lead">Foundations</a>
     <div class="side-filter">
       <svg class="side-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="navfilter" type="search" placeholder="Search components..." autocomplete="off" aria-label="Search components">
+      <input id="navfilter" type="search" placeholder="Search..." autocomplete="off" aria-label="Search foundations and components">
     </div>
-    <span class="side-label">Components</span>
-    <div class="nav-groups">${groupsHtml}</div>`;
+    <div class="nav-groups">
+      <div class="nav-group"><p class="nav-group-title">Foundations</p>${foundationLinks}</div>
+      ${groupsHtml}
+    </div>`;
 }
 
 function shell(title, body, depth = 0) {
@@ -252,12 +259,91 @@ function shell(title, body, depth = 0) {
 </html>`;
 }
 
-function swatch(t) {
-  return `<figure class="swatch">
-    <div class="chip" style="background: var(${cssVar(t.name)})"></div>
-    <figcaption><code>${esc(t.name)}</code><span>${esc(t.light ?? '')}</span></figcaption>
-  </figure>`;
+// ---- Color foundations ----
+// Follows the patterns established design systems use (GitHub Primer, Radix,
+// IBM Carbon): lead with SEMANTIC tokens grouped by the role they play, and
+// present the PRIMITIVE scales as compact one-row-per-hue ramps for reference,
+// rather than a flat wall of equal-weight swatches.
+
+const ROLE_LABELS = {
+  bg: ['Background', 'Surfaces, from page canvas to inverted fills.'],
+  text: ['Text', 'By emphasis: strong → sub → soft → disabled.'],
+  icon: ['Icon', 'Same emphasis ladder as text.'],
+  stroke: ['Stroke', 'Borders and dividers.'],
+  primary: ['Primary', 'The brand / action color. Rebrand by repointing these.'],
+  state: ['State', 'Intent colors. Per state: lighter · light · base · dark.'],
+  static: ['Static', 'Never invert between light and dark.'],
+};
+const HUE_ORDER = ['gray', 'slate', 'blue', 'orange', 'red', 'green', 'yellow', 'purple', 'sky', 'pink', 'teal'];
+
+// A compact semantic row: swatch + token + light/dark values.
+function semRow(t) {
+  const l = t.light ?? '', d = t.dark ?? '';
+  const dark = d && d !== l ? `<span class="cval cval--dark" title="dark mode">${esc(d)}</span>` : '';
+  return `<div class="crow">
+    <span class="chip xs" style="background: var(${cssVar(t.name)})"></span>
+    <code>${esc(t.name)}</code>
+    <span class="cval" title="light mode">${esc(l)}</span>${dark}
+  </div>`;
 }
+
+// A primitive hue ramp: one row of numbered steps (Radix/Tailwind style).
+function ramp(name, steps) {
+  const cells = steps.map((t) => {
+    const step = t.name.split('/').pop();
+    return `<span class="ramp-step" style="background: var(${cssVar(t.name)})" title="${esc(t.name)} · ${esc(t.light ?? '')}"><em>${esc(step)}</em></span>`;
+  }).join('');
+  return `<div class="ramp"><span class="ramp-name">${esc(name)}</span><div class="ramp-steps">${cells}</div></div>`;
+}
+
+function colorSection(items) {
+  const semantic = items.filter((t) => t.collection !== 'primitives');
+  const primitive = items.filter((t) => t.collection === 'primitives');
+
+  // Semantic, grouped by role (color/<role>/...).
+  const byRole = new Map();
+  for (const t of semantic) {
+    const role = t.name.split('/')[1];
+    if (!byRole.has(role)) byRole.set(role, []);
+    byRole.get(role).push(t);
+  }
+  const roleKeys = [...Object.keys(ROLE_LABELS).filter((r) => byRole.has(r)),
+    ...[...byRole.keys()].filter((r) => !ROLE_LABELS[r])];
+  const semHtml = roleKeys.map((role) => {
+    const [label, note] = ROLE_LABELS[role] || [role[0].toUpperCase() + role.slice(1), ''];
+    return `<div class="role-group">
+      <div class="role-head"><h4>${esc(label)}</h4>${note ? `<p>${esc(note)}</p>` : ''}</div>
+      <div class="crows">${byRole.get(role).map(semRow).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // Primitive, one ramp per hue; leftovers (alpha/overlays) as compact rows.
+  const byHue = new Map();
+  const leftovers = [];
+  for (const t of primitive) {
+    const hue = t.name.split('/')[1];
+    if (HUE_ORDER.includes(hue)) {
+      if (!byHue.has(hue)) byHue.set(hue, []);
+      byHue.get(hue).push(t);
+    } else leftovers.push(t);
+  }
+  const numStep = (t) => Number(t.name.split('/').pop().replace(/[^0-9.]/g, '')) || 0;
+  const ramps = [...HUE_ORDER.filter((h) => byHue.has(h))]
+    .map((h) => ramp(h[0].toUpperCase() + h.slice(1), byHue.get(h).sort((a, b) => numStep(a) - numStep(b))))
+    .join('');
+  const leftoverHtml = leftovers.length
+    ? `<div class="role-group"><div class="role-head"><h4>Alpha &amp; overlays</h4><p>Transparent tints for hovers, focus rings, scrims.</p></div><div class="crows">${leftovers.map(semRow).join('')}</div></div>`
+    : '';
+
+  return `<section id="color">
+    <h2>Color</h2>
+    <h3 class="sub-head">Semantic tokens <span class="sub-note">— use these in UI</span></h3>
+    <div class="role-groups">${semHtml}</div>
+    <h3 class="sub-head">Primitive scales <span class="sub-note">— reference only; define semantics, don't use directly</span></h3>
+    <div class="ramps">${ramps}${leftoverHtml}</div>
+  </section>`;
+}
+
 function scaleRow(t) {
   return `<tr><td><code>${esc(t.name)}</code></td><td class="mono">${esc(t.light ?? '')}</td></tr>`;
 }
@@ -276,9 +362,7 @@ function foundationsPage() {
   const cats = [...order.filter((c) => groups[c]), ...Object.keys(groups).filter((c) => !order.includes(c))];
   const sections = cats.map((cat) => {
     const items = groups[cat];
-    if (cat === 'color') {
-      return `<section id="${cat}"><h2>Color</h2><div class="swatches">${items.map(swatch).join('')}</div></section>`;
-    }
+    if (cat === 'color') return colorSection(items);
     return `<section id="${cat}"><h2>${esc(cat[0].toUpperCase() + cat.slice(1))}</h2>
       <table class="scale"><tbody>${items.map(scaleRow).join('')}</tbody></table></section>`;
   }).join('');
@@ -301,17 +385,98 @@ function codeBlock(code) {
   return `<div class="code-wrap"><pre class="code"><code>${esc(code)}</code></pre><div class="code-actions"><button class="copy" type="button">Copy</button></div></div>`;
 }
 
-// One variant card: a live stage (rendered with the tokens) + its TSX call.
-function renderVariant(v) {
+// Specs are per-variant (a size or type changes color/padding/height), so they
+// live inside each variant, not in one component-wide table. specs.mjs entries
+// may be a flat array (shared base) or { base, byVariant } — normalize both.
+function getSpecs(c) {
+  const s = SPECS[slug(c.name)];
+  if (!s) return { base: [], byVariant: {} };
+  if (Array.isArray(s)) return { base: s, byVariant: {} };
+  return { base: s.base || [], byVariant: s.byVariant || {} };
+}
+// Resolve one spec row to a table row (token → current value, + swatch for colors).
+function specRowHtml(r) {
+  if (r.token) {
+    const rec = flat[r.token];
+    const val = rec ? (cssValue(r.token, rec, 'light') ?? String(rec.light ?? '')) : '';
+    const sw = rec?.type === 'COLOR' ? `<span class="chip sm" style="background: var(${cssVar(r.token)})"></span>` : '';
+    return `<tr><td>${esc(r.prop)}</td><td>${sw}<code>${esc(r.token)}</code></td><td class="mono">${esc(val)}</td></tr>`;
+  }
+  return `<tr><td>${esc(r.prop)}</td><td class="muted">literal</td><td class="mono">${esc(r.value ?? '')}</td></tr>`;
+}
+function specTable(rows) {
+  if (!rows.length) return '';
+  return `<table class="specs"><thead><tr><th>Property</th><th>Token</th><th>Value</th></tr></thead><tbody>${rows.map(specRowHtml).join('')}</tbody></table>`;
+}
+
+// Derive Tailwind utility classes for a spec row, using the generated theme
+// keys (color/primary/base → bg-primary-base, radius/10 → rounded-10, …). Rows
+// we can't map cleanly (font/type shorthand) are skipped — Specs still lists them.
+function twClassFromRow(r) {
+  const label = (r.prop || '').toLowerCase();
+  const tok = r.token || '';
+  const colorKey = tok.startsWith('color/') ? tok.slice(6).replace(/\//g, '-') : null;
+  const seg = tok.split('/')[1];
+  const radiusKey = tok.startsWith('radius/') ? seg : null;
+  const spaceKey = tok.startsWith('space/') ? seg : null;
+  const shadowKey = tok.startsWith('shadow/') ? seg : null;
+  const lit = r.value;
+  if (/background|surface|track|fill/.test(label)) return colorKey ? `bg-${colorKey}` : (lit === 'transparent' ? 'bg-transparent' : null);
+  if (/border|stroke|outline/.test(label) && colorKey) return `border border-${colorKey}`;
+  if (/(text|label|value|title)/.test(label) && colorKey) return `text-${colorKey}`;
+  if (/(icon|chevron|dot)/.test(label) && colorKey) return `text-${colorKey}`;
+  if (/radius/.test(label) && radiusKey) return `rounded-${radiusKey}`;
+  if (/padding x/.test(label) && spaceKey) return `px-${spaceKey}`;
+  if (/padding y/.test(label) && spaceKey) return `py-${spaceKey}`;
+  if (/padding/.test(label) && spaceKey) return `p-${spaceKey}`;
+  if (/gap/.test(label) && spaceKey) return `gap-${spaceKey}`;
+  if (/shadow/.test(label) && shadowKey) return `shadow-${shadowKey}`;
+  if (/height/.test(label)) return spaceKey ? `h-${spaceKey}` : (/^\d+px$/.test(lit || '') ? `h-[${lit}]` : null);
+  return null;
+}
+function tailwindFromSpecs(rows) {
+  const seen = new Set(), out = [];
+  for (const r of rows || []) {
+    const c = twClassFromRow(r);
+    if (!c) continue;
+    for (const cc of c.split(' ')) if (!seen.has(cc)) { seen.add(cc); out.push(cc); }
+  }
+  return out.join(' ');
+}
+
+// One variant card: a live stage, then a tabbed Specs / Code panel. Specs is
+// the redline (base rows + any rows specific to this variant); Code shows both
+// the component call and the equivalent Tailwind token classes (from the specs).
+// Tabs keep it clean; a single panel renders without a tablist.
+function renderVariant(v, specRows) {
   const desc = v.description ? `<p class="variant-desc">${esc(v.description)}</p>` : '';
   const stage = v.html
     ? `<div class="stage stage--variant ds-demo">${v.html}</div>`
     : '';
-  const tsx = v.tsx ? codeBlock(v.tsx) : '';
+  const panels = [];
+  if (specRows && specRows.length) panels.push(['specs', 'Specs', specTable(specRows)]);
+  const twcls = tailwindFromSpecs(specRows);
+  const codeParts = [];
+  if (v.tsx) codeParts.push(codeBlock(v.tsx));
+  if (twcls) codeParts.push(`<p class="code-caption">Or style any element with the Tailwind token classes:</p>${codeBlock(`<div className="${esc(twcls)}">…</div>`)}`);
+  if (codeParts.length) panels.push(['code', 'Code', codeParts.join('')]);
+
+  let detail = '';
+  if (panels.length === 1) {
+    detail = `<div class="tabs tabs--single"><div class="tabpanel" data-panel="${panels[0][0]}">${panels[0][2]}</div></div>`;
+  } else if (panels.length > 1) {
+    const tabs = panels.map((pan, i) =>
+      `<button class="tab${i === 0 ? ' is-active' : ''}" type="button" role="tab" aria-selected="${i === 0}" data-tab="${pan[0]}">${pan[1]}</button>`
+    ).join('');
+    const bodies = panels.map((pan, i) =>
+      `<div class="tabpanel${i === 0 ? '' : ' is-hidden'}" role="tabpanel" data-panel="${pan[0]}">${pan[2]}</div>`
+    ).join('');
+    detail = `<div class="tabs"><div class="tablist" role="tablist">${tabs}</div>${bodies}</div>`;
+  }
   return `<div class="variant">
     <div class="variant-head"><h3>${esc(v.title || '')}</h3>${desc}</div>
     ${stage}
-    ${tsx ? `<div class="variant-code">${tsx}</div>` : ''}
+    ${detail}
   </div>`;
 }
 
@@ -334,10 +499,15 @@ function componentPage(c) {
     ? `<section><h2>Import</h2><div class="snippet snippet--solo"><div class="snippet-bar"><span>Import</span><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(c.usage.import)}</code></pre></div></section>`
     : '';
 
-  // Variants (live stage + TSX)
+  // Variants (live stage + TSX + per-variant specs). Specs = shared base rows
+  // merged with any rows specific to this variant (its title matches byVariant).
+  const { base: specBase, byVariant } = getSpecs(c);
   const variants = variantsFor(c);
   const variantsSection = variants.length
-    ? `<section><h2>Variants</h2>${variants.map(renderVariant).join('')}</section>`
+    ? `<section><h2>Variants</h2>${variants.map((v) => {
+        const rows = [...specBase, ...(byVariant[v.title] || [])];
+        return renderVariant(v, rows);
+      }).join('')}</section>`
     : '';
 
   // Anatomy: ONE live instance + the numbered part list (what it is made of).
@@ -369,21 +539,6 @@ function componentPage(c) {
     ? `<section><h2>API</h2><table class="scale"><tbody>${propRows.join('')}</tbody></table></section>`
     : '';
 
-  // Specs: the redline table (property → token → resolved value). Engineers
-  // implement from it; designers cross-check the rendered preview against it.
-  const specRows = (specsFor(c) || []).map((r) => {
-    if (r.token) {
-      const rec = flat[r.token];
-      const val = rec ? (cssValue(r.token, rec, 'light') ?? String(rec.light ?? '')) : '';
-      const sw = rec?.type === 'COLOR' ? `<span class="chip sm" style="background: var(${cssVar(r.token)})"></span>` : '';
-      return `<tr><td>${esc(r.prop)}</td><td>${sw}<code>${esc(r.token)}</code></td><td class="mono">${esc(val)}</td></tr>`;
-    }
-    return `<tr><td>${esc(r.prop)}</td><td class="muted">literal</td><td class="mono">${esc(r.value ?? '')}</td></tr>`;
-  }).join('');
-  const specsSection = specRows
-    ? `<section><h2>Specs</h2><p class="section-note">Every value is a token (or a fixed literal). Cross-check the preview against these; the resolved value updates when the token changes.</p><table class="specs"><thead><tr><th>Property</th><th>Token</th><th>Value</th></tr></thead><tbody>${specRows}</tbody></table></section>`
-    : '';
-
   const tokensUsed = (c.tokensUsed || []).map((t) =>
     `<li><span class="chip sm" style="background: var(${cssVar(t)})"></span><code>${esc(t)}</code></li>`
   ).join('');
@@ -403,10 +558,9 @@ function componentPage(c) {
     ${importLine}
     ${variantsSection}
     ${anatomy}
-    ${specsSection}
     ${statesSection}
     ${api}
-    ${(!specsSection && tokensUsed) ? `<section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>` : ''}
+    ${(!specBase.length && tokensUsed) ? `<section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>` : ''}
     ${(dos || donts) ? `<section class="usage">
       <div><h2>Do</h2><ul class="do">${dos}</ul></div>
       <div><h2>Don't</h2><ul class="dont">${donts}</ul></div>
@@ -497,12 +651,32 @@ h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: 
 .comp-head h1 { margin: 0; }
 .lede { font-size: 18px; color: var(--color-text-sub-600, #5c5c5c); max-width: 60ch; margin: 12px 0 24px; }
 .hero { padding: 24px 0 8px; }
-.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-.swatch { margin: 0; }
-.chip { height: 56px; border-radius: var(--radius-8, 8px); border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 .chip.sm { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
-.swatch figcaption { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; font-size: 12px; }
-.swatch figcaption span { color: var(--color-text-sub-600, #a3a3a3); }
+.chip.xs { display: inline-block; width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); flex: none; }
+
+/* Color: sub-headers */
+.sub-head { font-size: 15px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--color-text-strong-950, #171717); border: 0; padding: 0; margin: 56px 0 24px; }
+.sub-head:first-of-type { margin-top: 32px; }
+.sub-note { color: var(--color-text-soft-400, #a3a3a3); font-weight: 400; }
+
+/* Color: semantic role groups */
+.role-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 48px 40px; }
+.role-head h4 { margin: 0; font-size: 14px; font-weight: 500; }
+.role-head p { margin: 4px 0 14px; font-size: 12px; color: var(--color-text-soft-400, #a3a3a3); }
+.crows { display: flex; flex-direction: column; }
+.crow { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--color-stroke-soft-200, #f2f2f2); font-size: 13px; }
+.crow code { flex: 1; min-width: 0; }
+.crow .cval { font-size: 12px; color: var(--color-text-sub-600, #64625c); font-variant-numeric: tabular-nums; }
+.crow .cval--dark { color: var(--color-text-soft-400, #a3a3a3); }
+.crow .cval--dark::before { content: "/ "; }
+
+/* Color: primitive ramps */
+.ramps { display: flex; flex-direction: column; gap: 12px; }
+.ramp { display: flex; align-items: center; gap: 14px; }
+.ramp-name { width: 64px; flex: none; font-size: 13px; color: var(--color-text-sub-600, #64625c); text-align: right; }
+.ramp-steps { display: flex; flex: 1; height: 44px; border-radius: var(--radius-8, 8px); overflow: hidden; border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.ramp-step { flex: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; }
+.ramp-step em { font-style: normal; font-size: 10px; color: rgba(0,0,0,0.45); mix-blend-mode: difference; filter: invert(1) grayscale(1) contrast(9); }
 table.scale { border-collapse: collapse; width: 100%; font-size: 14px; }
 table.scale td { padding: 8px 12px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 table.scale td:first-child { width: 40%; }
@@ -542,9 +716,12 @@ table.specs td:first-child { color: var(--color-text-sub-600, #64625c); width: 3
 table.specs td.mono { width: 30%; color: var(--color-text-strong-950, #141413); }
 table.specs code { font-size: 13px; }
 
-/* Variant TSX block sits under the live stage */
-.variant-code { padding: 0 18px 16px; }
-.variant-code .code-wrap { align-items: stretch; }
+/* Per-variant Specs / Code tabs sit under the live stage */
+.code-caption { font-size: 12px; color: var(--color-text-soft-400, #a3a3a3); margin: 14px 0 8px; }
+.tabpanel .code-wrap + .code-caption { margin-top: 16px; }
+.tabpanel table.specs { margin: 0; }
+.tabpanel table.specs th { padding-top: 0; }
+.tabpanel table.specs tr:last-child td { border-bottom: 0; }
 
 /* Interaction states grid */
 .state-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
@@ -665,30 +842,27 @@ function mdComponent(c) {
   }
   if (states.length) lines.push('', `**Interaction states:** ${states.join(', ')}`);
   if (c.anatomy?.length) lines.push('', `**Anatomy:** ${c.anatomy.map((a, i) => `${i + 1}. ${a}`).join(' ')}`);
-  // Specs redline: property → token → resolved value. The implementable contract.
-  const specRows = specsFor(c);
-  if (specRows && specRows.length) {
-    lines.push('', '**Specs**', '', '| Property | Token | Value |', '|---|---|---|');
-    for (const r of specRows) {
-      if (r.token) {
-        const rec = flat[r.token];
-        const val = rec ? (cssValue(r.token, rec, 'light') ?? String(rec.light ?? '')) : '';
-        lines.push(`| ${r.prop} | \`${r.token}\` | \`${val}\` |`);
-      } else {
-        lines.push(`| ${r.prop} | (literal) | \`${r.value ?? ''}\` |`);
-      }
-    }
-  } else if (c.tokensUsed?.length) {
+  if (!getSpecs(c).base.length && c.tokensUsed?.length) {
     lines.push('', `**Tokens used:** ${c.tokensUsed.map((t) => `\`${t}\``).join(', ')}`);
   }
-  // TSX usage only — the component call a developer writes. (The live rendered
-  // preview lives on the docs site; the styling contract is the tokens above.)
+  // Per-variant: the TSX call a developer writes + that variant's redline specs
+  // (shared base rows merged with rows specific to this variant).
+  const { base: specBase, byVariant } = getSpecs(c);
+  const mdSpecRow = (r) => r.token
+    ? `| ${r.prop} | \`${r.token}\` | \`${(flat[r.token] ? (cssValue(r.token, flat[r.token], 'light') ?? String(flat[r.token].light ?? '')) : '')}\` |`
+    : `| ${r.prop} | (literal) | \`${r.value ?? ''}\` |`;
   const dvariants = (demoFor(c)?.variants) || [];
   const exVariants = dvariants.length ? dvariants : (c.examples || []).map((ex) => ({ title: ex.title, description: ex.description, tsx: ex.usage }));
   for (const ex of exVariants) {
-    if (!ex.tsx) continue;
+    if (!ex.tsx && !specBase.length) continue;
     lines.push('', `**${ex.title || 'Example'}**${ex.description ? ` — ${ex.description}` : ''}`);
-    lines.push('', '```jsx', ex.tsx, '```');
+    if (ex.tsx) lines.push('', '```jsx', ex.tsx, '```');
+    const rows = [...specBase, ...(byVariant[ex.title] || [])];
+    const tw = tailwindFromSpecs(rows);
+    if (tw) lines.push('', '```jsx', `<div className="${tw}">…</div>`, '```');
+    if (rows.length) {
+      lines.push('', '| Property | Token | Value |', '|---|---|---|', ...rows.map(mdSpecRow));
+    }
   }
   const dos = c.usage?.do || [], donts = c.usage?.dont || [];
   if (dos.length || donts.length) {
