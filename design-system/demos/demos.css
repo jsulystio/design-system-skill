@@ -11,6 +11,10 @@
  */
 
 .ds-demo { font-family: var(--font-family-sans, Inter, system-ui, sans-serif); color: var(--color-text-strong-950, #171717); }
+/* Safety net: an inline icon with no explicit size renders at its intrinsic
+ * (huge) size and blows up the layout. This low-specificity default caps any
+ * un-sized icon; component-specific `.ds-x svg` rules still win and override it. */
+.ds-demo :where(svg) { width: 18px; height: 18px; flex: none; }
 .ds-row { display: flex; flex-wrap: wrap; gap: var(--space-12, 12px); align-items: center; }
 .ds-col { display: flex; flex-direction: column; gap: var(--space-12, 12px); align-items: flex-start; }
 
@@ -144,7 +148,7 @@
 .ds-progress > span { display: block; height: 100%; background: var(--color-primary-base, #335cff); border-radius: inherit; }
 
 /* Avatar */
-.ds-avatar { width: 40px; height: 40px; border-radius: var(--radius-full, 999px); background: var(--color-bg-soft-200, #ebebeb); color: var(--color-text-sub-600, #5c5c5c); display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); position: relative; overflow: hidden; }
+.ds-avatar { flex: none; width: 40px; height: 40px; border-radius: var(--radius-full, 999px); background: var(--color-bg-soft-200, #ebebeb); color: var(--color-text-sub-600, #5c5c5c); display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); position: relative; overflow: hidden; }
 .ds-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .ds-avatar-status { position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 999px; border: 2px solid var(--color-bg-white-0, #fff); background: var(--color-state-success-base, #1fc16b); }
 
@@ -154,6 +158,8 @@
 .ds-menu-item { display: flex; align-items: center; gap: var(--space-8, 8px); padding: var(--space-8, 8px) var(--space-10, 10px); border-radius: var(--radius-8, 8px); font-size: var(--font-size-sm, 14px); color: var(--color-text-sub-600, #5c5c5c); cursor: pointer; }
 .ds-menu-item:hover, .ds-menu-item.is-hover { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-strong-950, #171717); }
 .ds-menu-item.is-selected { background: var(--color-primary-alpha-10, #476cff1a); color: var(--color-primary-base, #335cff); }
+.ds-menu-item svg { width: 20px; height: 20px; flex: none; color: var(--color-icon-sub-600, #5c5c5c); }
+.ds-menu-item.is-selected svg { color: var(--color-primary-base, #335cff); }
 .ds-divider { height: 1px; background: var(--color-stroke-soft-200, #ebebeb); margin: var(--space-6, 6px) 0; }
 
 /* Numbered anatomy pin list is rendered by build.mjs; this just frames the instance. */
@@ -191,6 +197,7 @@
 /* Calendar (date picker, simplified) */
 .ds-cal { width: 240px; padding: var(--space-12, 12px); }
 .ds-cal-head { display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-sm, 14px); font-weight: var(--font-weight-medium, 500); margin-bottom: var(--space-8, 8px); }
+.ds-cal-head svg { width: 20px; height: 20px; flex: none; color: var(--color-icon-sub-600, #5c5c5c); }
 .ds-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: var(--font-size-xs, 12px); }
 .ds-cal-grid span { aspect-ratio: 1; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-full, 999px); color: var(--color-text-sub-600, #5c5c5c); }
 .ds-cal-grid .dow { color: var(--color-text-soft-400, #a3a3a3); }
@@ -211,6 +218,8 @@
 
 /* Breadcrumbs / pagination / tabs / steps */
 .ds-crumbs { display: inline-flex; align-items: center; gap: var(--space-8, 8px); font-size: var(--font-size-sm, 14px); color: var(--color-text-soft-400, #a3a3a3); }
+.ds-crumbs svg { width: 16px; height: 16px; flex: none; }
+.ds-crumbs .crumb, .ds-crumbs .sep, .ds-crumbs .current { display: inline-flex; align-items: center; gap: var(--space-4, 4px); margin: 0; font-size: inherit; line-height: 1; }
 .ds-crumbs .crumb { color: var(--color-text-sub-600, #5c5c5c); text-decoration: none; cursor: pointer; }
 .ds-crumbs .sep { color: var(--color-text-disabled-300, #d1d1d1); }
 .ds-crumbs .current { color: var(--color-text-strong-950, #171717); font-weight: var(--font-weight-medium, 500); }
@@ -237,6 +246,10 @@
 .ds-table .tr { display: grid; grid-template-columns: 1.4fr 1fr auto; align-items: center; gap: var(--space-8, 8px); padding: var(--space-10, 10px) var(--space-12, 12px); border-top: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 .ds-table .tr.head { border-top: 0; background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-soft-400, #a3a3a3); font-size: var(--font-size-xs, 12px); text-transform: uppercase; letter-spacing: .04em; }
 .ds-table .tr .lead { display: flex; align-items: center; gap: var(--space-8, 8px); color: var(--color-text-strong-950, #171717); }
+.ds-table .tr > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Compact table used in the overview thumbnail: two columns (name + status)
+ * and tighter rows so the header and both rows fit the card without clipping. */
+.ds-table--compact .tr { grid-template-columns: 1fr auto; padding: var(--space-4, 4px) var(--space-10, 10px); }
 
 /* Accordion */
 .ds-accordion { width: 320px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); overflow: hidden; }
@@ -286,5 +299,6 @@
 .ds-pagehdr .sub { color: var(--color-text-sub-600, #5c5c5c); font-size: var(--font-size-sm, 14px); }
 .ds-empty { width: 300px; padding: var(--space-24, 24px); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-8, 8px); }
 .ds-empty .ill { width: 56px; height: 56px; border-radius: var(--radius-full, 999px); background: var(--color-bg-weak-50, #f7f7f7); display: inline-flex; align-items: center; justify-content: center; color: var(--color-icon-soft-400, #a3a3a3); }
+.ds-empty .ill svg { width: 28px; height: 28px; }
 .ds-empty .et { font-weight: var(--font-weight-medium, 500); }
 .ds-empty .eb { color: var(--color-text-sub-600, #5c5c5c); font-size: var(--font-size-sm, 14px); }

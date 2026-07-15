@@ -14,11 +14,12 @@ It never touches your repo root, has zero npm dependencies, and treats
 - `code-connect/` maps Figma components to your real code components
 - `skill/design-system/` a Claude skill for the parts that need judgment
 
-The bundled sample data is not lorem-ipsum: it is the **AlignUI 2.0 template
-structure** (the design system file we duplicate for client projects) — gray +
-slate neutral scales, 9 accent hues, semantic `bg/text/icon/stroke/state/primary`
-tokens, the AlignUI type scale, and a component catalog matching the template's
-Base Components pages. A new project is usable before its Figma file exists.
+The bundled sample data is not lorem-ipsum: it is a **complete template
+structure** (the design system file we duplicate for client projects), with
+gray + slate neutral scales, 9 accent hues, semantic
+`bg/text/icon/stroke/state/primary` tokens, a full type scale, and a component
+catalog matching the template's Base Components pages. A new project is usable
+before its Figma file exists.
 
 Everything lives under `design-system/`. Generated output goes in
 `design-system/site/`, so it cannot collide with a `docs/` your app already has.
@@ -145,9 +146,12 @@ theme: { extend: require('./design-system/tokens/tailwind.theme.js') }
 ```
 
 Every build also refreshes `design-system/DESIGN-SYSTEM.md` (committed), and
-`lint.mjs --code src/` keeps the app honest: any hardcoded hex color that is
-not a token fails the lint, with a `design-system-ignore` comment as the
-explicit escape hatch. Run both linters in CI to gate design *and* code drift.
+`lint.mjs --code src/` keeps the app honest: hardcoded **colors**, **border
+radii**, and **padding/gap** pixel values that are not on the token scales fail
+the lint (CSS declarations and Tailwind arbitrary values like `rounded-[9px]` /
+`p-[15px]`). Allow exceptions via `lint.allowPx` / `allowRadiusPx` /
+`allowSpacePx` in `figma.config.json`, or a `design-system-ignore` comment on
+the line. Run both linters in CI to gate design *and* code drift.
 
 ---
 

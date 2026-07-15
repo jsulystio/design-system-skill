@@ -10,7 +10,10 @@
     "importPath": "import/variables.export.json"
   },
   "lint": {
-    "codePaths": ["src"]
+    "codePaths": ["src"],
+    "allowPx": [1],
+    "allowRadiusPx": [],
+    "allowSpacePx": []
   },
   "host": { "provider": "github-pages" },
   "storybook": { "framework": "auto" }

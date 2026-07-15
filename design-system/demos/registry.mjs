@@ -333,7 +333,7 @@ export const demos = {
   },
 
   'date-picker': {
-    preview: `<span class="ds-surface ds-cal"><span class="ds-cal-head">June 2026${I.chevron}</span><span class="ds-cal-grid"><span class="dow">S</span><span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span><span>1</span><span>2</span><span class="on">3</span><span class="range">4</span><span class="range">5</span><span>6</span><span>7</span></span></span>`,
+    preview: `<span class="ds-surface ds-cal" style="width:196px;padding:10px"><span class="ds-cal-head" style="margin-bottom:6px">June 2026${I.chevron}</span><span class="ds-cal-grid"><span class="dow">S</span><span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span><span>1</span><span>2</span><span class="on">3</span><span class="range">4</span><span class="range">5</span><span>6</span><span>7</span></span></span>`,
     variants: [
       { title: 'Calendar', html: `<span class="ds-surface ds-cal"><span class="ds-cal-head">June 2026${I.chevron}</span><span class="ds-cal-grid"><span class="dow">S</span><span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span><span>1</span><span>2</span><span class="on">3</span><span class="range">4</span><span class="range">5</span><span>6</span><span>7</span></span></span>`, tsx: `<DatePicker mode="range" />` },
     ],
@@ -432,7 +432,7 @@ export const demos = {
   },
 
   table: {
-    preview: `<span class="ds-table"><span class="tr head"><span>Name</span><span>Role</span><span></span></span><span class="tr"><span class="lead"><span class="ds-avatar" style="width:28px;height:28px;font-size:12px">AT</span>Arthur T.</span><span>Admin</span><span class="ds-statusbadge ds-statusbadge--completed">Active</span></span><span class="tr"><span class="lead"><span class="ds-avatar" style="width:28px;height:28px;font-size:12px">SW</span>Sophia W.</span><span>Editor</span><span class="ds-statusbadge ds-statusbadge--pending">Invited</span></span></span>`,
+    preview: `<span class="ds-table ds-table--compact" style="width:100%"><span class="tr head"><span>Name</span><span>Status</span></span><span class="tr"><span class="lead"><span class="ds-avatar" style="width:24px;height:24px;font-size:11px">AT</span>Arthur T.</span><span class="ds-statusbadge ds-statusbadge--completed">Active</span></span><span class="tr"><span class="lead"><span class="ds-avatar" style="width:24px;height:24px;font-size:11px">SW</span>Sophia W.</span><span class="ds-statusbadge ds-statusbadge--pending">Invited</span></span></span>`,
     variants: [
       { title: 'With embedded cells', html: `<span class="ds-table"><span class="tr head"><span>Name</span><span>Role</span><span></span></span><span class="tr"><span class="lead"><span class="ds-avatar" style="width:28px;height:28px;font-size:12px">AT</span>Arthur T.</span><span>Admin</span><span class="ds-statusbadge ds-statusbadge--completed">Active</span></span></span>`, tsx: `<Table columns={cols} data={rows} />` },
     ],
@@ -514,7 +514,7 @@ export const demos = {
   },
 
   dropdown: {
-    preview: `<span class="ds-surface ds-menu"><span class="ds-menu-item">${I.user}Profile</span><span class="ds-menu-item is-selected">${I.home}Dashboard</span><span class="ds-divider"></span><span class="ds-menu-item">Settings</span></span>`,
+    preview: `<span class="ds-surface ds-menu" style="min-width:0;width:186px;padding:6px"><span class="ds-menu-item">${I.user}Profile</span><span class="ds-menu-item is-selected">${I.home}Dashboard</span></span>`,
     variants: [
       { title: 'Menu', html: `<span class="ds-surface ds-menu"><span class="ds-menu-item">${I.user}Profile</span><span class="ds-menu-item is-selected">${I.home}Dashboard</span><span class="ds-divider"></span><span class="ds-menu-item">Settings</span></span>`, tsx: `<Dropdown items={items} />` },
     ],

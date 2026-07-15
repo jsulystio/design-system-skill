@@ -5,8 +5,10 @@
 //                               (inventory/screens.json) and flags raw values
 //                               and uninventoried components in the designs.
 //   node lint.mjs --code <dir…> Code mode: scans source files for hardcoded
-//                               hex colors that are not tokens — the check to
-//                               run after you (or a coding agent) write UI.
+//                               values that bypass the tokens — hex colors, and
+//                               border-radius / padding / gap pixel values that
+//                               aren't on the radius or spacing scales. The
+//                               check to run after you (or an agent) write UI.
 //
 // The screen snapshot (inventory/screens.json) is produced by the Claude skill
 // via Figma MCP or the Desktop Bridge — see skill references/read-figma.md.
@@ -43,6 +45,27 @@ for (const rec of Object.values(flat)) {
 }
 const knownComponents = new Set(inventory.components.map((c) => c.name));
 
+// Radius and spacing scales (px), for the code-mode radius/padding checks.
+const radiusNums = new Set([0]);
+const spaceNums = new Set([0]);
+for (const [name, rec] of Object.entries(flat)) {
+  if (rec.type !== 'FLOAT') continue;
+  for (const m of ['light', 'dark']) {
+    if (rec[m] == null) continue;
+    if (name.startsWith('radius/')) radiusNums.add(Number(rec[m]));
+    if (name.startsWith('space/')) spaceNums.add(Number(rec[m]));
+  }
+}
+radiusNums.add(999); radiusNums.add(9999); // pill / fully-rounded
+// Project allowlist (design-system/figma.config.json): lint.allowPx applies to
+// both scales; lint.allowRadiusPx / lint.allowSpacePx target one.
+{
+  const cfg = exists(p('figma.config.json')) ? (read(p('figma.config.json')).lint || {}) : {};
+  (cfg.allowPx || []).forEach((n) => { radiusNums.add(Number(n)); spaceNums.add(Number(n)); });
+  (cfg.allowRadiusPx || []).forEach((n) => radiusNums.add(Number(n)));
+  (cfg.allowSpacePx || []).forEach((n) => spaceNums.add(Number(n)));
+}
+
 // ---- Code mode: scan source files for hardcoded colors ----
 if (args.includes('--code')) {
   let dirs = args.filter((a) => a !== '--code');
@@ -77,27 +100,44 @@ if (args.includes('--code')) {
   };
   const known = new Set([...knownColors].map(expand));
   const HEX = /#[0-9a-fA-F]{3,8}\b/g;
+  const pxNums = (s) => [...s.matchAll(/(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1]));
+  // CSS declarations that should map to tokens: radius vs spacing (padding/gap).
+  const RADIUS_DECL = /border(?:-[a-z]+)?-radius\s*:\s*([^;{}]+)/gi;
+  const SPACE_DECL = /(?:padding|padding-[a-z]+|gap|row-gap|column-gap)\s*:\s*([^;{}]+)/gi;
+  // Tailwind arbitrary values: rounded-[9px], p-[15px], px-[15px], gap-[15px].
+  const RADIUS_TW = /\brounded(?:-[a-z]+)?-\[(\d+(?:\.\d+)?)px\]/gi;
+  const SPACE_TW = /\b(?:p[xytrbl]?|gap(?:-[xy])?)-\[(\d+(?:\.\d+)?)px\]/gi;
   const codeIssues = [];
   for (const file of files) {
     const rel = path.relative(process.cwd(), file);
     const text = fs.readFileSync(file, 'utf8');
     text.split('\n').forEach((line, i) => {
       if (/design-?system-?ignore/i.test(line)) return; // opt-out escape hatch
+      const at = `${rel}:${i + 1}`;
+      // Colors
       for (const m of line.match(HEX) || []) {
-        const hex = expand(m);
         if (![4, 5, 7, 9].includes(m.length)) continue; // not a color-length hex
-        if (!known.has(hex)) codeIssues.push(`${rel}:${i + 1}: raw color ${m} is not a token (use a var(--color-…) / Tailwind theme key)`);
+        if (!known.has(expand(m))) codeIssues.push(`${at}: raw color ${m} is not a token (use a var(--color-…) / Tailwind theme key)`);
       }
+      // Radius (CSS + Tailwind arbitrary)
+      const rNums = [...[...line.matchAll(RADIUS_DECL)].flatMap((m) => pxNums(m[1])),
+        ...[...line.matchAll(RADIUS_TW)].map((m) => Number(m[1]))];
+      for (const n of rNums) if (!radiusNums.has(n)) codeIssues.push(`${at}: raw radius ${n}px is not a radius token (use var(--radius-…) / rounded-*)`);
+      // Spacing (CSS + Tailwind arbitrary)
+      const sNums = [...[...line.matchAll(SPACE_DECL)].flatMap((m) => pxNums(m[1])),
+        ...[...line.matchAll(SPACE_TW)].map((m) => Number(m[1]))];
+      for (const n of sNums) if (!spaceNums.has(n)) codeIssues.push(`${at}: raw spacing ${n}px is not on the spacing scale (use var(--space-…) / p-*, gap-*)`);
     });
   }
-  if (!codeIssues.length) {
-    console.log(`Code lint clean: no hardcoded colors outside the token set (${files.length} files scanned).`);
+  const uniqueIssues = [...new Set(codeIssues)]; // one report per file:line:value
+  if (!uniqueIssues.length) {
+    console.log(`Code lint clean: no hardcoded colors, radii, or spacing outside the token set (${files.length} files scanned).`);
     process.exit(0);
   }
-  console.log(`Code lint found ${codeIssues.length} hardcoded value(s) in ${files.length} scanned files:\n`);
-  codeIssues.forEach((i) => console.log('  - ' + i));
-  console.log('\nReplace each with the matching token from design-system/DESIGN-SYSTEM.md,');
-  console.log('or append a `design-system-ignore` comment on the line if it is intentional.');
+  console.log(`Code lint found ${uniqueIssues.length} hardcoded value(s) in ${files.length} scanned files:\n`);
+  uniqueIssues.forEach((i) => console.log('  - ' + i));
+  console.log('\nReplace each with the matching token from design-system/DESIGN-SYSTEM.md, add it to');
+  console.log('lint.allowPx in figma.config.json, or append a `design-system-ignore` comment if intentional.');
   process.exit(1);
 }
 

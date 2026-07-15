@@ -129,6 +129,11 @@ module.exports = ${JSON.stringify(buckets, null, 2)};
 
 // ---------- docs site ----------
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Placeholder logo mark, shared by the sidebar brand and the mobile topbar.
+// Swap the SVG for a real logo.
+const logoBox = () => `<span class="logo-box" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></span>`;
+
 const groups = groupByCategory(flat);
 
 const CATEGORY_ORDER = ['Actions', 'Forms', 'Layout', 'Navigation', 'Feedback', 'Data display', 'Overlays'];
@@ -158,7 +163,7 @@ function statusBadge(c) {
   return `<span class="st-badge st-${s}">${esc(s)}</span>`;
 }
 
-// Shared client script: theme toggle + mobile drawer + component filter.
+// Shared client script: theme toggle + mobile drawer + command-palette search.
 const SHELL_JS = `
   const root = document.documentElement;
   const saved = localStorage.getItem('theme');
@@ -176,17 +181,66 @@ const SHELL_JS = `
   backdrop.addEventListener('click', closeNav);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
   document.querySelectorAll('.side a').forEach((a) => a.addEventListener('click', closeNav));
-  const filter = document.getElementById('navfilter');
-  if (filter) filter.addEventListener('input', () => {
-    const q = filter.value.trim().toLowerCase();
-    document.querySelectorAll('.nav-group').forEach((g) => {
-      let any = false;
-      g.querySelectorAll('a[data-name]').forEach((a) => {
-        const hit = a.dataset.name.includes(q);
-        a.hidden = !hit; if (hit) any = true;
-      });
-      g.hidden = !any;
+
+  // Sticky topbar gains a shadow once the content column is scrolled, lifting it
+  // above content. The scroll container is .main (not the window), which is what
+  // keeps the topbar pinned inside the content section and clear of the sidebar.
+  const scroller = document.getElementById('main');
+  const topbar = document.querySelector('.topbar');
+  const onScroll = () => topbar.classList.toggle('scrolled', scroller.scrollTop > 4);
+  onScroll();
+  scroller.addEventListener('scroll', onScroll, { passive: true });
+
+  // Command palette (⌘K / Ctrl+K): type to search, arrows to navigate, Enter to open.
+  const items = window.__SEARCH_ITEMS || [];
+  const palette = document.getElementById('palette');
+  const pInput = document.getElementById('palette-input');
+  const pResults = document.getElementById('palette-results');
+  const pOpen = document.getElementById('palette-open');
+  let pActive = 0;
+  const pMatches = (it, q) => it.name.toLowerCase().includes(q) || it.group.toLowerCase().includes(q);
+  function pRender() {
+    const q = pInput.value.trim().toLowerCase();
+    const shown = q ? items.filter((it) => pMatches(it, q)) : items;
+    pActive = 0;
+    pResults.innerHTML = shown.length
+      ? shown.map((it, i) =>
+          '<li class="palette-item' + (i === 0 ? ' is-active' : '') + '" role="option" data-href="' + it.href + '">' +
+          '<span class="palette-item-name">' + it.name + '</span>' +
+          '<span class="palette-item-group">' + it.group + '</span></li>').join('')
+      : '<li class="palette-empty">No results</li>';
+  }
+  function pSetActive(i) {
+    const els = pResults.querySelectorAll('.palette-item');
+    if (!els.length) return;
+    pActive = (i + els.length) % els.length;
+    els.forEach((el, j) => el.classList.toggle('is-active', j === pActive));
+    els[pActive].scrollIntoView({ block: 'nearest' });
+  }
+  function pGo() {
+    const el = pResults.querySelectorAll('.palette-item')[pActive];
+    if (el && el.dataset.href) window.location.href = el.dataset.href;
+  }
+  function pShow() { if (!palette) return; palette.hidden = false; document.body.classList.add('palette-open'); pInput.value = ''; pRender(); pInput.focus(); }
+  function pHide() { if (!palette) return; palette.hidden = true; document.body.classList.remove('palette-open'); }
+  if (pOpen) pOpen.addEventListener('click', pShow);
+  if (palette) {
+    pInput.addEventListener('input', pRender);
+    palette.addEventListener('mousedown', (e) => { if (e.target === palette) pHide(); });
+    pResults.addEventListener('click', (e) => { const li = e.target.closest('.palette-item'); if (li && li.dataset.href) window.location.href = li.dataset.href; });
+    pResults.addEventListener('mousemove', (e) => {
+      const li = e.target.closest('.palette-item'); if (!li) return;
+      pSetActive([...pResults.querySelectorAll('.palette-item')].indexOf(li));
     });
+    pInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); pSetActive(pActive + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); pSetActive(pActive - 1); }
+      else if (e.key === 'Enter') { e.preventDefault(); pGo(); }
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palette && palette.hidden ? pShow() : pHide(); }
+    else if (e.key === 'Escape' && palette && !palette.hidden) { e.stopPropagation(); pHide(); }
   });
   document.querySelectorAll('.tabs').forEach((tabs) => {
     const btns = tabs.querySelectorAll('.tab');
@@ -204,36 +258,131 @@ const SHELL_JS = `
       setTimeout(() => { b.textContent = prev; b.classList.remove('is-copied'); }, 1200);
     });
   }));
+
+  // "On this page" scrollspy: on scroll, highlight the last section whose top
+  // has passed under the header. A plain scroll listener rather than
+  // IntersectionObserver, so it works without observer support.
+  const toc = document.querySelector('.toc');
+  if (toc) {
+    const links = [...toc.querySelectorAll('a')];
+    const idFor = (a) => a.getAttribute('href').slice(1);
+    const secs = [...document.querySelectorAll('.doc section[id]')].filter((s) => links.some((a) => idFor(a) === s.id));
+    const sync = () => {
+      let current = secs[0];
+      for (const s of secs) {
+        if (s.getBoundingClientRect().top <= 96) current = s; else break;
+      }
+      if (current) links.forEach((a) => a.classList.toggle('is-active', idFor(a) === current.id));
+    };
+    // Attach to the actual scroll container (the shell's #main column) so the
+    // highlight tracks user scrolling; fall back to the window if the page ever
+    // scrolls at the document level instead.
+    (document.getElementById('main') || window).addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  }
 `;
 
-function navMarkup(up) {
+// Each foundation is its own page (like Astryx's /docs/color) rather than one
+// long scroll. `groups` are token first-segments; `id` is the page slug under
+// site/foundations/. Typography folds in the font primitives.
+// `lede` is the fuller intro shown on each foundation page's hero; `blurb` is
+// the short one-liner used on the overview cards.
+const FOUNDATION_PAGES = [
+  { id: 'color', label: 'Color', groups: ['color'],
+    blurb: 'Backgrounds, text, borders, and status, ready for light and dark.',
+    lede: 'Semantic color tokens for backgrounds, text, icons, borders, and status, plus the primitive scales they are built from. Every value adapts between light and dark.' },
+  { id: 'spacing', label: 'Spacing', groups: ['space'],
+    blurb: 'Consistent padding, gaps, and margins.',
+    lede: 'A 4px spacing scale for padding, gaps, and margins.' },
+  { id: 'radius', label: 'Radius', groups: ['radius'],
+    blurb: 'Corner rounding, from subtle to fully round.',
+    lede: 'Corner radii, from subtle rounding to full pills.' },
+  { id: 'typography', label: 'Typography', groups: ['type', 'font'],
+    blurb: 'Styles for headings, labels, and body text.',
+    lede: 'Text styles for headings, labels, and body copy, plus the font primitives behind them.' },
+  { id: 'shadows', label: 'Shadows', groups: ['shadow'],
+    blurb: 'Depth for cards, popovers, and modals.',
+    lede: 'Elevation tokens for cards and inputs, dropdowns and popovers, and modals.' },
+].filter((pg) => pg.groups.some((g) => groups[g]));
+
+// "On this page" right rail. Rendered by shell() only when 2+ anchors exist.
+function tocAside(items) {
+  return `<aside class="toc" aria-label="On this page">
+    <p class="toc-title">On this page</p>
+    <ul>${items.map((i) => `<li><a href="#${i.id}">${esc(i.label)}</a></li>`).join('')}</ul>
+  </aside>`;
+}
+
+function navMarkup(up, active) {
+  const name = raw.meta?.name || 'Design system';
   const groupsHtml = componentGroups().map(([cat, items]) => {
-    const links = items.map((c) =>
-      `<a href="${up}components/${slug(c.name)}.html" data-name="${esc(c.name.toLowerCase())}"><span class="dot st-${statusOf(c)}" title="${statusOf(c)}"></span>${esc(c.name)}</a>`
-    ).join('');
+    const links = items.map((c) => {
+      const on = active === `component:${slug(c.name)}` ? ' is-active' : '';
+      return `<a class="${on ? 'is-active' : ''}" href="${up}components/${slug(c.name)}.html" data-name="${esc(c.name.toLowerCase())}"><span class="dot st-${statusOf(c)}" title="${statusOf(c)}"></span>${esc(c.name)}</a>`;
+    }).join('');
     return `<div class="nav-group"><p class="nav-group-title">${esc(cat)}</p>${links}</div>`;
   }).join('');
-  // Foundations sub-sections link to the anchors on the index page.
-  const foundations = [['Color', 'color'], ['Spacing', 'space'], ['Radius', 'radius'], ['Typography', 'type'], ['Shadows', 'shadow']];
-  const foundationLinks = foundations
-    .filter(([, id]) => groups[id])
-    .map(([label, id]) => `<a href="${up}index.html#${id}" data-name="${esc(label.toLowerCase())}">${esc(label)}</a>`)
+  // Each foundation links to its own page.
+  const foundationLinks = FOUNDATION_PAGES
+    .map((pg) => {
+      const on = active === `foundation:${pg.id}` ? ' is-active' : '';
+      return `<a class="${on ? 'is-active' : ''}" href="${up}foundations/${pg.id}.html" data-name="${esc(pg.label.toLowerCase())}">${esc(pg.label)}</a>`;
+    })
     .join('');
+  const lead = (id, label, href) =>
+    `<a href="${up}${href}" class="side-lead${active === id ? ' is-active' : ''}">${label}</a>`;
+  // Placeholder brand mark, pinned to the top of the sidebar (sticky) so it
+  // stays visible as the nav list scrolls. Swap the logo SVG for a real one.
+  const brand = `<a class="side-brand" id="side-brand" href="${up}index.html" aria-label="${esc(name)} home">
+      ${logoBox()}
+      <span class="side-brand-name">${esc(name)}</span>
+    </a>`;
   return `
-    <a href="${up}index.html" class="side-lead">Foundations</a>
-    <div class="side-filter">
-      <svg class="side-filter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="navfilter" type="search" placeholder="Search..." autocomplete="off" aria-label="Search foundations and components">
-    </div>
-    <div class="nav-groups">
-      <div class="nav-group"><p class="nav-group-title">Foundations</p>${foundationLinks}</div>
-      ${groupsHtml}
+    ${brand}
+    <div class="side-nav">
+      ${lead('getstarted', 'Get started', 'get-started.html')}
+      ${lead('overview', 'Overview', 'index.html')}
+      <div class="nav-groups">
+        <div class="nav-group"><p class="nav-group-title">Foundations</p>${foundationLinks}</div>
+        ${groupsHtml}
+      </div>
     </div>`;
 }
 
-function shell(title, body, depth = 0) {
+// Flat index the command palette searches over: foundations + every component.
+function searchIndex(up) {
+  const items = FOUNDATION_PAGES
+    .map((pg) => ({ name: pg.label, group: 'Foundations', href: `${up}foundations/${pg.id}.html` }));
+  for (const [cat, list] of componentGroups()) {
+    for (const c of list) items.push({ name: c.name, group: cat, href: `${up}components/${slug(c.name)}.html` });
+  }
+  return items;
+}
+
+// Command-palette overlay (⌘K). Hidden until opened; wired up by SHELL_JS.
+function paletteMarkup() {
+  return `<div class="palette" id="palette" hidden>
+    <div class="palette-panel" role="dialog" aria-modal="true" aria-label="Search">
+      <div class="palette-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="palette-input" type="text" placeholder="Type to search…" autocomplete="off" spellcheck="false" aria-label="Search foundations and components" aria-controls="palette-results">
+      </div>
+      <ul class="palette-results" id="palette-results" role="listbox"></ul>
+      <div class="palette-foot">
+        <span><kbd>&#8593;</kbd><kbd>&#8595;</kbd> Navigate</span>
+        <span><kbd>&#8629;</kbd> Select</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function shell(title, body, opts = {}) {
+  const { depth = 0, active = null, toc = null } = opts;
   const up = '../'.repeat(depth);
   const name = raw.meta?.name || 'Design system';
+  const tocHtml = toc && toc.length > 1 ? tocAside(toc) : '';
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -244,16 +393,23 @@ function shell(title, body, depth = 0) {
 <link rel="stylesheet" href="${up}assets/demos.css">
 </head>
 <body>
-<header class="topbar">
-  <button id="menu" class="menu" aria-label="Toggle navigation" aria-expanded="false" aria-controls="side"><span></span><span></span><span></span></button>
-  <a class="brand" href="${up}index.html">${esc(name)}</a>
-  <button id="theme" class="theme" aria-label="Toggle color theme">Theme</button>
-</header>
 <div class="backdrop" id="backdrop" hidden></div>
-<div class="layout">
-  <nav class="side" id="side" aria-label="Components">${navMarkup(up)}</nav>
-  <main class="content">${body}</main>
+<nav class="side" id="side" aria-label="Components">${navMarkup(up, active)}</nav>
+<div class="main" id="main">
+  <header class="topbar">
+    <button id="menu" class="menu" aria-label="Toggle navigation" aria-expanded="false" aria-controls="side"><span></span><span></span><span></span></button>
+    <a class="topbar-logo" href="${up}index.html" aria-label="${esc(name)} home">${logoBox()}<span class="topbar-logo-name">${esc(name)}</span></a>
+    <button type="button" class="top-search" id="palette-open" aria-label="Search (Command K)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span>Search</span>
+      <kbd class="top-search-kbd">&#8984;K</kbd>
+    </button>
+    <button id="theme" class="theme" aria-label="Toggle color theme">Theme</button>
+  </header>
+  <main class="content${tocHtml ? ' has-toc' : ''}"><div class="doc">${body}</div>${tocHtml}</main>
 </div>
+${paletteMarkup()}
+<script>window.__SEARCH_ITEMS = ${JSON.stringify(searchIndex(up))};</script>
 <script>${SHELL_JS}</script>
 </body>
 </html>`;
@@ -266,13 +422,13 @@ function shell(title, body, depth = 0) {
 // rather than a flat wall of equal-weight swatches.
 
 const ROLE_LABELS = {
-  bg: ['Background', 'Surfaces, from page canvas to inverted fills.'],
-  text: ['Text', 'By emphasis: strong → sub → soft → disabled.'],
-  icon: ['Icon', 'Same emphasis ladder as text.'],
-  stroke: ['Stroke', 'Borders and dividers.'],
-  primary: ['Primary', 'The brand / action color. Rebrand by repointing these.'],
-  state: ['State', 'Intent colors. Per state: lighter · light · base · dark.'],
-  static: ['Static', 'Never invert between light and dark.'],
+  bg: ['Background', 'Every fill behind your content, from the page canvas to cards, hovers, and inverted surfaces.'],
+  text: ['Text', 'Text color by emphasis, from strong down to sub, soft, and disabled.'],
+  icon: ['Icon', 'Icon fills, using the same emphasis ladder as text.'],
+  stroke: ['Stroke', 'Borders, dividers, and input outlines.'],
+  primary: ['Primary', 'Your one brand and action color. Repoint these to rebrand.'],
+  state: ['State', 'Status colors like success, warning, error, and info, each with lighter, light, base, and dark shades.'],
+  static: ['Static', 'Fixed black and white that stay put in both light and dark modes.'],
 };
 const HUE_ORDER = ['gray', 'slate', 'blue', 'orange', 'red', 'green', 'yellow', 'purple', 'sky', 'pink', 'teal'];
 
@@ -296,7 +452,7 @@ function ramp(name, steps) {
   return `<div class="ramp"><span class="ramp-name">${esc(name)}</span><div class="ramp-steps">${cells}</div></div>`;
 }
 
-function colorSection(items) {
+function colorPageContent(items) {
   const semantic = items.filter((t) => t.collection !== 'primitives');
   const primitive = items.filter((t) => t.collection === 'primitives');
 
@@ -332,16 +488,18 @@ function colorSection(items) {
     .map((h) => ramp(h[0].toUpperCase() + h.slice(1), byHue.get(h).sort((a, b) => numStep(a) - numStep(b))))
     .join('');
   const leftoverHtml = leftovers.length
-    ? `<div class="role-group"><div class="role-head"><h4>Alpha &amp; overlays</h4><p>Transparent tints for hovers, focus rings, scrims.</p></div><div class="crows">${leftovers.map(semRow).join('')}</div></div>`
+    ? `<div class="role-group"><div class="role-head"><h4>Alpha &amp; overlays</h4><p>Semi-transparent tints for hovers, focus rings, and scrims.</p></div><div class="crows">${leftovers.map(semRow).join('')}</div></div>`
     : '';
 
-  return `<section id="color">
-    <h2>Color</h2>
-    <h3 class="sub-head">Semantic tokens <span class="sub-note">— use these in UI</span></h3>
-    <div class="role-groups">${semHtml}</div>
-    <h3 class="sub-head">Primitive scales <span class="sub-note">— reference only; define semantics, don't use directly</span></h3>
-    <div class="ramps">${ramps}${leftoverHtml}</div>
-  </section>`;
+  const html = `<section id="semantic">
+      <h2>Semantic tokens</h2>
+      <div class="role-groups">${semHtml}</div>
+    </section>
+    <section id="primitive">
+      <h2>Primitive scales</h2>
+      <div class="ramps">${ramps}${leftoverHtml}</div>
+    </section>`;
+  return { html, toc: [{ id: 'semantic', label: 'Semantic tokens' }, { id: 'primitive', label: 'Primitive scales' }] };
 }
 
 function scaleRow(t) {
@@ -357,15 +515,94 @@ function compCard(c) {
   </a>`;
 }
 
-function foundationsPage() {
-  const order = ['color', 'space', 'radius', 'type', 'font', 'shadow'];
-  const cats = [...order.filter((c) => groups[c]), ...Object.keys(groups).filter((c) => !order.includes(c))];
-  const sections = cats.map((cat) => {
-    const items = groups[cat];
-    if (cat === 'color') return colorSection(items);
-    return `<section id="${cat}"><h2>${esc(cat[0].toUpperCase() + cat.slice(1))}</h2>
-      <table class="scale"><tbody>${items.map(scaleRow).join('')}</tbody></table></section>`;
-  }).join('');
+// Astryx-style landing: how to install, consume, build, and stay in sync.
+function getStartedPage() {
+  const name = raw.meta?.name || 'Design system';
+  const compCount = allComponents.length;
+  const codeBlk = (code) => `<div class="code-wrap"><pre class="code"><code>${esc(code)}</code></pre><div class="code-actions"><button class="copy" type="button">Copy</button></div></div>`;
+  const step = (n, title, note, blocks = '') =>
+    `<section class="gs-step"><div class="gs-num">${n}</div><div class="gs-body"><h2>${esc(title)}</h2>${note}${blocks}</div></section>`;
+  const useCases = [
+    ['Start a new project', 'Scaffold the toolkit and get a full token set plus component catalog on day one, before your Figma file even exists.', '"Set up the design system from the template"'],
+    ['Build a screen with AI', 'Point any coding agent at DESIGN-SYSTEM.md and it builds token-true UI from the catalog.', '"Read design-system/DESIGN-SYSTEM.md, then build the settings page"'],
+    ['Rebrand', 'Change the brand color once at the source; tokens, docs, and code theme all follow.', '"Make the primary color warmer"'],
+    ['Catch drift in CI', 'Gate merges on raw values and uninventoried components, in both your designs and your code.', 'npm run ds:lint && npm run ds:lint --code src'],
+    ['Resolve drift', 'When the linter flags something, snap it to the right token or add the component.', '"Resolve the drift"'],
+    ['Hand off to engineers', 'Every component page carries live previews, per-variant specs, and copyable code.', 'Open the docs, or read DESIGN-SYSTEM.md'],
+  ].map(([t, d, ex]) => `<div class="usecase"><strong>${esc(t)}</strong><p>${esc(d)}</p><code>${esc(ex)}</code></div>`).join('');
+
+  const body = `
+    <div class="hero">
+      <p class="eyebrow">Get started</p>
+      <h1>${esc(name)}</h1>
+      <p class="lede">Your Figma variables are the single source of truth. From them, this toolkit generates design tokens for light and dark, a catalog of ${compCount} documented components, this docs site, and one <code>DESIGN-SYSTEM.md</code> you can hand to any coding agent. Here's how to set it up and put it to work.</p>
+    </div>
+    ${step(1, 'Add it to your project', '<p class="gs-note">One-time, from your repo root. It\'s non-destructive, and only touches your files when you pass a flag.</p>',
+      codeBlk('npx degit jsulystio/design-system-skill/design-system design-system\nnode design-system/install.mjs --scripts --agents\nnode design-system/scripts/build.mjs'))}
+    ${step(2, 'Use the tokens in your app', '<p class="gs-note">Import the CSS variables once, and (optionally) wire the Tailwind theme. Dark mode is automatic.</p>',
+      codeBlk("/* globally, e.g. app entry or globals.css */\nimport 'design-system/tokens/variables.css';") +
+      codeBlk("// tailwind.config.js\nmodule.exports = {\n  theme: { extend: require('./design-system/tokens/tailwind.theme.js') },\n};"))}
+    ${step(3, 'Build UI with the system', '<p class="gs-note">Feed the generated spec to your coding agent. It uses your tokens and the component catalog instead of guessing.</p>',
+      codeBlk('Read design-system/DESIGN-SYSTEM.md and follow it,\nthen build a billing settings page.'))}
+    ${step(4, 'Keep it in sync', '<p class="gs-note">Designers edit variables in Figma; one command pulls, builds tokens + docs, and lints. Ask Claude only for judgment calls (bootstrap, resolve drift, propagate a change).</p>',
+      codeBlk('npm run ds:sync   # pull from Figma → build tokens, theme, docs → lint'))}
+    ${step(5, 'Guard against drift', '<p class="gs-note">Two linters, one source of truth. Run them in CI, and each exits non-zero on drift.</p>',
+      codeBlk('npm run ds:lint              # designs: raw values + uninventoried components\nnpm run ds:lint --code src   # code: hardcoded colors, radii, spacing'))}
+    <section id="use-cases">
+      <h2>Use cases</h2>
+      <div class="usecases">${useCases}</div>
+    </section>`;
+  return shell('Get started', body, { depth: 0, active: 'getstarted' });
+}
+
+// A label for a foundation token group's own section heading.
+const GROUP_LABEL = { space: 'Spacing', radius: 'Radius', type: 'Type styles', font: 'Font primitives', shadow: 'Shadows' };
+
+// One foundation per page (Color, Spacing, Radius, Typography, Shadows), each
+// reachable from the sidebar — no more single long scroll.
+function foundationPage(pg) {
+  const toc = [];
+  let content = '';
+  if (pg.id === 'color') {
+    const c = colorPageContent(groups.color);
+    content = c.html;
+    toc.push(...c.toc);
+  } else {
+    const parts = [];
+    const multi = pg.groups.filter((g) => groups[g]).length > 1;
+    for (const g of pg.groups) {
+      if (!groups[g]) continue;
+      const table = `<table class="scale"><tbody>${groups[g].map(scaleRow).join('')}</tbody></table>`;
+      if (multi) {
+        const label = GROUP_LABEL[g] || g[0].toUpperCase() + g.slice(1);
+        parts.push(`<section id="${g}"><h2>${esc(label)}</h2>${table}</section>`);
+        toc.push({ id: g, label });
+      } else {
+        parts.push(`<section id="${g}">${table}</section>`);
+      }
+    }
+    content = parts.join('');
+  }
+  const body = `
+    <div class="crumb"><a href="../index.html">Overview</a> / Foundations / ${esc(pg.label)}</div>
+    <div class="hero hero--doc">
+      <p class="eyebrow">Foundations</p>
+      <h1>${esc(pg.label)}</h1>
+      <p class="lede">${esc(pg.lede)}</p>
+    </div>
+    ${content}`;
+  return shell(pg.label, body, { depth: 1, active: `foundation:${pg.id}`, toc });
+}
+
+// Overview landing: foundation cards + the component gallery. Everything heavy
+// now lives on its own page; this is a short, scannable entry point.
+function overviewPage() {
+  const foundationCards = FOUNDATION_PAGES.map((pg) =>
+    `<a class="foundation-card" href="foundations/${pg.id}.html">
+      <strong>${esc(pg.label)}</strong>
+      <span>${esc(pg.blurb || pg.lede)}</span>
+    </a>`
+  ).join('');
   const compSections = componentGroups().map(([cat, items]) =>
     `<h3 class="cat-head">${esc(cat)}</h3><div class="comp-grid">${items.map(compCard).join('')}</div>`
   ).join('');
@@ -373,11 +610,11 @@ function foundationsPage() {
     <div class="hero">
       <p class="eyebrow">Living guideline</p>
       <h1>${esc(raw.meta?.name || 'Design system')}</h1>
-      <p class="lede">Generated from Figma variables. Everything on this page is rendered with the tokens it documents, so it stays true to the source. Last built ${new Date().toISOString().slice(0, 10)}.</p>
+      <p class="lede">Generated from Figma variables. Every page is rendered with the tokens it documents, so it stays true to the source. Last built ${new Date().toISOString().slice(0, 10)}.</p>
     </div>
-    ${sections}
+    <section id="foundations"><h2>Foundations</h2><div class="foundation-grid">${foundationCards}</div></section>
     <section id="components"><h2>Components</h2>${compSections}</section>`;
-  return shell('Foundations', body, 0);
+  return shell('Overview', body, { depth: 0, active: 'overview', toc: [{ id: 'foundations', label: 'Foundations' }, { id: 'components', label: 'Components' }] });
 }
 
 // A copyable code block (TSX only — the component call a developer writes).
@@ -496,7 +733,7 @@ function componentPage(c) {
 
   // Import
   const importLine = c.usage?.import
-    ? `<section><h2>Import</h2><div class="snippet snippet--solo"><div class="snippet-bar"><span>Import</span><button class="copy" type="button">Copy</button></div><pre class="code"><code>${esc(c.usage.import)}</code></pre></div></section>`
+    ? `<section id="import"><h2>Import</h2>${codeBlock(c.usage.import)}</section>`
     : '';
 
   // Variants (live stage + TSX + per-variant specs). Specs = shared base rows
@@ -504,7 +741,7 @@ function componentPage(c) {
   const { base: specBase, byVariant } = getSpecs(c);
   const variants = variantsFor(c);
   const variantsSection = variants.length
-    ? `<section><h2>Variants</h2>${variants.map((v) => {
+    ? `<section id="variants"><h2>Variants</h2>${variants.map((v) => {
         const rows = [...specBase, ...(byVariant[v.title] || [])];
         return renderVariant(v, rows);
       }).join('')}</section>`
@@ -517,7 +754,7 @@ function componentPage(c) {
     ? `<div class="stage stage--variant ds-demo ds-anatomy-stage">${d.anatomy.html}</div>`
     : '';
   const anatomy = (partList || anatomyStage)
-    ? `<section><h2>Anatomy</h2>${anatomyStage}${partList ? `<ol class="anatomy">${partList}</ol>` : ''}</section>`
+    ? `<section id="anatomy"><h2>Anatomy</h2>${anatomyStage}${partList ? `<ol class="anatomy">${partList}</ol>` : ''}</section>`
     : '';
 
   // Interaction states: a playable instance + a forced-state grid.
@@ -525,7 +762,7 @@ function componentPage(c) {
     `<figure class="state-cell"><div class="stage stage--state ds-demo">${s.html}</div><figcaption>${esc(s.label)}</figcaption></figure>`
   ).join('');
   const statesSection = stateItems
-    ? `<section><h2>States</h2>
+    ? `<section id="states"><h2>States</h2>
         <p class="section-note">Hover, focus, or click the live component above to try its states. Every state is shown below.</p>
         <div class="state-grid">${stateItems}</div>
       </section>`
@@ -536,7 +773,7 @@ function componentPage(c) {
     `<tr><td><code>${esc(pr.name)}</code></td><td>${(pr.values || []).map((v) => `<span class="tag">${esc(v)}</span>`).join(' ')}</td></tr>`
   );
   const api = propRows.length
-    ? `<section><h2>API</h2><table class="scale"><tbody>${propRows.join('')}</tbody></table></section>`
+    ? `<section id="api"><h2>API</h2><table class="scale"><tbody>${propRows.join('')}</tbody></table></section>`
     : '';
 
   const tokensUsed = (c.tokensUsed || []).map((t) =>
@@ -545,13 +782,34 @@ function componentPage(c) {
   const dos = (c.usage?.do || []).map((x) => `<li>${esc(x)}</li>`).join('');
   const donts = (c.usage?.dont || []).map((x) => `<li>${esc(x)}</li>`).join('');
   const code = c._template
-    ? `<p class="template-note">Not in the Figma file yet — this page is the agreed spec. Once it ships, move it to <code>inventory/components.json</code> and add the final tokens and a demo.</p>`
+    ? `<p class="template-note">Not in the Figma file yet, so this page is the agreed spec. Once it ships, move it to <code>inventory/components.json</code> and add the final tokens and a demo.</p>`
     : c.codeConnected
       ? `<p class="connected">Code-connected &rarr; <code>${esc(c.codePath || '')}</code></p>`
       : `<p class="unconnected">In the design system, not yet in code. Scaffold it from this spec (see the build-ui flow) instead of hand-rolling a different API.</p>`;
 
+  const tokensSection = (!specBase.length && tokensUsed)
+    ? `<section id="tokens"><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>`
+    : '';
+  const guidelines = (dos || donts)
+    ? `<section id="guidelines" class="usage">
+      <div><h2>Do</h2><ul class="do">${dos}</ul></div>
+      <div><h2>Don't</h2><ul class="dont">${donts}</ul></div>
+    </section>`
+    : '';
+
+  // "On this page" rail, in document order — only sections that rendered.
+  const toc = [
+    [importLine, 'import', 'Import'],
+    [variantsSection, 'variants', 'Variants'],
+    [anatomy, 'anatomy', 'Anatomy'],
+    [statesSection, 'states', 'States'],
+    [api, 'api', 'API'],
+    [tokensSection, 'tokens', 'Tokens used'],
+    [guidelines, 'guidelines', 'Guidelines'],
+  ].filter(([html]) => html).map(([, id, label]) => ({ id, label }));
+
   const body = `
-    <div class="crumb"><a href="../index.html">Foundations</a> / ${esc(c.category || 'Components')} / ${esc(c.name)}</div>
+    <div class="crumb"><a href="../index.html">Overview</a> / ${esc(c.category || 'Components')} / ${esc(c.name)}</div>
     <div class="comp-head"><h1>${esc(c.name)}</h1>${statusBadge(c)}</div>
     <p class="lede">${esc(c.description || '')}</p>
     ${code}
@@ -560,12 +818,9 @@ function componentPage(c) {
     ${anatomy}
     ${statesSection}
     ${api}
-    ${(!specBase.length && tokensUsed) ? `<section><h2>Tokens used</h2><ul class="tokenlist">${tokensUsed}</ul></section>` : ''}
-    ${(dos || donts) ? `<section class="usage">
-      <div><h2>Do</h2><ul class="do">${dos}</ul></div>
-      <div><h2>Don't</h2><ul class="dont">${donts}</ul></div>
-    </section>` : ''}`;
-  return shell(c.name, body, 1);
+    ${tokensSection}
+    ${guidelines}`;
+  return shell(c.name, body, { depth: 1, active: `component:${slug(c.name)}`, toc });
 }
 
 // Copy generated variables.css + the live-demo styles into the site so the
@@ -576,7 +831,10 @@ if (exists(p('demos/demos.css'))) {
 }
 
 const SITE_CSS = `
-:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 61px; --side-w: 260px; }
+:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 64px; --side-w: 260px; }
+/* Match native UI (scrollbars, form controls) to the active theme. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -584,15 +842,26 @@ body {
   color: var(--color-text-strong-950, #171717);
   font-family: var(--font-family-sans, ui-sans-serif, system-ui, sans-serif);
   font-size: 16px; line-height: 1.65;
+  /* App shell: a full-height sidebar column beside a scrolling content column. */
+  display: flex; height: 100vh; overflow: hidden;
 }
 a { color: inherit; }
 code, .mono { font-family: inherit; font-size: inherit; }
+/* The content column is the scroll container; the topbar sticks within it,
+   so it stays put above the content without ever covering the sidebar. */
+.main { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; scroll-behavior: smooth; }
 .topbar {
   display: flex; align-items: center; gap: 12px;
-  padding: 14px var(--gap); border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb);
+  height: var(--topbar-h); padding: 0 var(--gap);
+  border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb);
   position: sticky; top: 0; background: var(--color-bg-white-0, #fff); z-index: 25;
+  transition: box-shadow .2s ease, border-color .2s ease;
 }
-.brand { font-weight: 500; text-decoration: none; letter-spacing: -0.01em; margin-right: auto; }
+.topbar.scrolled { border-bottom-color: transparent; box-shadow: var(--shadow-md, 0 4px 16px rgba(23,23,23,0.10)); }
+/* Brand lockup shown in the topbar only on small screens, where the sidebar
+   (and its brand) is off-canvas. Hidden on desktop. */
+.topbar-logo { display: none; align-items: center; gap: 10px; text-decoration: none; color: var(--color-text-strong-950, #171717); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.top-search { margin-left: auto; }
 .theme {
   font: inherit; font-size: 13px; cursor: pointer; padding: 6px 12px;
   border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-full, 999px);
@@ -609,48 +878,125 @@ body.nav-open .menu span:nth-child(1) { transform: translateY(6px) rotate(45deg)
 body.nav-open .menu span:nth-child(2) { opacity: 0; }
 body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 15; }
-.layout {
-  display: block;
-  padding-left: var(--side-w);
-  min-height: calc(100vh - var(--topbar-h));
-}
 .side {
-  position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
-  width: var(--side-w); z-index: 20;
-  display: flex; flex-direction: column; gap: 2px;
-  padding: 24px 16px; overflow-y: auto;
+  flex: 0 0 var(--side-w); height: 100vh; z-index: 20;
+  display: flex; flex-direction: column;
+  padding: 0; overflow-y: auto;
   background: var(--color-bg-white-0, #fff);
   border-right: 1px solid var(--color-stroke-soft-200, #ebebeb);
 }
+/* Placeholder brand mark, pinned to the top of the sidebar as it scrolls.
+   Scoped under .side a so it beats the generic sidebar link styles. */
+/* Same height as the topbar so their bottom borders form one straight line. */
+.side a.side-brand {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; gap: 10px; flex: none;
+  height: var(--topbar-h); padding: 0 16px; border-radius: 0; text-decoration: none;
+  color: var(--color-text-strong-950, #171717);
+  font-weight: 600; font-size: 15px; letter-spacing: -0.01em;
+  background: var(--color-bg-white-0, #fff);
+  border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb);
+}
+.side a.side-brand:hover { background: var(--color-bg-white-0, #fff); color: var(--color-text-strong-950, #171717); }
+.logo-box {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-8, 8px);
+  background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff);
+}
+.side-nav { display: flex; flex-direction: column; gap: 2px; padding: 6px 16px 24px; }
 .side a { display: flex; align-items: center; text-decoration: none; padding: 6px 8px; border-radius: 6px; font-size: 14px; color: var(--color-text-sub-600, #5c5c5c); }
 .side a:hover { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-strong-950, #171717); }
+.side a.is-active { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-strong-950, #171717); font-weight: 500; }
 .side-lead { color: var(--color-text-strong-950, #171717) !important; font-weight: 500; }
 .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-sub-600, #a3a3a3); margin: 18px 8px 4px; }
-.side-filter { position: relative; margin: 12px 0 4px; }
-.side-filter-icon {
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  color: var(--color-text-sub-600, #a3a3a3); pointer-events: none;
-}
-.side-filter input {
-  width: 100%; font: inherit; font-size: 13px; padding: 7px 10px 7px 30px;
+.top-search {
+  display: flex; align-items: center; gap: 8px; min-width: 200px;
+  padding: 7px 10px; font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+  color: var(--color-text-sub-600, #a3a3a3);
   border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px);
-  background: var(--color-bg-weak-50, #f7f7f7); color: inherit;
+  background: var(--color-bg-weak-50, #f7f7f7);
 }
-.side-filter input:focus { outline: 2px solid var(--color-primary-base, #335cff); outline-offset: 1px; }
+.top-search:hover { color: var(--color-text-strong-950, #171717); border-color: var(--color-stroke-sub-300, #e0e0e0); }
+.top-search svg { flex: none; }
+.top-search span { flex: 1; }
+.top-search-kbd {
+  font: inherit; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 4px;
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb);
+  background: var(--color-bg-white-0, #fff); color: var(--color-text-sub-600, #a3a3a3);
+}
+@media (max-width: 720px) {
+  .top-search { min-width: 0; }
+  .top-search span, .top-search-kbd { display: none; }
+}
+.palette {
+  position: fixed; inset: 0; z-index: 50; display: flex;
+  align-items: flex-start; justify-content: center;
+  padding: 12vh 16px 24px; background: rgba(0,0,0,0.42);
+}
+.palette[hidden] { display: none; }
+.palette-panel {
+  display: flex; flex-direction: column; width: 100%; max-width: 560px; max-height: 62vh; overflow: hidden;
+  background: var(--color-bg-white-0, #fff); color: var(--color-text-strong-950, #171717);
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px);
+  box-shadow: 0 20px 56px rgba(0,0,0,0.28);
+}
+.palette-search { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.palette-search svg { flex: none; color: var(--color-text-sub-600, #a3a3a3); }
+.palette-search input { flex: 1; min-width: 0; font: inherit; font-size: 15px; border: 0; background: transparent; color: inherit; outline: none; }
+.palette-results { list-style: none; margin: 0; padding: 6px; overflow-y: auto; }
+.palette-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.palette-item.is-active { background: var(--color-bg-weak-50, #f7f7f7); }
+.palette-item-name { font-size: 14px; color: var(--color-text-strong-950, #171717); }
+.palette-item-group { font-size: 12px; color: var(--color-text-sub-600, #a3a3a3); flex: none; }
+.palette-empty { padding: 22px; text-align: center; font-size: 14px; color: var(--color-text-sub-600, #a3a3a3); }
+.palette-foot { display: flex; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--color-stroke-soft-200, #ebebeb); font-size: 12px; color: var(--color-text-sub-600, #a3a3a3); }
+.palette-foot kbd { font: inherit; font-size: 11px; padding: 1px 5px; margin-right: 3px; border-radius: 4px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 .nav-group { margin-bottom: 6px; }
 .nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-sub-600, #a3a3a3); margin: 12px 8px 2px; font-weight: 500; }
 .dot { display: inline-block; width: 7px; height: 7px; border-radius: 999px; margin-right: 9px; flex: none; background: var(--color-text-sub-600, #a3a3a3); }
 .dot.st-stable { background: #3f9142; } .dot.st-beta { background: #b5850b; } .dot.st-deprecated { background: #c0392b; } .dot.st-planned { background: #a8a69c; }
 .st-badge { display: inline-block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; line-height: 1.5; }
 .st-badge.st-stable { color: #3f9142; } .st-badge.st-beta { color: #b5850b; } .st-badge.st-deprecated { color: #c0392b; } .st-badge.st-planned { color: var(--color-text-sub-600, #a3a3a3); }
-.content { padding: 40px var(--gap) 96px; min-width: 0; max-width: calc(var(--maxw) + 2 * var(--gap)); }
+html { scroll-behavior: smooth; }
+.content { padding: 40px var(--gap) 96px; display: flex; gap: 48px; align-items: flex-start; }
+.doc { min-width: 0; width: 100%; max-width: var(--maxw); }
+section[id] { scroll-margin-top: calc(var(--topbar-h) + 20px); }
+/* "On this page" right rail */
+.toc { flex: 0 0 190px; position: sticky; top: calc(var(--topbar-h) + 32px); align-self: flex-start; }
+.toc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-soft-400, #a3a3a3); font-weight: 500; margin: 0 0 10px; }
+.toc ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a { display: block; padding: 4px 12px; border-left: 2px solid var(--color-stroke-soft-200, #ebebeb); font-size: 13px; text-decoration: none; color: var(--color-text-sub-600, #5c5c5c); }
+.toc a:hover { color: var(--color-text-strong-950, #171717); }
+.toc a.is-active { color: var(--color-text-strong-950, #171717); border-left-color: var(--color-primary-base, #335cff); }
+/* Foundation cards on the overview landing */
+.foundation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.foundation-card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; padding: 18px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); transition: border-color .15s ease; }
+.foundation-card:hover { border-color: var(--color-primary-base, #335cff); }
+.foundation-card strong { font-weight: 500; }
+.foundation-card span { font-size: 13px; line-height: 1.5; color: var(--color-text-sub-600, #5c5c5c); }
+.hero--doc { padding-top: 8px; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-primary-base, #335cff); margin: 0 0 8px; }
 h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 12px; }
-h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-sub-600, #5c5c5c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+h2 { font-size: 15px; letter-spacing: 0; color: var(--color-text-sub-600, #5c5c5c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+/* First section heading sits right under the page lede — no big top gap. */
+.hero--doc + section > h2 { margin-top: 16px; }
 .comp-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .comp-head h1 { margin: 0; }
 .lede { font-size: 18px; color: var(--color-text-sub-600, #5c5c5c); max-width: 60ch; margin: 12px 0 24px; }
 .hero { padding: 24px 0 8px; }
+
+/* Get started: numbered steps + use-case cards */
+.gs-step { display: grid; grid-template-columns: 40px 1fr; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.gs-step h2 { margin: 0 0 10px; border: 0; padding: 0; text-transform: none; letter-spacing: 0; font-size: 20px; color: var(--color-text-strong-950, #171717); }
+.gs-num { width: 34px; height: 34px; border-radius: var(--radius-full, 999px); background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; }
+.gs-note { margin: 0 0 14px; color: var(--color-text-sub-600, #64625c); font-size: 15px; max-width: 62ch; }
+.gs-body { min-width: 0; }
+.gs-body .code-wrap { margin-bottom: 10px; }
+.usecases { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 4px; }
+.usecase { border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.usecase strong { font-weight: 600; }
+.usecase p { margin: 0; font-size: 14px; color: var(--color-text-sub-600, #64625c); flex: 1; }
+.usecase code { font-size: 12px; color: var(--color-text-strong-950, #171717); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-6, 6px); padding: 6px 8px; display: block; }
 .chip.sm { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
 .chip.xs { display: inline-block; width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); flex: none; }
 
@@ -660,10 +1006,10 @@ h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: 
 .sub-note { color: var(--color-text-soft-400, #a3a3a3); font-weight: 400; }
 
 /* Color: semantic role groups */
-.role-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 48px 40px; }
+.role-groups { display: flex; flex-direction: column; gap: 44px; }
 .role-head h4 { margin: 0; font-size: 14px; font-weight: 500; }
-.role-head p { margin: 4px 0 14px; font-size: 12px; color: var(--color-text-soft-400, #a3a3a3); }
-.crows { display: flex; flex-direction: column; }
+.role-head p { margin: 4px 0 14px; font-size: 12px; color: var(--color-text-soft-400, #a3a3a3); max-width: 60ch; }
+.crows { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); column-gap: 40px; row-gap: 0; }
 .crow { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--color-stroke-soft-200, #f2f2f2); font-size: 13px; }
 .crow code { flex: 1; min-width: 0; }
 .crow .cval { font-size: 12px; color: var(--color-text-sub-600, #64625c); font-variant-numeric: tabular-nums; }
@@ -672,6 +1018,7 @@ h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: 
 
 /* Color: primitive ramps */
 .ramps { display: flex; flex-direction: column; gap: 12px; }
+.ramps .role-group { margin-top: 32px; } /* space before Alpha & overlays, matching role-group gap */
 .ramp { display: flex; align-items: center; gap: 14px; }
 .ramp-name { width: 64px; flex: none; font-size: 13px; color: var(--color-text-sub-600, #64625c); text-align: right; }
 .ramp-steps { display: flex; flex: 1; height: 44px; border-radius: var(--radius-8, 8px); overflow: hidden; border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
@@ -690,8 +1037,8 @@ table.scale td:first-child { width: 40%; }
 .crumb { font-size: 13px; color: var(--color-text-sub-600, #a3a3a3); margin-bottom: 12px; }
 .crumb a { color: inherit; }
 .stage { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 36px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-16, 16px); background: var(--color-bg-weak-50, #f7f7f7); }
-.stage--thumb { padding: 22px; height: 132px; box-sizing: border-box; overflow: hidden; justify-content: center; border: 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 0; }
-.code { background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 0; }
+.stage--thumb { padding: 14px 18px; height: 132px; box-sizing: border-box; overflow: hidden; justify-content: center; border: 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 0; }
+.code { background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); padding: 12px 14px; overflow-x: auto; max-width: 100%; font-size: 13px; margin: 0; }
 .tag { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: var(--radius-full, 999px); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); margin: 2px 0; }
 .tags { line-height: 2.2; }
 .tokenlist, .do, .dont { padding-left: 0; list-style: none; }
@@ -755,10 +1102,18 @@ table.specs code { font-size: 13px; }
 .tab.is-active { color: var(--color-text-strong-950, #171717); border-bottom-color: var(--color-primary-base, #335cff); }
 .tabpanel { padding: 16px 18px; }
 .tabpanel.is-hidden { display: none; }
-.code-wrap { display: flex; align-items: flex-start; gap: 12px; }
-.code-wrap .code { flex: 1; min-width: 0; }
-.code-actions { flex: none; }
-.tabpanel .code { border: 0; border-radius: 0; background: transparent; margin: 0; padding: 0; }
+/* Copy button overlays the top-right corner, inside the code container. */
+.code-wrap { position: relative; min-width: 0; }
+.code-wrap .code { padding-right: 64px; }
+.code-actions { position: absolute; top: 8px; right: 8px; z-index: 1; }
+/* Fade the code-box background in behind the button so long, horizontally
+   scrolling code fades out instead of butting up against the Copy button. */
+.code-actions::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: -8px; bottom: -8px; right: -10px; left: -36px;
+  background: linear-gradient(to right, transparent, var(--color-bg-weak-50, #f7f7f7) 55%);
+}
+.tabpanel .code { display: block; width: 100%; background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); margin: 0; padding: 12px 64px 12px 14px; }
 
 /* Solo snippet (import block) */
 .snippet--solo { border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); }
@@ -766,7 +1121,7 @@ table.specs code { font-size: 13px; }
 .snippet-bar span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-sub-600, #a3a3a3); font-weight: 500; }
 .snippet--solo .code { border: 0; border-radius: 0; background: transparent; margin: 0; }
 
-.copy { font: inherit; font-size: 12px; cursor: pointer; padding: 3px 11px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-full, 999px); background: transparent; color: inherit; }
+.copy { font: inherit; font-size: 12px; cursor: pointer; padding: 3px 11px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-full, 999px); background: var(--color-bg-white-0, #fff); color: inherit; }
 .copy:hover { border-color: var(--color-primary-base, #335cff); }
 .copy.is-copied { color: var(--color-primary-base, #335cff); border-color: var(--color-primary-base, #335cff); }
 
@@ -774,12 +1129,17 @@ table.specs code { font-size: 13px; }
 .comp-card--template { border-style: dashed; }
 .template-note { font-size: 14px; color: var(--color-text-sub-600, #5c5c5c); background: var(--color-bg-weak-50, #f7f7f7); border: 1px dashed var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); padding: 12px 14px; }
 
+/* Below the content+rail breakpoint, drop the right rail. */
+@media (max-width: 1080px) {
+  .toc { display: none; }
+}
 @media (max-width: 720px) {
   .menu { display: flex; }
+  .topbar-logo { display: flex; }
   .backdrop:not([hidden]) { display: block; }
-  .layout { padding-left: 0; padding-top: 8px; }
   .side {
-    top: 0; width: 82%; max-width: 320px;
+    position: fixed; top: 0; left: 0; bottom: 0; height: auto;
+    width: 82%; max-width: 320px; flex-basis: auto;
     transform: translateX(-100%); transition: transform .22s ease;
   }
   body.nav-open .side { transform: translateX(0); box-shadow: var(--shadow-md, 0 4px 16px rgba(23,23,23,0.10)); }
@@ -788,7 +1148,11 @@ table.specs code { font-size: 13px; }
 `;
 write(p('site/assets/site.css'), SITE_CSS.trim() + '\n');
 
-write(p('site/index.html'), foundationsPage());
+write(p('site/get-started.html'), getStartedPage());
+write(p('site/index.html'), overviewPage());
+for (const pg of FOUNDATION_PAGES) {
+  write(p('site/foundations/' + pg.id + '.html'), foundationPage(pg));
+}
 for (const c of allComponents) {
   write(p('site/components/' + slug(c.name) + '.html'), componentPage(c));
 }

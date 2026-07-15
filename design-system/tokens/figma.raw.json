@@ -2,8 +2,7 @@
   "meta": {
     "name": "Design system",
     "source": "template",
-    "note": "Template tokens mirroring the AlignUI 2.0 design system structure. Replace via bootstrap once wired to your client Figma file.",
-    "template": "AlignUI Design System 2.0"
+    "note": "Template tokens mirroring the AlignUI 2.0 design system structure. Replace via bootstrap once wired to your client Figma file."
   },
   "collections": {
     "primitives": {

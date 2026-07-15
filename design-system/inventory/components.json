@@ -6,7 +6,7 @@
       "figmaNodeId": "129:1422",
       "category": "Actions",
       "status": "stable",
-      "description": "Primary action trigger. AlignUI API: three types (primary, neutral, error) crossed with four styles (filled, stroke, lighter, ghost) and four sizes.",
+      "description": "Primary action trigger. Three types (primary, neutral, error) crossed with four styles (filled, stroke, lighter, ghost) and four sizes.",
       "tagline": "The main action on a screen",
       "preview": "<button class=\"ds-btn ds-btn--primary\">Save changes</button><button class=\"ds-btn ds-btn--secondary\">Cancel</button><button class=\"ds-btn ds-btn--ghost\">Learn more</button>",
       "examples": [
@@ -586,7 +586,7 @@
       "figmaNodeId": "2950:5881",
       "category": "Layout",
       "status": "stable",
-      "description": "Surface that groups related content and actions — the container behind every dashboard widget in the template's Product Components.",
+      "description": "Surface that groups related content and actions. It's the container behind every dashboard widget in the template's Product Components.",
       "tagline": "Container that groups related content",
       "preview": "<div class=\"ds-card\"><strong class=\"ds-card-title\">Weekly report</strong><p class=\"ds-card-body\">Your team shipped 12 changes this week.</p><button class=\"ds-btn ds-btn--secondary ds-btn--sm\">View</button></div>",
       "examples": [
@@ -859,7 +859,7 @@
           "Keep every social button the same style on one screen"
         ],
         "dont": [
-          "Recolor brand icons — use the official marks"
+          "Recolor brand icons. Keep the official marks."
         ]
       },
       "codeConnected": false,
@@ -916,7 +916,7 @@
           "Reserve for one hero action per page"
         ],
         "dont": [
-          "Use in dense product UI — use Button"
+          "Use it in dense product UI. Reach for Button instead."
         ]
       },
       "codeConnected": false,
@@ -974,7 +974,7 @@
           "Keep segment labels one word"
         ],
         "dont": [
-          "Use for mutually exclusive form choices — use Radio or Segmented Control"
+          "Use it for mutually exclusive form choices. Reach for Radio or Segmented Control instead."
         ]
       },
       "codeConnected": false,
@@ -1036,7 +1036,7 @@
           "Pair every checkbox with a clickable label"
         ],
         "dont": [
-          "Use for mutually exclusive options — use Radio"
+          "Use it for mutually exclusive options. Reach for Radio instead."
         ]
       },
       "codeConnected": false,
@@ -1144,7 +1144,7 @@
           "Use for settings that apply instantly"
         ],
         "dont": [
-          "Use inside a form that needs a submit step — use Checkbox"
+          "Use it inside a form that needs a submit step. Reach for Checkbox instead."
         ]
       },
       "codeConnected": false,
@@ -1218,7 +1218,7 @@
           "Use for 5+ options where radios would be too long"
         ],
         "dont": [
-          "Use for 2–3 options — prefer Radio or Segmented Control"
+          "Use it for just 2 or 3 options. Prefer Radio or Segmented Control there."
         ]
       },
       "codeConnected": false,
@@ -1270,7 +1270,7 @@
           "Give it a sensible default height of 3–4 lines"
         ],
         "dont": [
-          "Use for single-line values — use Text Input"
+          "Use it for single-line values. Reach for Text Input instead."
         ]
       },
       "codeConnected": false,
@@ -1323,7 +1323,7 @@
           "Show remaining-count limits as hint text"
         ],
         "dont": [
-          "Use when options come from a fixed list — use a multi-select"
+          "Use it when options come from a fixed list. Reach for a multi-select instead."
         ]
       },
       "codeConnected": false,
@@ -1375,7 +1375,7 @@
           "Disable the decrement/increment control at min/max"
         ],
         "dont": [
-          "Use for large free-range numbers — use a Text Input type=amount"
+          "Use it for large free-range numbers. Reach for a Text Input type=amount instead."
         ]
       },
       "codeConnected": false,
@@ -1473,7 +1473,7 @@
           "Show the current value (tooltip or label) while dragging"
         ],
         "dont": [
-          "Use for precise required values — pair with a Counter Input"
+          "Use it for precise required values. Pair it with a Counter Input instead."
         ]
       },
       "codeConnected": false,
@@ -1582,7 +1582,7 @@
           "Disable unavailable days instead of erroring after selection"
         ],
         "dont": [
-          "Use a picker for well-known typed dates like birthdays — use Text Input type=date"
+          "Use a picker for well-known typed dates like birthdays. Reach for Text Input type=date instead."
         ]
       },
       "codeConnected": false,
@@ -1784,7 +1784,7 @@
           "Reuse these parts in every field component so spacing stays identical"
         ],
         "dont": [
-          "Color hint text manually — the state prop does it"
+          "Color hint text manually. The state prop does it for you."
         ]
       },
       "codeConnected": false,
@@ -1937,7 +1937,7 @@
           "Disable prev/next at the ends of the range"
         ],
         "dont": [
-          "Use pagination for infinite feeds — use load-more"
+          "Use pagination for infinite feeds. Reach for load-more instead."
         ]
       },
       "codeConnected": false,
@@ -1990,7 +1990,7 @@
           "Keep tab labels to one or two words"
         ],
         "dont": [
-          "Use tabs for a sequential flow — use Step Indicator"
+          "Use tabs for a sequential flow. Reach for Step Indicator instead."
         ]
       },
       "codeConnected": false,
@@ -2037,7 +2037,7 @@
           "Use for instant view switches (list/grid, monthly/yearly)"
         ],
         "dont": [
-          "Exceed three segments — use Tab Menu"
+          "Exceed three segments. Reach for Tab Menu instead."
         ]
       },
       "codeConnected": false,
@@ -2215,7 +2215,7 @@
           "Show at most one banner at a time"
         ],
         "dont": [
-          "Use for per-field errors — use Hint Text"
+          "Use it for per-field errors. Reach for Hint Text instead."
         ]
       },
       "codeConnected": false,
@@ -2269,7 +2269,7 @@
           "Use a determinate bar whenever progress is knowable"
         ],
         "dont": [
-          "Animate to 90% and stall — show real progress"
+          "Animate to 90% and stall. Show real progress instead."
         ]
       },
       "codeConnected": false,
@@ -2401,7 +2401,7 @@
       "name": "Status Badge",
       "category": "Data display",
       "status": "stable",
-      "description": "Semantic sibling of Badge for workflow states: completed, pending, failed, information, disabled — in light or stroke style, with optional dot.",
+      "description": "Semantic sibling of Badge for workflow states like completed, pending, failed, information, and disabled, in light or stroke style, with an optional dot.",
       "tagline": "Label for a workflow state",
       "anatomy": [
         "Container",
@@ -2451,7 +2451,7 @@
           "Use in tables and lists where states repeat"
         ],
         "dont": [
-          "Invent new status colors — these five map to the state tokens"
+          "Invent new status colors. These five map to the state tokens."
         ]
       },
       "codeConnected": false,
@@ -2461,7 +2461,7 @@
       "name": "Table",
       "category": "Data display",
       "status": "stable",
-      "description": "Tables compose from Table Header Cell (with Sorting Icons) and Table Row Cell — no monolithic component. Row cells set text priority (leading, regular, passive) and can embed Button, Button Group, Switch, Rating, Progress Bar, Status Badge, Badge Group, or Avatar Group.",
+      "description": "Tables compose from Table Header Cell (with Sorting Icons) and Table Row Cell, with no monolithic component. Row cells set text priority (leading, regular, passive) and can embed Button, Button Group, Switch, Rating, Progress Bar, Status Badge, Badge Group, or Avatar Group.",
       "tagline": "Rows and columns of data",
       "anatomy": [
         "Header cell (label, sort icon)",
@@ -2663,7 +2663,7 @@
       "name": "Content Divider",
       "category": "Layout",
       "status": "stable",
-      "description": "Separator in nine flavors: plain line, spaced line, text, text-and-line, solid text, and icon/text button variants (with grouped-button forms) — used inside dropdowns, tables, and modals.",
+      "description": "Separator in nine flavors: plain line, spaced line, text, text-and-line, solid text, and icon/text button variants (with grouped-button forms), used inside dropdowns, tables, and modals.",
       "tagline": "Line or label separating content",
       "anatomy": [
         "Line",
@@ -2869,7 +2869,7 @@
           "Use for detail views and multi-field editing that keeps page context"
         ],
         "dont": [
-          "Use a drawer for a blocking confirmation — use a Modal"
+          "Use a drawer for a blocking confirmation. Reach for a Modal instead."
         ]
       },
       "codeConnected": false,
@@ -2934,7 +2934,7 @@
           "Use the stepper footer for product tours"
         ],
         "dont": [
-          "Use a popover for destructive confirmations — use a Modal"
+          "Use a popover for destructive confirmations. Reach for a Modal instead."
         ]
       },
       "codeConnected": false,
@@ -3148,7 +3148,7 @@
       "name": "Page Header",
       "category": "Product",
       "status": "stable",
-      "description": "Page-level (88px) and section-level (80px) headers in five types: basic, avatar, left icon, brand, company — title, description, and action slot.",
+      "description": "Page-level (88px) and section-level (80px) headers in five types (basic, avatar, left icon, brand, company), each with a title, description, and action slot.",
       "tagline": "Title and actions for a page",
       "anatomy": [
         "Leading content (optional)",
@@ -3193,7 +3193,7 @@
           "Use one page header per view; section headers below it"
         ],
         "dont": [
-          "Put more than two actions in the header — overflow the rest"
+          "Put more than two actions in the header. Overflow the rest instead."
         ]
       },
       "codeConnected": false,
