@@ -3536,7 +3536,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 
 ---
 
-## Staying in sync (drift)
+## Drift
 
 Drift is any divergence from this system, or internal inconsistency within a consumer (your Figma screens, or your code). It has four lanes on two axes: alignment (matches the system) and consistency (internally coherent).
 
@@ -3554,4 +3554,4 @@ Detect the mechanical lanes with `node design-system/scripts/lint.mjs` (design),
 - Figma variables are the single source of truth. Change flows one way: Figma → `tokens/figma.raw.json` → build → code/docs.
 - To change a value (color, radius, spacing): edit the Figma variable (or ask the design-system skill to "propagate" the change), re-pull, and rebuild. Never patch generated files.
 - To add a component: add it to Figma and the inventory (or promote a planned template), then rebuild.
-- Lint for drift: see "Staying in sync (drift)" above.
+- Lint for drift: see "Drift" above.

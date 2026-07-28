@@ -371,9 +371,9 @@ function navMarkup(up, active) {
   return `
     ${brand}
     <div class="side-nav">
-      ${lead('getstarted', 'Get started', 'get-started.html')}
       ${lead('overview', 'Overview', 'index.html')}
-      ${lead('sync', 'Staying in sync', 'staying-in-sync.html')}
+      ${lead('getstarted', 'Get started', 'get-started.html')}
+      ${lead('sync', 'Drifts', 'drifts.html')}
       <div class="nav-groups">
         <div class="nav-group"><p class="nav-group-title">Foundations</p>${foundationLinks}</div>
         ${groupsHtml}
@@ -384,8 +384,9 @@ function navMarkup(up, active) {
 // Flat index the command palette searches over: foundations + every component.
 function searchIndex(up) {
   const items = [
+    { name: 'Overview', group: 'Guides', href: `${up}index.html` },
     { name: 'Get started', group: 'Guides', href: `${up}get-started.html` },
-    { name: 'Staying in sync', group: 'Guides', href: `${up}staying-in-sync.html` },
+    { name: 'Drifts', group: 'Guides', href: `${up}drifts.html` },
     ...FOUNDATION_PAGES.map((pg) => ({ name: pg.label, group: 'Foundations', href: `${up}foundations/${pg.id}.html` })),
   ];
   for (const [cat, list] of componentGroups()) {
@@ -439,7 +440,7 @@ function shell(title, body, opts = {}) {
       <span>Search</span>
       <kbd class="top-search-kbd">&#8984;K</kbd>
     </button>
-    <button id="theme" class="theme" aria-label="Toggle color theme">Theme</button>
+    <button id="theme" class="theme" aria-label="Toggle color theme" title="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18Z" fill="currentColor" stroke="none"/></svg></button>
   </header>
   <main class="content${tocHtml ? ' has-toc' : ''}"><div class="doc">${body}</div>${tocHtml}</main>
 </div>
@@ -556,7 +557,7 @@ function getStartedPage() {
   const compCount = allComponents.length;
   const codeBlk = (code) => `<div class="code-wrap"><pre class="code"><code>${esc(code)}</code></pre><div class="code-actions"><button class="copy" type="button">Copy</button></div></div>`;
   const step = (n, title, note, blocks = '') =>
-    `<section class="gs-step"><div class="gs-num">${n}</div><div class="gs-body"><h2>${esc(title)}</h2>${note}${blocks}</div></section>`;
+    `<section class="gs-step"><div class="gs-num">${n}</div><div class="gs-body"><h3>${esc(title)}</h3>${note}${blocks}</div></section>`;
   const useCases = [
     ['Start a new project', 'Scaffold the toolkit and get a full token set plus component catalog on day one, before your Figma file even exists.', '"Set up the design system from the template"'],
     ['Build a screen with AI', 'Point any coding agent at DESIGN-SYSTEM.md and it builds token-true UI from the catalog.', '"Read design-system/DESIGN-SYSTEM.md, then build the settings page"'],
@@ -572,16 +573,16 @@ function getStartedPage() {
       <h1>Get started</h1>
       <p class="lede">Your Figma variables are the single source of truth. From them, this toolkit generates design tokens for light and dark, a catalog of ${compCount} documented components, this docs site, and one <code>DESIGN-SYSTEM.md</code> you can hand to any coding agent. Here's how to set it up and put it to work.</p>
     </div>
-    ${step(1, 'Add it to your project', '<p class="gs-note">One-time, from your repo root. It\'s non-destructive, and only touches your files when you pass a flag.</p>',
+    ${step(1, 'Add it to your project', '<p class="gs-note">Run these once from the root of your repo. They only change your files when you pass a flag, so it is safe to run.</p>',
       codeBlk('npx degit jsulystio/design-system-skill/design-system design-system\nnode design-system/install.mjs --scripts --agents\nnode design-system/scripts/build.mjs'))}
-    ${step(2, 'Use the tokens in your app', '<p class="gs-note">Import the CSS variables once, and (optionally) wire the Tailwind theme. Dark mode is automatic.</p>',
+    ${step(2, 'Use the tokens in your app', '<p class="gs-note">Import the CSS variables once in your app. If you use Tailwind, wire up the generated theme as well. Dark mode then works on its own.</p>',
       codeBlk("/* globally, e.g. app entry or globals.css */\nimport 'design-system/tokens/variables.css';") +
       codeBlk("// tailwind.config.js\nmodule.exports = {\n  theme: { extend: require('./design-system/tokens/tailwind.theme.js') },\n};"))}
-    ${step(3, 'Build UI with the system', '<p class="gs-note">Feed the generated spec to your coding agent. It uses your tokens and the component catalog instead of guessing.</p>',
+    ${step(3, 'Build UI with the system', '<p class="gs-note">Hand the generated <code>DESIGN-SYSTEM.md</code> to your coding agent. It builds with your real tokens and components instead of guessing at values.</p>',
       codeBlk('Read design-system/DESIGN-SYSTEM.md and follow it,\nthen build a billing settings page.'))}
-    ${step(4, 'Keep it in sync', '<p class="gs-note">Designers edit variables in Figma; one command pulls, builds tokens + docs, and lints. Ask Claude only for judgment calls (bootstrap, resolve drift, propagate a change).</p>',
+    ${step(4, 'Keep it in sync', '<p class="gs-note">When a designer changes a variable in Figma, one command pulls the update, rebuilds the tokens and docs, and runs the linter. Bring in Claude only for the judgment calls: bootstrapping, resolving drift, or propagating a change.</p>',
       codeBlk('npm run ds:sync   # pull from Figma → build tokens, theme, docs → lint'))}
-    ${step(5, 'Guard against drift', '<p class="gs-note">Drift is any divergence from the source of truth, across <a href="staying-in-sync.html">four lanes</a> (design and code, each for alignment and consistency). The linter catches the mechanical ones; run it in CI, where each mode exits non-zero on drift.</p>',
+    ${step(5, 'Guard against drift', '<p class="gs-note">Drift is anything that strays from the design system. It shows up across <a href="drifts.html">four lanes</a>: your designs and your code, each checked for alignment and consistency. The linter catches the mechanical cases, so run it in CI, where each command fails the build when it finds drift.</p>',
       codeBlk('npm run ds:lint              # design lanes: raw values, uninventoried components\nnpm run ds:lint --code src   # code lanes: hardcoded colors, radii, spacing\nnpm run ds:lint --report     # every lane as one JSON report'))}
     <section id="use-cases">
       <h2>Use cases</h2>
@@ -641,6 +642,25 @@ const LANE_DOCS = {
   'code-consistency': ['Code vs. itself', 'One role built two different ways in the codebase.'],
 };
 
+// Shared drift tallies + summary block, used by both the Drifts page and the
+// Overview so they never disagree. A zero count renders faded, not alarming.
+const driftAll = [
+  ...driftDesign.alignment, ...driftDesign.consistency,
+  ...(driftCode ? [...driftCode.alignment, ...driftCode.consistency] : []),
+  ...auditFindings,
+];
+const driftErrCount = driftAll.filter((f) => f.severity === 'error').length;
+const driftWarnCount = driftAll.filter((f) => f.severity === 'warn').length;
+const driftClean = driftErrCount === 0 && driftWarnCount === 0;
+const driftStat = (n, sev, one, many) =>
+  `<div class="drift-stat ${n === 0 ? 'drift-stat--zero' : `drift-stat--${sev}`}"><b>${n}</b><span>${n === 1 ? one : many}</span></div>`;
+const driftSummaryHtml = () => driftClean
+  ? `<div class="drift-banner drift-banner--ok">In sync. Nothing has drifted from the design system.</div>`
+  : `<div class="drift-summary">
+      ${driftStat(driftErrCount, 'err', 'thing to fix', 'things to fix')}
+      ${driftStat(driftWarnCount, 'warn', 'thing to review', 'things to review')}
+    </div>`;
+
 function stayingInSyncPage() {
   // Mechanical findings from the linter, by lane (null = code lane not scanned).
   const laneData = {
@@ -650,12 +670,6 @@ function stayingInSyncPage() {
     'code-consistency': driftCode ? driftCode.consistency : null,
   };
   const auditByLane = (id) => auditFindings.filter((f) => f.lane === id);
-  const mechanical = Object.values(laneData).filter((v) => v !== null).flat();
-  const all = [...mechanical, ...auditFindings];
-  const errCount = all.filter((f) => f.severity === 'error').length;
-  const warnCount = all.filter((f) => f.severity === 'warn').length;
-  const clean = errCount === 0 && warnCount === 0;
-
   const sevDot = (s) => `<span class="dot ${s === 'warn' ? 'st-beta' : 'st-deprecated'}" title="${s}"></span>`;
   const laneBlock = (id) => {
     const [title, sub] = LANE_DOCS[id];
@@ -666,7 +680,7 @@ function stayingInSyncPage() {
     if (id === 'code-consistency' && !aud.length) {
       // Nothing mechanical to measure, and no audit yet: point to the audit.
       body = `<p class="drift-empty">The linter can't measure this one. Ask Claude to "audit the drift" and it reads your code for the same thing built two different ways. The count shows up here once it has run.</p>`;
-      count = '';
+      count = '&mdash;';
     } else if (mech === null && !aud.length) {
       body = `<p class="drift-empty">Not checked yet. Tell the linter where your code lives (<code>lint.codePaths</code> in <code>figma.config.json</code>), then rebuild.</p>`;
       count = '&mdash;';
@@ -691,37 +705,19 @@ function stayingInSyncPage() {
     </div>`;
   };
 
-  // A stat tile; a zero count is faded rather than colored, so it does not read
-  // as alarming when there is nothing in that bucket.
-  const stat = (n, sev, one, many) =>
-    `<div class="drift-stat ${n === 0 ? 'drift-stat--zero' : `drift-stat--${sev}`}"><b>${n}</b><span>${n === 1 ? one : many}</span></div>`;
-  const summary = clean
-    ? `<div class="drift-banner drift-banner--ok">In sync. Nothing has drifted from the design system.</div>`
-    : `<div class="drift-summary">
-        ${stat(errCount, 'err', 'thing to fix', 'things to fix')}
-        ${stat(warnCount, 'warn', 'thing to review', 'things to review')}
-      </div>`;
-
-  const screensNote = driftSource.sampleScreens
-    ? 'a bundled sample of screens (swap in your own Figma export to check your real ones)'
-    : 'your latest Figma export';
-  const codeNote = driftSource.codePaths.length
-    ? `your code in ${driftSource.codePaths.map((c) => `<code>${esc(c)}</code>`).join(', ')}`
-    : 'no code yet (tell the linter where it lives with <code>lint.codePaths</code>)';
-
   const commands = `node design-system/scripts/lint.mjs              # check your Figma screens
 node design-system/scripts/lint.mjs --code src   # check your code
 node design-system/scripts/lint.mjs --report     # everything, as JSON`;
 
   const body = `
     <div class="hero">
-      <h1>Staying in sync</h1>
+      <h1>Drifts</h1>
       <p class="lede">Your designs and your code should only use what the design system defines. When something strays from it, that is drift. Here is the drift in your project right now, rechecked every time these docs are built.</p>
+      <p class="built-note"><span class="ds-badge built-badge">Last checked ${new Date().toISOString().slice(0, 10)}</span></p>
     </div>
     <section id="current">
       <h2>What's out of sync</h2>
-      <p class="section-note">Last checked when these docs were built, against ${screensNote} and ${codeNote}.</p>
-      ${summary}
+      ${driftSummaryHtml()}
       <div class="drift-lanes">${LANES.map(([id]) => laneBlock(id)).join('')}</div>
     </section>
     <section id="model">
@@ -731,11 +727,11 @@ node design-system/scripts/lint.mjs --report     # everything, as JSON`;
     </section>
     <section id="fix">
       <h2>Fixing drift</h2>
-      <p class="gs-note">The linter finds the values and components above. For the subtler cases (a component quietly rebuilt in code, or one role styled two ways), ask Claude to "audit the drift" and it reads the designs and code to find them.</p>
+      <p>The linter finds the values and components above. For the subtler cases (a component quietly rebuilt in code, or one role styled two ways), ask Claude to "audit the drift" and it reads the designs and code to find them.</p>
       ${codeBlock(commands)}
-      <p class="template-note">Fix drift where it starts, in the design system, not where it shows up. Turn a stray color into a token in Figma, add a missing component to the catalog, and point rebuilt code at the real one. The quick patch does not stick: if you hardcode the value or edit a generated file (like <code>variables.css</code> or <code>DESIGN-SYSTEM.md</code>), the next build regenerates it and your change is gone.</p>
+      <p>Fix drift where it starts, in the design system, not where it shows up. Turn a stray color into a token in Figma, add a missing component to the catalog, and point rebuilt code at the real one. The quick patch does not stick: if you hardcode the value or edit a generated file (like <code>variables.css</code> or <code>DESIGN-SYSTEM.md</code>), the next build regenerates it and your change is gone.</p>
     </section>`;
-  return shell('Staying in sync', body, {
+  return shell('Drifts', body, {
     depth: 0, active: 'sync',
     toc: [{ id: 'current', label: "What's out of sync" }, { id: 'model', label: 'How this works' }, { id: 'fix', label: 'Fixing drift' }],
   });
@@ -795,11 +791,16 @@ function overviewPage() {
   const body = `
     <div class="hero">
       <h1>Overview</h1>
-      <p class="lede">Generated from Figma variables. Every page is rendered with the tokens it documents, so it stays true to the source. Last built ${new Date().toISOString().slice(0, 10)}.</p>
+      <p class="lede">Generated from Figma variables. Every page is rendered with the tokens it documents, so it stays true to the source.</p>
+      <p class="built-note"><span class="ds-badge built-badge">Last built ${new Date().toISOString().slice(0, 10)}</span></p>
     </div>
+    <section id="drift"><h2>Drifts</h2>
+      <p>How closely your designs and code match the system right now. <a href="drifts.html">See what's out of sync &rarr;</a></p>
+      ${driftSummaryHtml()}
+    </section>
     <section id="foundations"><h2>Foundations</h2><div class="foundation-grid">${foundationCards}</div></section>
     <section id="components"><h2>Components</h2>${compSections}</section>`;
-  return shell('Overview', body, { depth: 0, active: 'overview', toc: [{ id: 'foundations', label: 'Foundations' }, { id: 'components', label: 'Components' }] });
+  return shell('Overview', body, { depth: 0, active: 'overview', toc: [{ id: 'drift', label: 'Drifts' }, { id: 'foundations', label: 'Foundations' }, { id: 'components', label: 'Components' }] });
 }
 
 // A copyable code block (TSX only — the component call a developer writes).
@@ -1049,10 +1050,12 @@ code, .mono { font-family: inherit; font-size: inherit; }
 .topbar-logo { display: none; align-items: center; gap: 10px; text-decoration: none; color: var(--color-text-strong-950, #171717); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
 .top-search { margin-left: auto; }
 .theme {
-  font: inherit; font-size: 13px; cursor: pointer; padding: 6px 12px;
-  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-full, 999px);
-  background: transparent; color: inherit;
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; padding: 0; cursor: pointer;
+  border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px);
+  background: transparent; color: var(--color-text-sub-600, #5c5c5c);
 }
+.theme:hover { color: var(--color-text-strong-950, #171717); border-color: var(--color-stroke-sub-300, #e0e0e0); }
 .menu {
   display: none; flex-direction: column; justify-content: center; gap: 4px;
   width: 38px; height: 38px; padding: 0 9px; cursor: pointer;
@@ -1111,7 +1114,9 @@ body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45de
   background: var(--color-bg-white-0, #fff); color: var(--color-text-sub-600, #a3a3a3);
 }
 @media (max-width: 720px) {
-  .top-search { min-width: 0; }
+  /* Collapsed to an icon: match the theme button exactly (38x38, transparent). */
+  .top-search { min-width: 0; width: 38px; height: 38px; padding: 0; justify-content: center; background: transparent; }
+  .top-search svg { width: 18px; height: 18px; }
   .top-search span, .top-search-kbd { display: none; }
 }
 .palette {
@@ -1144,7 +1149,7 @@ body.nav-open .menu span:nth-child(3) { transform: translateY(-6px) rotate(-45de
 .st-badge { display: inline-block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; line-height: 1.5; }
 .st-badge.st-stable { color: #3f9142; } .st-badge.st-beta { color: #b5850b; } .st-badge.st-deprecated { color: #c0392b; } .st-badge.st-planned { color: var(--color-text-sub-600, #a3a3a3); }
 html { scroll-behavior: smooth; }
-.content { padding: 40px var(--gap) 96px; display: flex; gap: 48px; align-items: flex-start; }
+.content { padding: 28px var(--gap) 96px; display: flex; gap: 48px; align-items: flex-start; }
 .doc { min-width: 0; width: 100%; max-width: var(--maxw); }
 section[id] { scroll-margin-top: calc(var(--topbar-h) + 20px); }
 /* "On this page" right rail */
@@ -1162,18 +1167,24 @@ section[id] { scroll-margin-top: calc(var(--topbar-h) + 20px); }
 .foundation-card span { font-size: 13px; line-height: 1.5; color: var(--color-text-sub-600, #5c5c5c); }
 .hero--doc { padding-top: 8px; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-primary-base, #335cff); margin: 0 0 8px; }
-h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 12px; }
-h2 { font-size: 15px; letter-spacing: 0; color: var(--color-text-sub-600, #5c5c5c); font-weight: 500; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 10px; }
+h2 { font-size: 18px; letter-spacing: 0; color: var(--color-text-strong-950, #171717); font-weight: 600; margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 /* First section heading sits right under the page lede — no big top gap. */
-.hero--doc + section > h2 { margin-top: 16px; }
+.hero + section > h2, .hero--doc + section > h2 { margin-top: 16px; }
 .comp-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .comp-head h1 { margin: 0; }
-.lede { font-size: 18px; color: var(--color-text-sub-600, #5c5c5c); max-width: 60ch; margin: 12px 0 24px; }
-.hero { padding: 24px 0 8px; }
+.lede { font-size: 18px; color: var(--color-text-sub-600, #5c5c5c); max-width: 60ch; margin: 0 0 12px; }
+.built-note { font-size: 13px; color: var(--color-text-sub-600, #5c5c5c); margin: 0 0 8px; }
+/* Timestamp badge: a gray chip that stays visible in both themes (the ds-badge
+   --gray variant uses faded tokens that vanish on the dark page). */
+.built-badge { background: var(--color-bg-weak-50, #f7f7f7); color: var(--color-text-sub-600, #5c5c5c); border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.hero { padding: 8px 0 8px; }
 
 /* Get started: numbered steps + use-case cards */
 .gs-step { display: grid; grid-template-columns: 40px 1fr; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
-.gs-step h2 { margin: 0 0 10px; border: 0; padding: 0; text-transform: none; letter-spacing: 0; font-size: 20px; color: var(--color-text-strong-950, #171717); }
+/* Drop the redundant divider on the last step, right before the Use cases heading. */
+.gs-step:has(+ #use-cases) { border-bottom: 0; }
+.gs-step h3 { margin: 0 0 10px; border: 0; padding: 0; text-transform: none; letter-spacing: 0; font-size: 16px; font-weight: 600; color: var(--color-text-strong-950, #171717); }
 .gs-num { width: 34px; height: 34px; border-radius: var(--radius-full, 999px); background: var(--color-primary-base, #335cff); color: var(--color-static-white, #fff); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; }
 .gs-note { margin: 0 0 14px; color: var(--color-text-sub-600, #64625c); font-size: 15px; max-width: 62ch; }
 .gs-body { min-width: 0; }
@@ -1186,8 +1197,8 @@ h2 { font-size: 15px; letter-spacing: 0; color: var(--color-text-sub-600, #5c5c5
 /* Staying-in-sync: live drift dashboard + hub-and-spoke diagram */
 .sync-diagram { margin: 20px 0 8px; }
 .sync-diagram svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
-.drift-summary { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 24px; }
-.drift-stat { display: flex; flex-direction: column; gap: 2px; min-width: 92px; padding: 12px 16px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); }
+.drift-summary { display: flex; gap: 12px; margin: 4px 0 24px; }
+.drift-stat { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); }
 .drift-stat b { font-size: 26px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
 .drift-stat span { font-size: 12px; color: var(--color-text-sub-600, #5c5c5c); }
 .drift-stat--err b { color: #c0392b; }
@@ -1200,16 +1211,16 @@ h2 { font-size: 15px; letter-spacing: 0; color: var(--color-text-sub-600, #5c5c5
 .drift-lane-head { display: flex; align-items: flex-start; gap: 10px; }
 .drift-lane-title { display: flex; flex-direction: column; gap: 2px; }
 .drift-lane-title strong { font-weight: 600; font-size: 15px; }
-.drift-lane-sub { font-size: 12px; color: var(--color-text-soft-400, #a3a3a3); }
+.drift-lane-sub { font-size: 12px; color: var(--color-text-sub-600, #5c5c5c); }
 .drift-count { margin-left: auto; flex: none; font-size: 12px; color: var(--color-text-sub-600, #5c5c5c); font-variant-numeric: tabular-nums; }
 .drift-list { list-style: none; margin: 10px 0 0; padding: 0; }
 .drift-list li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; padding: 8px 0; border-top: 1px solid var(--color-stroke-soft-200, #f2f2f2); font-size: 13px; }
 .drift-list li .dot { align-self: center; margin: 0; }
 .drift-list code { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; color: var(--color-text-strong-950, #171717); }
 .drift-msg { flex: 1 1 220px; min-width: 0; color: var(--color-text-sub-600, #5c5c5c); }
-.drift-empty { margin: 10px 0 0; font-size: 13px; color: var(--color-text-soft-400, #a3a3a3); }
-.drift-empty code { color: var(--color-text-sub-600, #5c5c5c); }
-.drift-audit-note { margin: 10px 0 0; font-size: 12px; font-style: italic; color: var(--color-text-soft-400, #a3a3a3); }
+.drift-empty { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--color-stroke-soft-200, #ebebeb); font-size: 13px; color: var(--color-text-sub-600, #5c5c5c); }
+.drift-empty code { color: var(--color-text-strong-950, #171717); }
+.drift-audit-note { margin: 10px 0 0; font-size: 12px; font-style: italic; color: var(--color-text-sub-600, #5c5c5c); }
 .drift-ok { color: #3f9142; }
 .chip.sm { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
 .chip.xs { display: inline-block; width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); flex: none; }
@@ -1267,7 +1278,7 @@ table.scale td:first-child { width: 40%; }
   border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: 999px;
 }
 .muted { color: var(--color-text-soft-400, #a3a3a3); font-size: 12px; }
-.section-note { font-size: 14px; color: var(--color-text-sub-600, #64625c); margin: -4px 0 16px; }
+.section-note { font-size: 14px; color: var(--color-text-sub-600, #64625c); margin: -4px 0 12px; }
 
 /* Specs (redline) table */
 table.specs { border-collapse: collapse; width: 100%; font-size: 14px; }
@@ -1324,8 +1335,9 @@ table.specs code { font-size: 13px; }
    scrolling code fades out instead of butting up against the Copy button. */
 .code-actions::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
-  top: -8px; bottom: -8px; right: -10px; left: -36px;
+  top: -8px; bottom: -8px; right: -8px; left: -36px;
   background: linear-gradient(to right, transparent, var(--color-bg-weak-50, #f7f7f7) 55%);
+  border-top-right-radius: var(--radius-8, 8px);
 }
 .tabpanel .code { display: block; width: 100%; background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-8, 8px); margin: 0; padding: 12px 64px 12px 14px; }
 
@@ -1363,7 +1375,7 @@ table.specs code { font-size: 13px; }
 write(p('site/assets/site.css'), SITE_CSS.trim() + '\n');
 
 write(p('site/get-started.html'), getStartedPage());
-write(p('site/staying-in-sync.html'), stayingInSyncPage());
+write(p('site/drifts.html'), stayingInSyncPage());
 write(p('site/index.html'), overviewPage());
 for (const pg of FOUNDATION_PAGES) {
   write(p('site/foundations/' + pg.id + '.html'), foundationPage(pg));
@@ -1544,7 +1556,7 @@ function designSystemMd() {
     for (const c of items) out.push(mdComponent(c), '', '---', '');
   }
 
-  out.push('## Staying in sync (drift)', '');
+  out.push('## Drift', '');
   out.push('Drift is any divergence from this system, or internal inconsistency within a consumer (your Figma screens, or your code). It has four lanes on two axes: alignment (matches the system) and consistency (internally coherent).', '');
   out.push('| Lane | Axis | Catches |', '|---|---|---|');
   out.push('| Design alignment | Design to System | raw values, uninventoried components, off-spec overrides in Figma screens |');
@@ -1558,7 +1570,7 @@ function designSystemMd() {
   out.push('- Figma variables are the single source of truth. Change flows one way: Figma → `tokens/figma.raw.json` → build → code/docs.');
   out.push('- To change a value (color, radius, spacing): edit the Figma variable (or ask the design-system skill to "propagate" the change), re-pull, and rebuild. Never patch generated files.');
   out.push('- To add a component: add it to Figma and the inventory (or promote a planned template), then rebuild.');
-  out.push('- Lint for drift: see "Staying in sync (drift)" above.');
+  out.push('- Lint for drift: see "Drift" above.');
   out.push('');
   return out.join('\n');
 }
