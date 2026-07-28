@@ -53,7 +53,7 @@ const routeIdOf = (file) => path.relative(SITE, file).replace(/\\/g, '/').replac
 // Rewrite inter-page links (href="../components/button.html") into hash routes
 // (href="#!/components/button"). In-page anchors (href="#semantic") are left
 // alone — they don't end in .html.
-const ROUTE_RE = /((?:\.\.\/)*)((?:index|get-started|foundations\/[a-z0-9-]+|components\/[a-z0-9-]+))\.html/g;
+const ROUTE_RE = /((?:\.\.\/)*)((?:index|get-started|staying-in-sync|foundations\/[a-z0-9-]+|components\/[a-z0-9-]+))\.html/g;
 const rewriteHrefs = (s) => s.replace(new RegExp('href="' + ROUTE_RE.source + '"', 'g'), 'href="#!/$2"');
 
 // ---- pull the shared chrome from index.html (its links use no ../ prefix) ----
@@ -68,7 +68,7 @@ const topbarHtml = rewriteHrefs(grab(/<header class="topbar">[\s\S]*?<\/header>/
 const paletteHtml = grab(/<div class="palette" id="palette"[\s\S]*?(?=\n?<script>window\.__SEARCH_ITEMS)/, indexHtml, 'palette');
 const searchJson = (indexHtml.match(/window\.__SEARCH_ITEMS = (\[[\s\S]*?\]);/) || [])[1] || '[]';
 const searchItems = searchJson.replace(
-  /"href":"((?:\.\.\/)*)((?:index|get-started|foundations\/[a-z0-9-]+|components\/[a-z0-9-]+))\.html"/g,
+  /"href":"((?:\.\.\/)*)((?:index|get-started|staying-in-sync|foundations\/[a-z0-9-]+|components\/[a-z0-9-]+))\.html"/g,
   '"href":"#!/$2"',
 );
 
@@ -96,7 +96,8 @@ const css = ['tokens.css', 'site.css', 'demos.css']
 const ROUTER_JS = `
   const root = document.documentElement;
   let saved = null; try { saved = localStorage.getItem('theme'); } catch {}
-  if (saved) root.setAttribute('data-theme', saved);
+  if (!saved) { try { saved = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch { saved = 'light'; } }
+  root.setAttribute('data-theme', saved);
   const $ = (s) => document.querySelector(s);
   const main = $('#main');
   const side = $('#side');

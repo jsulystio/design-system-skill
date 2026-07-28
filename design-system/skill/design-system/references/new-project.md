@@ -6,6 +6,16 @@ template tokens and a component catalog that mirror the **AlignUI 2.0** design
 system file the team copies for every client, so a project starts complete and
 then diverges deliberately.
 
+0. **Ask for the two inputs first.** Before scaffolding, prompt the person for
+   both, and do not guess either:
+   - **The Figma file link** — the client file duplicated from the AlignUI
+     template (`figma.com/design/:fileKey/...`). Its `fileKey` and `meta.name`
+     go in `design-system/figma.config.json` (step 2).
+   - **The GitHub repo or local path** for this project — where `design-system/`
+     should live, and where the app source is. Put the source folder(s) in
+     `lint.codePaths` so the `staying-in-sync` page and `lint --code` can check
+     code drift.
+
 1. **Scaffold** if `design-system/` is missing:
 
    ```bash

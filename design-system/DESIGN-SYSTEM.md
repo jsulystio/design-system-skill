@@ -3536,9 +3536,22 @@ import { EmptyState } from '@/components/ui/empty-state'
 
 ---
 
+## Staying in sync (drift)
+
+Drift is any divergence from this system, or internal inconsistency within a consumer (your Figma screens, or your code). It has four lanes on two axes: alignment (matches the system) and consistency (internally coherent).
+
+| Lane | Axis | Catches |
+|---|---|---|
+| Design alignment | Design to System | raw values, uninventoried components, off-spec overrides in Figma screens |
+| Design consistency | Design to Design | one ad-hoc value repeated across screens; inconsistent overrides |
+| Code alignment | Code to System | hardcoded values, or a hand-rolled copy of a catalog component |
+| Code consistency | Code to Code | one role built two ways; near-duplicate implementations |
+
+Detect the mechanical lanes with `node design-system/scripts/lint.mjs` (design), `--code <dir>` (code), or `--report` (all lanes as JSON). The judgment lanes (overrides, reimplementations, code vs code) are surfaced by the skill "audit drift" flow. Every fix flows one direction, toward this system: a raw value becomes a Figma variable, a missing component becomes a catalog entry, a code reimplementation becomes an import of the catalog component. Never resolve drift by hardcoding a value in code, and check your own output with `--code`.
+
 ## Changing the system
 
 - Figma variables are the single source of truth. Change flows one way: Figma → `tokens/figma.raw.json` → build → code/docs.
 - To change a value (color, radius, spacing): edit the Figma variable (or ask the design-system skill to "propagate" the change), re-pull, and rebuild. Never patch generated files.
 - To add a component: add it to Figma and the inventory (or promote a planned template), then rebuild.
-- Lint for drift: `node design-system/scripts/lint.mjs` (Figma screens) and `node design-system/scripts/lint.mjs --code src/` (your source code).
+- Lint for drift: see "Staying in sync (drift)" above.

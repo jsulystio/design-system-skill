@@ -31,6 +31,11 @@ The system has two audiences and one contract:
 - This skill may be installed globally, so a project might not have the toolkit
   yet. If there is no `design-system/` folder at the repo root, scaffold it first
   (see the new-project flow) before running any script.
+- When bootstrapping or starting a new project, ask the person for the two
+  inputs before scaffolding: the **Figma file link** and the **GitHub repo or
+  local path** (where `design-system/` lives and where the app source is). Never
+  guess a file key or a path. Record the `fileKey`/`meta.name` in
+  `figma.config.json` and the source folder(s) in `lint.codePaths`.
 - Mechanical work goes through scripts, not the model: run `node design-system/scripts/pull.mjs`,
   `node design-system/scripts/build.mjs`, `node design-system/scripts/lint.mjs`. Do not read or rewrite whole
   files token by token when a script can do it.
@@ -70,6 +75,9 @@ flows that read the Figma file start with `references/read-figma.md`.
   see `references/bootstrap.md`.
 - Build or change UI code using the system — "build the settings page",
   "implement this screen": see `references/build-ui.md`.
+- Survey divergence, "show me the drift", "audit the system": see
+  `references/drift.md` — defines the four drift lanes (design/code ×
+  alignment/consistency) and audits them without fixing.
 - Lint reported issues, or "resolve the drift": see `references/resolve-drift.md`.
 - A design change request, e.g. "primary warmer, radius 8 to 4": see
   `references/propagate-change.md`.

@@ -19,6 +19,7 @@ import {
   read, write, exists, slug, cssVar, unitFor,
   resolveTokens, groupByCategory,
 } from './lib.mjs';
+import { buildContext, analyzeDesign, analyzeCode, LANES } from './drift.mjs';
 
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../..');
 const p = (...a) => path.join(ROOT, ...a);
@@ -57,6 +58,35 @@ const allComponents = [...inventory.components, ...plannedTemplates];
 
 const { flat, warnings } = resolveTokens(raw);
 if (warnings.length) warnings.forEach((w) => console.warn('  warn:', w));
+
+// ---- live drift report, embedded on the "Staying in sync" page ----
+// Same detection as lint.mjs (shared drift.mjs), run at build time so the page
+// shows this project's actual drift, not a canned example. Design lanes read
+// the screen snapshot; code lanes read lint.codePaths (null when none exist, so
+// the page can say "not scanned" rather than falsely "clean").
+const lintCfg = exists(p('figma.config.json')) ? (read(p('figma.config.json')).lint || {}) : {};
+const driftCtx = buildContext(flat, inventory, lintCfg);
+const driftScreensPath = exists(p('inventory/screens.json')) ? p('inventory/screens.json') : p('inventory/screens.sample.json');
+const driftDesign = analyzeDesign(read(driftScreensPath), driftCtx);
+const driftCodeDirs = (lintCfg.codePaths || []).map((d) => path.resolve(process.cwd(), d)).filter((abs) => exists(abs));
+const driftCode = driftCodeDirs.length ? analyzeCode(driftCodeDirs, driftCtx) : null;
+// Agent-audited findings the linter can't produce (off-spec overrides,
+// reimplementations, code↔code consistency). The "audit drift" skill flow
+// writes inventory/audit.json; the page merges them into their lanes so lanes
+// like "Code vs. itself" show a count. A snapshot, so it can go stale between
+// audits. Guarded: a missing or malformed file just means "no audit yet".
+let driftAudit = null;
+try {
+  if (exists(p('inventory/audit.json'))) driftAudit = read(p('inventory/audit.json'));
+} catch { driftAudit = null; }
+const auditFindings = (driftAudit && Array.isArray(driftAudit.findings) ? driftAudit.findings : [])
+  .map((f) => ({ ...f, severity: f.severity === 'warn' ? 'warn' : 'error' }));
+const driftSource = {
+  sampleScreens: !exists(p('inventory/screens.json')),
+  // Basenames keep the source note readable regardless of where the build ran.
+  codePaths: driftCodeDirs.map((d) => path.basename(d)),
+  audited: driftAudit ? (driftAudit.date || true) : false,
+};
 
 function cssValue(name, rec, mode) {
   const v = rec[mode];
@@ -343,6 +373,7 @@ function navMarkup(up, active) {
     <div class="side-nav">
       ${lead('getstarted', 'Get started', 'get-started.html')}
       ${lead('overview', 'Overview', 'index.html')}
+      ${lead('sync', 'Staying in sync', 'staying-in-sync.html')}
       <div class="nav-groups">
         <div class="nav-group"><p class="nav-group-title">Foundations</p>${foundationLinks}</div>
         ${groupsHtml}
@@ -352,8 +383,11 @@ function navMarkup(up, active) {
 
 // Flat index the command palette searches over: foundations + every component.
 function searchIndex(up) {
-  const items = FOUNDATION_PAGES
-    .map((pg) => ({ name: pg.label, group: 'Foundations', href: `${up}foundations/${pg.id}.html` }));
+  const items = [
+    { name: 'Get started', group: 'Guides', href: `${up}get-started.html` },
+    { name: 'Staying in sync', group: 'Guides', href: `${up}staying-in-sync.html` },
+    ...FOUNDATION_PAGES.map((pg) => ({ name: pg.label, group: 'Foundations', href: `${up}foundations/${pg.id}.html` })),
+  ];
   for (const [cat, list] of componentGroups()) {
     for (const c of list) items.push({ name: c.name, group: cat, href: `${up}components/${slug(c.name)}.html` });
   }
@@ -384,9 +418,10 @@ function shell(title, body, opts = {}) {
   const name = raw.meta?.name || 'Design system';
   const tocHtml = toc && toc.length > 1 ? tocAside(toc) : '';
   return `<!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>${esc(title)} &middot; ${esc(name)}</title>
 <link rel="stylesheet" href="${up}assets/tokens.css">
 <link rel="stylesheet" href="${up}assets/site.css">
@@ -526,15 +561,15 @@ function getStartedPage() {
     ['Start a new project', 'Scaffold the toolkit and get a full token set plus component catalog on day one, before your Figma file even exists.', '"Set up the design system from the template"'],
     ['Build a screen with AI', 'Point any coding agent at DESIGN-SYSTEM.md and it builds token-true UI from the catalog.', '"Read design-system/DESIGN-SYSTEM.md, then build the settings page"'],
     ['Rebrand', 'Change the brand color once at the source; tokens, docs, and code theme all follow.', '"Make the primary color warmer"'],
-    ['Catch drift in CI', 'Gate merges on raw values and uninventoried components, in both your designs and your code.', 'npm run ds:lint && npm run ds:lint --code src'],
-    ['Resolve drift', 'When the linter flags something, snap it to the right token or add the component.', '"Resolve the drift"'],
+    ['Catch drift in CI', 'Gate merges on the mechanical drift lanes, in both your designs and your code.', 'npm run ds:lint && npm run ds:lint --code src'],
+    ['Audit the drift', 'Survey every lane, including the overrides and one-role-built-two-ways a regex cannot catch.', '"Audit the design system drift"'],
+    ['Resolve drift', 'When a lane flags something, snap it to the right token or add the component.', '"Resolve the drift"'],
     ['Hand off to engineers', 'Every component page carries live previews, per-variant specs, and copyable code.', 'Open the docs, or read DESIGN-SYSTEM.md'],
   ].map(([t, d, ex]) => `<div class="usecase"><strong>${esc(t)}</strong><p>${esc(d)}</p><code>${esc(ex)}</code></div>`).join('');
 
   const body = `
     <div class="hero">
-      <p class="eyebrow">Get started</p>
-      <h1>${esc(name)}</h1>
+      <h1>Get started</h1>
       <p class="lede">Your Figma variables are the single source of truth. From them, this toolkit generates design tokens for light and dark, a catalog of ${compCount} documented components, this docs site, and one <code>DESIGN-SYSTEM.md</code> you can hand to any coding agent. Here's how to set it up and put it to work.</p>
     </div>
     ${step(1, 'Add it to your project', '<p class="gs-note">One-time, from your repo root. It\'s non-destructive, and only touches your files when you pass a flag.</p>',
@@ -546,13 +581,164 @@ function getStartedPage() {
       codeBlk('Read design-system/DESIGN-SYSTEM.md and follow it,\nthen build a billing settings page.'))}
     ${step(4, 'Keep it in sync', '<p class="gs-note">Designers edit variables in Figma; one command pulls, builds tokens + docs, and lints. Ask Claude only for judgment calls (bootstrap, resolve drift, propagate a change).</p>',
       codeBlk('npm run ds:sync   # pull from Figma → build tokens, theme, docs → lint'))}
-    ${step(5, 'Guard against drift', '<p class="gs-note">Two linters, one source of truth. Run them in CI, and each exits non-zero on drift.</p>',
-      codeBlk('npm run ds:lint              # designs: raw values + uninventoried components\nnpm run ds:lint --code src   # code: hardcoded colors, radii, spacing'))}
+    ${step(5, 'Guard against drift', '<p class="gs-note">Drift is any divergence from the source of truth, across <a href="staying-in-sync.html">four lanes</a> (design and code, each for alignment and consistency). The linter catches the mechanical ones; run it in CI, where each mode exits non-zero on drift.</p>',
+      codeBlk('npm run ds:lint              # design lanes: raw values, uninventoried components\nnpm run ds:lint --code src   # code lanes: hardcoded colors, radii, spacing\nnpm run ds:lint --report     # every lane as one JSON report'))}
     <section id="use-cases">
       <h2>Use cases</h2>
       <div class="usecases">${useCases}</div>
     </section>`;
   return shell('Get started', body, { depth: 0, active: 'getstarted' });
+}
+
+// Hub-and-spoke diagram for the drift model. Themed via CSS vars set inline
+// (the `fill`/`stroke` CSS properties accept var()), so it adapts light/dark
+// like the rest of the page. Self-contained SVG, no external assets.
+function driftDiagram() {
+  return `<svg viewBox="0 0 720 210" role="img" aria-label="The design system sits between Design and Code. Both must match the system, and each must stay consistent within itself.">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" style="fill:var(--color-text-sub-600)"/>
+      </marker>
+    </defs>
+    <g style="font-size:14px">
+      <rect x="20" y="60" width="170" height="72" rx="12" style="fill:var(--color-bg-weak-50);stroke:var(--color-stroke-soft-200)"/>
+      <text x="105" y="92" text-anchor="middle" style="fill:var(--color-text-strong-950);font-weight:600">Design</text>
+      <text x="105" y="112" text-anchor="middle" style="fill:var(--color-text-sub-600);font-size:11px">Figma screens</text>
+      <rect x="290" y="52" width="140" height="88" rx="12" style="fill:var(--color-primary-base)"/>
+      <text x="360" y="90" text-anchor="middle" style="fill:var(--color-static-white);font-weight:600">Design system</text>
+      <text x="360" y="110" text-anchor="middle" style="fill:var(--color-static-white);font-size:10px;opacity:.85">variables, tokens, catalog</text>
+      <rect x="530" y="60" width="170" height="72" rx="12" style="fill:var(--color-bg-weak-50);stroke:var(--color-stroke-soft-200)"/>
+      <text x="615" y="92" text-anchor="middle" style="fill:var(--color-text-strong-950);font-weight:600">Code</text>
+      <text x="615" y="112" text-anchor="middle" style="fill:var(--color-text-sub-600);font-size:11px">app source</text>
+    </g>
+    <g style="stroke:var(--color-text-sub-600);stroke-width:1.5;fill:none">
+      <line x1="192" y1="96" x2="286" y2="96" marker-end="url(#ah)"/>
+      <line x1="528" y1="96" x2="434" y2="96" marker-end="url(#ah)"/>
+    </g>
+    <g style="stroke:var(--color-stroke-sub-300);stroke-width:1.5;fill:none">
+      <path d="M72 138 C56 176, 154 176, 138 140" marker-end="url(#ah)"/>
+      <path d="M582 138 C566 176, 664 176, 648 140" marker-end="url(#ah)"/>
+    </g>
+    <g style="font-size:10px;fill:var(--color-text-soft-400);letter-spacing:.04em">
+      <text x="239" y="88" text-anchor="middle">must match</text>
+      <text x="481" y="88" text-anchor="middle">must match</text>
+      <text x="105" y="196" text-anchor="middle">vs. each other</text>
+      <text x="615" y="196" text-anchor="middle">vs. itself</text>
+    </g>
+  </svg>`;
+}
+
+// "Staying in sync": a live drift dashboard. The build runs the same detection
+// as lint.mjs (shared drift.mjs) and renders THIS project's actual findings,
+// grouped by the four lanes. The diagram and the fix rule are supporting
+// context; the findings are the point.
+// Plain-language labels + one-line explanations for the docs (the CLI keeps the
+// alignment/consistency terms; readers of the page get the friendly version).
+const LANE_DOCS = {
+  'design-alignment': ['Designs vs. the system', 'Colors, spacing, or components in your Figma screens that the system does not define.'],
+  'design-consistency': ['Designs vs. each other', 'The same thing done more than one way across screens.'],
+  'code-alignment': ['Code vs. the system', 'Hardcoded values, or a component the code rebuilt instead of using the catalog.'],
+  'code-consistency': ['Code vs. itself', 'One role built two different ways in the codebase.'],
+};
+
+function stayingInSyncPage() {
+  // Mechanical findings from the linter, by lane (null = code lane not scanned).
+  const laneData = {
+    'design-alignment': driftDesign.alignment,
+    'design-consistency': driftDesign.consistency,
+    'code-alignment': driftCode ? driftCode.alignment : null,
+    'code-consistency': driftCode ? driftCode.consistency : null,
+  };
+  const auditByLane = (id) => auditFindings.filter((f) => f.lane === id);
+  const mechanical = Object.values(laneData).filter((v) => v !== null).flat();
+  const all = [...mechanical, ...auditFindings];
+  const errCount = all.filter((f) => f.severity === 'error').length;
+  const warnCount = all.filter((f) => f.severity === 'warn').length;
+  const clean = errCount === 0 && warnCount === 0;
+
+  const sevDot = (s) => `<span class="dot ${s === 'warn' ? 'st-beta' : 'st-deprecated'}" title="${s}"></span>`;
+  const laneBlock = (id) => {
+    const [title, sub] = LANE_DOCS[id];
+    const mech = laneData[id];               // array, or null when not scanned
+    const aud = auditByLane(id);             // agent-found, from the last audit
+    const items = [...(Array.isArray(mech) ? mech : []), ...aud];
+    let body, count;
+    if (id === 'code-consistency' && !aud.length) {
+      // Nothing mechanical to measure, and no audit yet: point to the audit.
+      body = `<p class="drift-empty">The linter can't measure this one. Ask Claude to "audit the drift" and it reads your code for the same thing built two different ways. The count shows up here once it has run.</p>`;
+      count = '';
+    } else if (mech === null && !aud.length) {
+      body = `<p class="drift-empty">Not checked yet. Tell the linter where your code lives (<code>lint.codePaths</code> in <code>figma.config.json</code>), then rebuild.</p>`;
+      count = '&mdash;';
+    } else if (!items.length) {
+      body = `<p class="drift-empty drift-ok">Nothing out of sync here.</p>`;
+      count = 0;
+    } else {
+      const auditNote = aud.length
+        ? `<p class="drift-audit-note">Includes ${aud.length} from your last audit${typeof driftSource.audited === 'string' ? ` (${esc(driftSource.audited)})` : ''}.</p>`
+        : '';
+      body = `<ul class="drift-list">${items.map((f) =>
+        `<li>${sevDot(f.severity)}<code>${esc(f.where)}</code><span class="drift-msg">${esc(f.message)}</span></li>`
+      ).join('')}</ul>${auditNote}`;
+      count = items.length;
+    }
+    return `<div class="drift-lane">
+      <div class="drift-lane-head">
+        <div class="drift-lane-title"><strong>${esc(title)}</strong><span class="drift-lane-sub">${esc(sub)}</span></div>
+        <span class="drift-count">${count}</span>
+      </div>
+      ${body}
+    </div>`;
+  };
+
+  // A stat tile; a zero count is faded rather than colored, so it does not read
+  // as alarming when there is nothing in that bucket.
+  const stat = (n, sev, one, many) =>
+    `<div class="drift-stat ${n === 0 ? 'drift-stat--zero' : `drift-stat--${sev}`}"><b>${n}</b><span>${n === 1 ? one : many}</span></div>`;
+  const summary = clean
+    ? `<div class="drift-banner drift-banner--ok">In sync. Nothing has drifted from the design system.</div>`
+    : `<div class="drift-summary">
+        ${stat(errCount, 'err', 'thing to fix', 'things to fix')}
+        ${stat(warnCount, 'warn', 'thing to review', 'things to review')}
+      </div>`;
+
+  const screensNote = driftSource.sampleScreens
+    ? 'a bundled sample of screens (swap in your own Figma export to check your real ones)'
+    : 'your latest Figma export';
+  const codeNote = driftSource.codePaths.length
+    ? `your code in ${driftSource.codePaths.map((c) => `<code>${esc(c)}</code>`).join(', ')}`
+    : 'no code yet (tell the linter where it lives with <code>lint.codePaths</code>)';
+
+  const commands = `node design-system/scripts/lint.mjs              # check your Figma screens
+node design-system/scripts/lint.mjs --code src   # check your code
+node design-system/scripts/lint.mjs --report     # everything, as JSON`;
+
+  const body = `
+    <div class="hero">
+      <h1>Staying in sync</h1>
+      <p class="lede">Your designs and your code should only use what the design system defines. When something strays from it, that is drift. Here is the drift in your project right now, rechecked every time these docs are built.</p>
+    </div>
+    <section id="current">
+      <h2>What's out of sync</h2>
+      <p class="section-note">Last checked when these docs were built, against ${screensNote} and ${codeNote}.</p>
+      ${summary}
+      <div class="drift-lanes">${LANES.map(([id]) => laneBlock(id)).join('')}</div>
+    </section>
+    <section id="model">
+      <h2>How this works</h2>
+      <p>Your design system is the single source of truth. The Figma variables become tokens and a component catalog (all captured in <code>DESIGN-SYSTEM.md</code>), and both your designs and your code build from it. Drift is anything that wanders off: a color that is not a token, a component missing from the catalog, or the same thing built two different ways. The checks above look for it in four places.</p>
+      <div class="sync-diagram">${driftDiagram()}</div>
+    </section>
+    <section id="fix">
+      <h2>Fixing drift</h2>
+      <p class="gs-note">The linter finds the values and components above. For the subtler cases (a component quietly rebuilt in code, or one role styled two ways), ask Claude to "audit the drift" and it reads the designs and code to find them.</p>
+      ${codeBlock(commands)}
+      <p class="template-note">Fix drift where it starts, in the design system, not where it shows up. Turn a stray color into a token in Figma, add a missing component to the catalog, and point rebuilt code at the real one. The quick patch does not stick: if you hardcode the value or edit a generated file (like <code>variables.css</code> or <code>DESIGN-SYSTEM.md</code>), the next build regenerates it and your change is gone.</p>
+    </section>`;
+  return shell('Staying in sync', body, {
+    depth: 0, active: 'sync',
+    toc: [{ id: 'current', label: "What's out of sync" }, { id: 'model', label: 'How this works' }, { id: 'fix', label: 'Fixing drift' }],
+  });
 }
 
 // A label for a foundation token group's own section heading.
@@ -608,8 +794,7 @@ function overviewPage() {
   ).join('');
   const body = `
     <div class="hero">
-      <p class="eyebrow">Living guideline</p>
-      <h1>${esc(raw.meta?.name || 'Design system')}</h1>
+      <h1>Overview</h1>
       <p class="lede">Generated from Figma variables. Every page is rendered with the tokens it documents, so it stays true to the source. Last built ${new Date().toISOString().slice(0, 10)}.</p>
     </div>
     <section id="foundations"><h2>Foundations</h2><div class="foundation-grid">${foundationCards}</div></section>
@@ -831,8 +1016,9 @@ if (exists(p('demos/demos.css'))) {
 }
 
 const SITE_CSS = `
-:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 64px; --side-w: 260px; }
-/* Match native UI (scrollbars, form controls) to the active theme. */
+:root { --maxw: 940px; --gap: clamp(16px, 3vw, 40px); --topbar-h: 64px; --side-w: 260px; color-scheme: light dark; }
+/* Match native UI (scrollbars, form controls) to the active theme. The base
+   "light dark" above lets scrollbars follow the OS until a theme is pinned. */
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 * { box-sizing: border-box; }
@@ -997,6 +1183,34 @@ h2 { font-size: 15px; letter-spacing: 0; color: var(--color-text-sub-600, #5c5c5
 .usecase strong { font-weight: 600; }
 .usecase p { margin: 0; font-size: 14px; color: var(--color-text-sub-600, #64625c); flex: 1; }
 .usecase code { font-size: 12px; color: var(--color-text-strong-950, #171717); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-6, 6px); padding: 6px 8px; display: block; }
+/* Staying-in-sync: live drift dashboard + hub-and-spoke diagram */
+.sync-diagram { margin: 20px 0 8px; }
+.sync-diagram svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
+.drift-summary { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 24px; }
+.drift-stat { display: flex; flex-direction: column; gap: 2px; min-width: 92px; padding: 12px 16px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); }
+.drift-stat b { font-size: 26px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.drift-stat span { font-size: 12px; color: var(--color-text-sub-600, #5c5c5c); }
+.drift-stat--err b { color: #c0392b; }
+.drift-stat--warn b { color: #b5850b; }
+.drift-stat--zero b { color: var(--color-text-soft-400, #a3a3a3); }
+.drift-banner { padding: 14px 16px; border-radius: var(--radius-12, 12px); font-size: 14px; margin: 4px 0 24px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.drift-banner--ok { color: #3f9142; border-color: #3f9142; }
+.drift-lanes { display: flex; flex-direction: column; gap: 12px; }
+.drift-lane { border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); padding: 14px 16px; }
+.drift-lane-head { display: flex; align-items: flex-start; gap: 10px; }
+.drift-lane-title { display: flex; flex-direction: column; gap: 2px; }
+.drift-lane-title strong { font-weight: 600; font-size: 15px; }
+.drift-lane-sub { font-size: 12px; color: var(--color-text-soft-400, #a3a3a3); }
+.drift-count { margin-left: auto; flex: none; font-size: 12px; color: var(--color-text-sub-600, #5c5c5c); font-variant-numeric: tabular-nums; }
+.drift-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.drift-list li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; padding: 8px 0; border-top: 1px solid var(--color-stroke-soft-200, #f2f2f2); font-size: 13px; }
+.drift-list li .dot { align-self: center; margin: 0; }
+.drift-list code { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; color: var(--color-text-strong-950, #171717); }
+.drift-msg { flex: 1 1 220px; min-width: 0; color: var(--color-text-sub-600, #5c5c5c); }
+.drift-empty { margin: 10px 0 0; font-size: 13px; color: var(--color-text-soft-400, #a3a3a3); }
+.drift-empty code { color: var(--color-text-sub-600, #5c5c5c); }
+.drift-audit-note { margin: 10px 0 0; font-size: 12px; font-style: italic; color: var(--color-text-soft-400, #a3a3a3); }
+.drift-ok { color: #3f9142; }
 .chip.sm { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
 .chip.xs { display: inline-block; width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); flex: none; }
 
@@ -1149,6 +1363,7 @@ table.specs code { font-size: 13px; }
 write(p('site/assets/site.css'), SITE_CSS.trim() + '\n');
 
 write(p('site/get-started.html'), getStartedPage());
+write(p('site/staying-in-sync.html'), stayingInSyncPage());
 write(p('site/index.html'), overviewPage());
 for (const pg of FOUNDATION_PAGES) {
   write(p('site/foundations/' + pg.id + '.html'), foundationPage(pg));
@@ -1329,11 +1544,21 @@ function designSystemMd() {
     for (const c of items) out.push(mdComponent(c), '', '---', '');
   }
 
+  out.push('## Staying in sync (drift)', '');
+  out.push('Drift is any divergence from this system, or internal inconsistency within a consumer (your Figma screens, or your code). It has four lanes on two axes: alignment (matches the system) and consistency (internally coherent).', '');
+  out.push('| Lane | Axis | Catches |', '|---|---|---|');
+  out.push('| Design alignment | Design to System | raw values, uninventoried components, off-spec overrides in Figma screens |');
+  out.push('| Design consistency | Design to Design | one ad-hoc value repeated across screens; inconsistent overrides |');
+  out.push('| Code alignment | Code to System | hardcoded values, or a hand-rolled copy of a catalog component |');
+  out.push('| Code consistency | Code to Code | one role built two ways; near-duplicate implementations |');
+  out.push('');
+  out.push('Detect the mechanical lanes with `node design-system/scripts/lint.mjs` (design), `--code <dir>` (code), or `--report` (all lanes as JSON). The judgment lanes (overrides, reimplementations, code vs code) are surfaced by the skill "audit drift" flow. Every fix flows one direction, toward this system: a raw value becomes a Figma variable, a missing component becomes a catalog entry, a code reimplementation becomes an import of the catalog component. Never resolve drift by hardcoding a value in code, and check your own output with `--code`.', '');
+
   out.push('## Changing the system', '');
   out.push('- Figma variables are the single source of truth. Change flows one way: Figma → `tokens/figma.raw.json` → build → code/docs.');
   out.push('- To change a value (color, radius, spacing): edit the Figma variable (or ask the design-system skill to "propagate" the change), re-pull, and rebuild. Never patch generated files.');
   out.push('- To add a component: add it to Figma and the inventory (or promote a planned template), then rebuild.');
-  out.push('- Lint for drift: `node design-system/scripts/lint.mjs` (Figma screens) and `node design-system/scripts/lint.mjs --code src/` (your source code).');
+  out.push('- Lint for drift: see "Staying in sync (drift)" above.');
   out.push('');
   return out.join('\n');
 }
