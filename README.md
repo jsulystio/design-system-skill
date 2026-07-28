@@ -149,11 +149,45 @@ Claude asks first.
 
 ## Keeping it up to date
 
-- **If you used Option 1:** run `cd ~/design-system-skill && git pull`. Every
-  project updates automatically and there is nothing else to do.
-- **If you used Option 2:** re-run the copy command with `--force`. Full details,
-  including how to protect your own data, are in
-  [design-system/README.md](design-system/README.md#updating).
+Two parts update differently: the **skill instructions** (what Claude reads) and
+the **toolkit** (the `design-system/` folder copied into each project — scripts,
+template, docs).
+
+### The skill instructions — automatic (Option 1)
+
+With the Option 1 symlink, the skill points straight at your local clone, so it
+is current the moment the clone is. To make that hands-off, add a `SessionStart`
+hook to `~/.claude/settings.json` that pulls the clone before each Claude session:
+
+```json
+"hooks": {
+  "SessionStart": [
+    { "hooks": [ { "type": "command", "command": "git -C ~/design-system-skill pull --ff-only --quiet >/dev/null 2>&1 &" } ] }
+  ]
+}
+```
+
+The trailing `&` backgrounds the pull so it never delays or blocks startup;
+`--ff-only` means a stray local edit becomes a skipped pull, never a merge
+conflict. With this in place, every project that uses the global skill stays on
+the latest version automatically.
+
+### Manual update — anytime
+
+Prefer to pull on demand, or don't want a hook? Update the clone yourself:
+
+```bash
+git -C ~/design-system-skill pull
+```
+
+Every project using the Option 1 symlink picks it up on the next Claude session.
+
+### The toolkit copied into a project (Option 2)
+
+The `design-system/` folder `degit` copied into a project is a snapshot, not a
+symlink, so it does **not** auto-update. Refresh it by re-running the copy with
+`--force`. Full details, including how to protect your own bootstrapped data, are
+in [design-system/README.md](design-system/README.md#updating).
 
 ---
 

@@ -25,14 +25,29 @@ if (!fs.existsSync(dsDir)) {
 }
 
 // 1) Make the Claude skill discoverable at the repo root.
+// Symlink (not copy) so the installed skill never drifts from the canonical
+// source in design-system/skill/design-system. The link is relative so it
+// stays valid across clones/machines.
 const skillSrc = path.join(dsDir, 'skill', 'design-system');
 const skillDst = path.join(repoRoot, '.claude', 'skills', 'design-system');
-if (fs.existsSync(skillDst) && !force) {
-  console.log('- Skill already at .claude/skills/design-system (use --force to update).');
+const skillLink = path.relative(path.dirname(skillDst), skillSrc);
+const isLinkToSrc = () => {
+  try {
+    return fs.lstatSync(skillDst).isSymbolicLink() &&
+      fs.realpathSync(skillDst) === fs.realpathSync(skillSrc);
+  } catch {
+    return false;
+  }
+};
+if (isLinkToSrc()) {
+  console.log('- Skill already symlinked at .claude/skills/design-system.');
+} else if (fs.existsSync(skillDst) && !force) {
+  console.log('- Skill already at .claude/skills/design-system (use --force to symlink).');
 } else {
   fs.mkdirSync(path.dirname(skillDst), { recursive: true });
-  fs.cpSync(skillSrc, skillDst, { recursive: true });
-  console.log('- Installed Claude skill  ->  .claude/skills/design-system');
+  fs.rmSync(skillDst, { recursive: true, force: true });
+  fs.symlinkSync(skillLink, skillDst);
+  console.log('- Symlinked Claude skill  ->  .claude/skills/design-system');
 }
 
 // 2) npm scripts.
