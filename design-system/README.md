@@ -117,6 +117,30 @@ Set your project name and Figma file key in `design-system/figma.config.json`.
 
 ---
 
+## Refresh from approved screens
+
+The real 0-1 loop: bootstrap from the AlignUI template, let the designer explore
+raw UI directions for client sign-off, and once one is approved, reconcile it
+into the system. Ask Claude to "refresh the system from the approved screens". It:
+
+- reads only the approved frames and runs `node design-system/scripts/extract.mjs`,
+  which clusters the colors actually used into a candidate palette (snapping each
+  to an existing token, or flagging it as a new decision) plus a state ramp
+  (base, hover, pressed, focus, disabled) for every accent;
+- maps that palette onto the token architecture (repoint primary/neutral, add a
+  token only when it is genuinely new);
+- expands each detected component to its full set of states, not just the resting
+  state the designer drew;
+- on your approval, writes the result back to Figma (variables, and component
+  variant sets bound to the new tokens), then updates the inventory, code theme,
+  and docs.
+
+Color, style, and variants get written to Figma; structural changes (new props,
+new layout logic) still go to an engineer. See
+`skill/design-system/references/refresh-from-approved.md`.
+
+---
+
 ## Daily loop
 
 Designers edit variables and components in Figma. Regenerate with the skill or
@@ -135,8 +159,9 @@ bridge.
 Or, if you added the npm scripts, `npm run ds:sync` does pull, build, and lint in
 one. Wire it to a git pre-commit hook or a Figma publish webhook and even the
 command disappears. You only invoke the Claude skill for judgment: first-time
-bootstrap, resolving drift, and translating a change ("primary warmer, buttons
-less round") into token edits. Each is one short request.
+bootstrap, refreshing from approved screens, resolving drift, and translating a
+change ("primary warmer, buttons less round") into token edits. Each is one short
+request.
 
 Consume the output in your app: import `design-system/tokens/variables.css`
 globally, and in `tailwind.config.js`:

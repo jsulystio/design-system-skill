@@ -395,6 +395,43 @@ function searchIndex(up) {
   return items;
 }
 
+// Canonical reading order for the prev/next pager, matching the sidebar: the
+// three guides first, then the foundations, then every component group by group.
+function orderedPages() {
+  const pages = [
+    { active: 'overview', label: 'Overview', file: 'index.html' },
+    { active: 'getstarted', label: 'Get started', file: 'get-started.html' },
+    { active: 'sync', label: 'Drifts', file: 'drifts.html' },
+    ...FOUNDATION_PAGES.map((pg) => ({ active: `foundation:${pg.id}`, label: pg.label, file: `foundations/${pg.id}.html` })),
+  ];
+  for (const [, list] of componentGroups()) {
+    for (const c of list) pages.push({ active: `component:${slug(c.name)}`, label: c.name, file: `components/${slug(c.name)}.html` });
+  }
+  return pages;
+}
+
+// Prev/next footer at the bottom of every page, keyed off the page's `active`
+// id, so a reader can walk the docs end to end without returning to the sidebar.
+function pagerMarkup(up, active) {
+  const pages = orderedPages();
+  const idx = pages.findIndex((p) => p.active === active);
+  if (idx === -1) return '';
+  // Only render cells that exist — a lone Prev or Next then grows (flex: 1) to
+  // fill the row rather than leaving an empty half.
+  const cell = (pg, dir) => {
+    const label = dir === 'prev' ? '&larr; Previous' : 'Next &rarr;';
+    return `<a class="pager-cell pager-${dir}" href="${up}${pg.file}">
+      <span class="pager-dir">${label}</span>
+      <span class="pager-name">${esc(pg.label)}</span>
+    </a>`;
+  };
+  const cells = [];
+  if (pages[idx - 1]) cells.push(cell(pages[idx - 1], 'prev'));
+  if (pages[idx + 1]) cells.push(cell(pages[idx + 1], 'next'));
+  if (!cells.length) return '';
+  return `<nav class="pager" aria-label="Page navigation">${cells.join('')}</nav>`;
+}
+
 // Command-palette overlay (⌘K). Hidden until opened; wired up by SHELL_JS.
 function paletteMarkup() {
   return `<div class="palette" id="palette" hidden>
@@ -442,7 +479,7 @@ function shell(title, body, opts = {}) {
     </button>
     <button id="theme" class="theme" aria-label="Toggle color theme" title="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18Z" fill="currentColor" stroke="none"/></svg></button>
   </header>
-  <main class="content${tocHtml ? ' has-toc' : ''}"><div class="doc">${body}</div>${tocHtml}</main>
+  <main class="content${tocHtml ? ' has-toc' : ''}"><div class="doc">${body}${pagerMarkup(up, active)}</div>${tocHtml}</main>
 </div>
 ${paletteMarkup()}
 <script>window.__SEARCH_ITEMS = ${JSON.stringify(searchIndex(up))};</script>
@@ -560,6 +597,7 @@ function getStartedPage() {
     `<section class="gs-step"><div class="gs-num">${n}</div><div class="gs-body"><h3>${esc(title)}</h3>${note}${blocks}</div></section>`;
   const useCases = [
     ['Start a new project', 'Scaffold the toolkit and get a full token set plus component catalog on day one, before your Figma file even exists.', '"Set up the design system from the template"'],
+    ['Refresh from approved screens', 'Fold an approved direction\'s palette and components into the system, and sync Figma, code, and docs.', '"Refresh from the approved screens"'],
     ['Build a screen with AI', 'Point any coding agent at DESIGN-SYSTEM.md and it builds token-true UI from the catalog.', '"Read design-system/DESIGN-SYSTEM.md, then build the settings page"'],
     ['Rebrand', 'Change the brand color once at the source; tokens, docs, and code theme all follow.', '"Make the primary color warmer"'],
     ['Catch drift in CI', 'Gate merges on the mechanical drift lanes, in both your designs and your code.', 'npm run ds:lint && npm run ds:lint --code src'],
@@ -1037,6 +1075,15 @@ code, .mono { font-family: inherit; font-size: inherit; }
 /* The content column is the scroll container; the topbar sticks within it,
    so it stays put above the content without ever covering the sidebar. */
 .main { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; scroll-behavior: smooth; }
+/* Subtle, theme-aware scrollbars: a thin floating thumb on a transparent track,
+   using the stroke tokens, so they read as part of the system instead of the OS
+   default. Firefox uses scrollbar-width/color; WebKit uses the pseudo-elements. */
+* { scrollbar-width: thin; scrollbar-color: var(--color-stroke-sub-300, #e0e0e0) transparent; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-stroke-sub-300, #e0e0e0); border-radius: var(--radius-full, 999px); border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-soft-400, #a3a3a3); }
+::-webkit-scrollbar-corner { background: transparent; }
 .topbar {
   display: flex; align-items: center; gap: 12px;
   height: var(--topbar-h); padding: 0 var(--gap);
@@ -1152,6 +1199,14 @@ html { scroll-behavior: smooth; }
 .content { padding: 28px var(--gap) 96px; display: flex; gap: 48px; align-items: flex-start; }
 .doc { min-width: 0; width: 100%; max-width: var(--maxw); }
 section[id] { scroll-margin-top: calc(var(--topbar-h) + 20px); }
+.pager { display: flex; gap: 16px; margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+.pager-cell { flex: 1 1 0; min-width: 0; }
+a.pager-cell { display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); text-decoration: none; transition: border-color .15s ease, background .15s ease; }
+a.pager-cell:hover { border-color: var(--color-primary-base, #335cff); background: var(--color-bg-weak-50, #f7f7f7); }
+.pager-next { align-items: flex-end; text-align: right; }
+.pager-dir { font-size: 12px; color: var(--color-text-sub-600, #5c5c5c); }
+.pager-name { font-size: 15px; font-weight: 600; color: var(--color-text-strong-950, #171717); }
+@media (max-width: 600px) { .pager { flex-direction: column; } .pager-next { align-items: flex-start; text-align: left; } }
 /* "On this page" right rail */
 .toc { flex: 0 0 190px; position: sticky; top: calc(var(--topbar-h) + 32px); align-self: flex-start; }
 .toc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-soft-400, #a3a3a3); font-weight: 500; margin: 0 0 10px; }
@@ -1168,7 +1223,7 @@ section[id] { scroll-margin-top: calc(var(--topbar-h) + 20px); }
 .hero--doc { padding-top: 8px; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--color-primary-base, #335cff); margin: 0 0 8px; }
 h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 10px; }
-h2 { font-size: 18px; letter-spacing: 0; color: var(--color-text-strong-950, #171717); font-weight: 600; margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
+h2 { font-size: 20px; letter-spacing: 0; color: var(--color-text-strong-950, #171717); font-weight: 600; margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--color-stroke-soft-200, #ebebeb); }
 /* First section heading sits right under the page lede — no big top gap. */
 .hero + section > h2, .hero--doc + section > h2 { margin-top: 16px; }
 .comp-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -1193,7 +1248,7 @@ h2 { font-size: 18px; letter-spacing: 0; color: var(--color-text-strong-950, #17
 .usecase { border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-12, 12px); padding: 18px; display: flex; flex-direction: column; gap: 8px; }
 .usecase strong { font-weight: 600; }
 .usecase p { margin: 0; font-size: 14px; color: var(--color-text-sub-600, #64625c); flex: 1; }
-.usecase code { font-size: 12px; color: var(--color-text-strong-950, #171717); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-6, 6px); padding: 6px 8px; display: block; }
+.usecase code { font-size: 12px; color: var(--color-text-strong-950, #171717); background: var(--color-bg-weak-50, #f7f7f7); border: 1px solid var(--color-stroke-soft-200, #ebebeb); border-radius: var(--radius-6, 6px); padding: 6px 8px; display: block; overflow-wrap: anywhere; }
 /* Staying-in-sync: live drift dashboard + hub-and-spoke diagram */
 .sync-diagram { margin: 20px 0 8px; }
 .sync-diagram svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }

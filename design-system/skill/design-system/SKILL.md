@@ -15,7 +15,10 @@ description: >
 
 Figma variables are the source of truth. Sync flows one direction: Figma to
 tokens to code and docs. Do not write to the Figma canvas except in the
-`propagate change` flow, and only after the person approves the exact edits.
+`propagate change` and `refresh from approved` flows, and only after the person
+approves the exact edits. Those two flows write an approved change back into
+Figma (variables, and in `refresh from approved` also components), after which
+Figma is again the source of truth and everything re-derives from it.
 
 The system has two audiences and one contract:
 
@@ -59,7 +62,10 @@ The system has two audiences and one contract:
 - Structural component changes (new prop, new layout logic) on an existing
   code-connected component are out of scope — flag them for an engineer.
   *Building* a component that the inventory already specifies is in scope: the
-  build-ui flow scaffolds it from its spec.
+  build-ui flow scaffolds it from its spec. Writing components to Figma is in
+  scope only for color, style, and variants (the `refresh from approved` flow
+  binds fills/strokes to variables and builds variant sets); new props or new
+  layout logic still go to an engineer.
 - Never hardcode a visual value in code you write; everything goes through the
   tokens (`variables.css` / `tailwind.theme.js`). Check your own output with
   `node design-system/scripts/lint.mjs --code <dir>`.
@@ -73,6 +79,11 @@ flows that read the Figma file start with `references/read-figma.md`.
   `references/new-project.md`.
 - First run on an existing messy file, or "extract the system from this file":
   see `references/bootstrap.md`.
+- Client approved one explored direction, "refresh the system from the approved
+  screens": see `references/refresh-from-approved.md` — detects the palette and
+  components from the approved frames, reconciles them into the AlignUI-based
+  system, and writes the result back to Figma (variables + components), code, and
+  docs.
 - Build or change UI code using the system — "build the settings page",
   "implement this screen": see `references/build-ui.md`.
 - Survey divergence, "show me the drift", "audit the system": see
