@@ -12,8 +12,7 @@ coding agent ("read `design-system/DESIGN-SYSTEM.md`, then build the settings
 page") and gets UI that matches the design. When you change something in Figma,
 one command updates everything else to match.
 
-It comes with our **AlignUI-based template** already loaded. This is the same
-structure as the design system file we copy for every client, so a new project
+It comes with a **starter template** already loaded, so a new project
 starts with a full token set and a catalog of about 40 components before anyone
 opens Figma.
 
@@ -44,8 +43,8 @@ mechanical work for you.
   documents, so it stays accurate.
 - **A drift checker that works both ways:** it flags design values that are not
   tokens, and hardcoded colors in your app code (`lint.mjs --code src/`).
-- **The Pixel8 template built in:** AlignUI-structured tokens and a component
-  catalog as the starting point for every client project.
+- **A starter template built in:** structured tokens and a component
+  catalog as the starting point for every project.
 
 ---
 
@@ -56,7 +55,7 @@ Claude Code and say things like:
 
 | Just say... | And Claude will... |
 |---|---|
-| *"Set up the design system from the template"* | Scaffold the AlignUI-based template so the project starts with a complete system |
+| *"Set up the design system from the template"* | Scaffold the starter template so the project starts with a complete system |
 | *"Bootstrap from my Figma file"* | Pull your real Figma colors and components into the system |
 | *"Refresh the system from the approved screens"* | After the client picks a direction, detect its palette and components (with all their states) and write them back into Figma, code, and docs |
 | *"Build the settings page"* | Build the UI using your tokens and component catalog, then lint its own output |
@@ -125,7 +124,7 @@ npx serve design-system/site        # opens a preview of the docs site
 ```
 
 If step 3 prints `Built: 261 tokens, 52 component pages` and a docs site opens,
-you are good. That is the built-in AlignUI-based template, usable before you
+you are good. That is the built-in starter template, usable before you
 connect any Figma file.
 
 ---

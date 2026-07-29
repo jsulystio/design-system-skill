@@ -1,14 +1,13 @@
 # New project from the template
 
-Trigger: a new client project needs a design system — "set up the design
+Trigger: a new project needs a design system — "set up the design
 system for this project", "start from our template". The toolkit ships with
-template tokens and a component catalog that mirror the **AlignUI 2.0** design
-system file the team copies for every client, so a project starts complete and
+template tokens and a component catalog, so a project starts complete and
 then diverges deliberately.
 
 0. **Ask for the two inputs first.** Before scaffolding, prompt the person for
    both, and do not guess either:
-   - **The Figma file link** — the client file duplicated from the AlignUI
+   - **The Figma file link** — the project file duplicated from the starter
      template (`figma.com/design/:fileKey/...`). Its `fileKey` and `meta.name`
      go in `design-system/figma.config.json` (step 2).
    - **The GitHub repo or local path** for this project — where `design-system/`
@@ -24,7 +23,7 @@ then diverges deliberately.
    ```
 
    The bundled `tokens/figma.raw.json` and `inventory/components.json` *are*
-   the template (AlignUI structure: gray+slate neutrals, 9 accent hues,
+   the template (gray+slate neutrals, 9 accent hues,
    semantic bg/text/icon/stroke/state/primary tokens, ~50 fully documented
    components with visuals). Nothing needs pulling to get a working system —
    build immediately:
@@ -33,8 +32,8 @@ then diverges deliberately.
    node design-system/scripts/build.mjs
    ```
 
-2. **Point at the client's Figma file.** The designer duplicates the AlignUI
-   template file for the client. Put its file key in
+2. **Point at the project's Figma file.** The designer duplicates the starter
+   template file for the project. Put its file key in
    `design-system/figma.config.json` and set `meta.name` in
    `tokens/figma.raw.json` to the project name (or let the first pull do it).
 

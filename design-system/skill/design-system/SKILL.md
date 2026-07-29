@@ -2,7 +2,7 @@
 name: design-system
 description: >
   Maintain and use the design system where Figma variables are the source of
-  truth. Use for: starting a new project from the AlignUI-based template,
+  truth. Use for: starting a new project from the starter template,
   bootstrapping a first token set and component inventory from a messy Figma
   file, reading Figma screens and scanning component usage, resolving drift
   flagged by the linter, propagating a design change (color, spacing, radius,
@@ -81,7 +81,7 @@ flows that read the Figma file start with `references/read-figma.md`.
   see `references/bootstrap.md`.
 - Client approved one explored direction, "refresh the system from the approved
   screens": see `references/refresh-from-approved.md` — detects the palette and
-  components from the approved frames, reconciles them into the AlignUI-based
+  components from the approved frames, reconciles them into the bootstrapped
   system, and writes the result back to Figma (variables + components), code, and
   docs.
 - Build or change UI code using the system — "build the settings page",

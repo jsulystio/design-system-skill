@@ -116,8 +116,8 @@ existing class that fits — reuse before inventing.
 
 ## The template catalog and the roadmap file
 
-`inventory/components.json` ships pre-filled with the **AlignUI 2.0 template
-catalog**: every Base and Product component from the team's template Figma file
+`inventory/components.json` ships pre-filled with the **starter template
+catalog**: every Base and Product component from the template Figma file
 (Buttons, Selects, Modals, Sidebar, Tables, …) with the props, states, anatomy,
 and a live token-based demo (in `demos/registry.mjs`) of the real component sets.
 Entries with `codeConnected: false` are design-stable but not built — coding

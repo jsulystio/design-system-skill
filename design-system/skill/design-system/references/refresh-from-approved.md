@@ -5,7 +5,7 @@ the system from the approved screens", "reconcile the approved UI into the syste
 
 The real 0-1 flow this serves:
 
-1. The project was bootstrapped from the AlignUI template (see `references/new-project.md`),
+1. The project was bootstrapped from the starter template (see `references/new-project.md`),
    so a full system already exists.
 2. The designer explored several UI directions as raw screens, with no components
    attached, to get client sign-off.
@@ -20,7 +20,7 @@ again the single source of truth and everything else re-derives from it.
 
 ## Steps
 
-0. Confirm the project was bootstrapped from AlignUI, and ask which frames or page
+0. Confirm the project was bootstrapped from the starter template, and ask which frames or page
    are the approved direction. Only read those frames; ignore the rejected
    explorations.
 
@@ -39,7 +39,7 @@ again the single source of truth and everything else re-derives from it.
    either suggests a `snapTo` token (it is already one of your tokens) or marks it
    `new`. It does the same for spacing and radii. Output: `import/approved.palette.json`.
 
-3. Map the palette onto the AlignUI slots, as a `propagate-change` plan (see
+3. Map the palette onto the template slots, as a `propagate-change` plan (see
    `references/propagate-change.md`). Typical decisions:
    - `new` accent with the highest usage → the brand **primary**: repoint
      `color/primary/base|dark|darker` (and the `color/alpha/primary-*` primitives).
@@ -67,7 +67,7 @@ again the single source of truth and everything else re-derives from it.
    - Give every state a token, derived from the approved base. `extract.mjs`
      already emits a `states` ramp per accent color (base, hover, pressed,
      focusRing, disabled); map those onto the semantic ramp (`color/primary/base`,
-     `/dark`, `/darker`, `color/alpha/primary-*`). Because the AlignUI components
+     `/dark`, `/darker`, `color/alpha/primary-*`). Because the template components
      reference those semantic tokens across all states, repointing the ramp
      re-skins hover / pressed / focus / disabled automatically — you are just
      making sure the whole ramp (not only `base`) is derived and set.

@@ -119,7 +119,7 @@ Set your project name and Figma file key in `design-system/figma.config.json`.
 
 ## Refresh from approved screens
 
-The real 0-1 loop: bootstrap from the AlignUI template, let the designer explore
+The real 0-1 loop: bootstrap from the starter template, let the designer explore
 raw UI directions for client sign-off, and once one is approved, reconcile it
 into the system. Ask Claude to "refresh the system from the approved screens". It:
 
