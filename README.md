@@ -84,10 +84,31 @@ teammate can do the one-time setup in a couple of minutes.
 
 ## Setup: pick one
 
-### Option 1: install once, use in every project (recommended)
+### Option 1: install as a plugin (recommended)
 
-Do this one time on your computer. After that you never set up again. You just
-open any project and talk to Claude.
+Two commands, once, and the skill is available in every project. Updates arrive
+with `/plugin marketplace update` — no clone to maintain, no symlink to wire.
+
+```bash
+# 1. Register this repo as a plugin marketplace:
+claude plugin marketplace add jsulystio/design-system-skill
+
+# 2. Install the skill:
+claude plugin install design-system@design-system
+```
+
+Now, in **any** project, open it in Claude Code and say
+*"set up the design system"*. Claude adds the toolkit to that project and gets
+you started. You never install again.
+
+> You can also do this from an interactive Claude Code session with the
+> `/plugin` command (Browse marketplaces → add `jsulystio/design-system-skill`
+> → install `design-system`).
+
+### Option 2: symlink a local clone (for contributors)
+
+Editing the skill itself? Point Claude at a working clone so your edits are live
+without reinstalling:
 
 ```bash
 # 1. Download the toolkit to your computer (keep this folder around):
@@ -97,16 +118,10 @@ git clone https://github.com/jsulystio/design-system-skill.git ~/design-system-s
 ln -s ~/design-system-skill/design-system/skill/design-system ~/.claude/skills/design-system
 ```
 
-Now, in **any** project, open it in Claude Code and say
-*"set up the design system"*. Claude adds the toolkit to that project and gets
-you started. You never clone again.
+> To get later improvements, run `cd ~/design-system-skill && git pull` and
+> every project picks them up automatically.
 
-> Keep the downloaded `~/design-system-skill` folder where it is. The shortcut
-> in step 2 points to it. To get later improvements, run
-> `cd ~/design-system-skill && git pull` and every project picks them up
-> automatically.
-
-### Option 2: add it to a single project by hand
+### Option 3: add it to a single project by hand
 
 Prefer to set up just one project, or you are a developer who likes to see the
 files? From that project's main folder:
@@ -152,9 +167,22 @@ Two parts update differently: the **skill instructions** (what Claude reads) and
 the **toolkit** (the `design-system/` folder copied into each project — scripts,
 template, docs).
 
-### The skill instructions — automatic (Option 1)
+### The skill instructions — plugin install (Option 1)
 
-With the Option 1 symlink, the skill points straight at your local clone, so it
+Refresh the marketplace, then update the plugin:
+
+```bash
+claude plugin marketplace update design-system
+claude plugin update design-system@design-system
+```
+
+Marketplace installs from a git host also auto-update in the background once the
+marketplace is refreshed. Each commit you push to this repo is a new version
+(the `version` in `plugin.json` takes precedence when you bump it).
+
+### The skill instructions — symlinked clone (Option 2)
+
+With the Option 2 symlink, the skill points straight at your local clone, so it
 is current the moment the clone is. To make that hands-off, add a `SessionStart`
 hook to `~/.claude/settings.json` that pulls the clone before each Claude session:
 
@@ -179,9 +207,9 @@ Prefer to pull on demand, or don't want a hook? Update the clone yourself:
 git -C ~/design-system-skill pull
 ```
 
-Every project using the Option 1 symlink picks it up on the next Claude session.
+Every project using the Option 2 symlink picks it up on the next Claude session.
 
-### The toolkit copied into a project (Option 2)
+### The toolkit copied into a project (Option 3)
 
 The `design-system/` folder `degit` copied into a project is a snapshot, not a
 symlink, so it does **not** auto-update. Refresh it by re-running the copy with
@@ -203,7 +231,7 @@ setups. Fix it by flattening the folder once:
 mv design-system __tmp && mv __tmp/design-system design-system && rm -rf __tmp
 ```
 
-**The shortcut from Option 1 stopped working** (you moved the downloaded folder).
+**The shortcut from Option 2 stopped working** (you moved the downloaded folder).
 Point it at the new location:
 
 ```bash

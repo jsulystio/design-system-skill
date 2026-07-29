@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "design-system",
+  "description": "Figma-variables-as-source-of-truth design system: read screens, resolve drift, propagate changes, and build UI from a generated spec.",
+  "owner": {
+    "name": "Justina Sulystio",
+    "url": "https://github.com/jsulystio"
+  },
+  "plugins": [
+    {
+      "name": "design-system",
+      "description": "Maintain and use a design system where Figma variables are the source of truth. Bootstraps a project's tokens + component catalog, reads Figma screens, resolves linter drift, and builds UI from the generated DESIGN-SYSTEM.md spec.",
+      "source": "./",
+      "category": "design"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "design-system",
+  "version": "0.1.0",
+  "description": "Maintain and use a design system where Figma variables are the source of truth. Reads Figma screens, resolves drift, propagates design changes into tokens, and builds UI from the generated DESIGN-SYSTEM.md spec.",
+  "author": {
+    "name": "Justina Sulystio",
+    "url": "https://github.com/jsulystio"
+  },
+  "homepage": "https://github.com/jsulystio/design-system-skill",
+  "skills": "./design-system/skill"
+}
