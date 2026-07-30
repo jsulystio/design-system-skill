@@ -10,9 +10,13 @@ The real 0-1 flow this serves:
 2. The designer explored several UI directions as raw screens, with no components
    attached, to get client sign-off.
 3. The client approved one direction.
-4. Now: detect the colors, styles, and components in the approved screens and
-   reconcile them into the bootstrapped system — repoint the palette, add or
-   update components, and write the result back to Figma, code, and docs.
+4. Now: detect the **colors, border radii, spacing, typography, and components**
+   in the approved screens and reconcile every one of them into the bootstrapped
+   system — repoint the palette, snap radii and spacing to the scale, move type
+   onto the brand font and text styles, add or update components, and write the
+   result back to Figma, code, and docs. Color is only the first dimension; a
+   refresh that touches only color leaves the components off-brand on radius and
+   type.
 
 This is a deliberate, approved WRITE flow. Like `propagate-change`, it writes to
 Figma only after the person approves the exact edits. Once written, Figma is
@@ -24,9 +28,14 @@ again the single source of truth and everything else re-derives from it.
    are the approved direction. Only read those frames; ignore the rejected
    explorations.
 
-1. Read the approved frames (`references/read-figma.md`): fills, text styles,
-   strokes, radii, spacing, and component instances. Write them to
-   `inventory/screens.json` scoped to the approved frames.
+1. Read the approved frames (`references/read-figma.md`) on **every dimension**,
+   not just color. Per node capture: fills/strokes (and whether each is bound),
+   **corner radius**, **padding and gap (spacing)**, and **typography** (font
+   family, size, weight, and any bound text style), plus component instances.
+   These all come from `get_design_context` / `figma_get_file_data` —
+   `get_metadata` carries none of them. Write fills/spacing to
+   `inventory/screens.json` scoped to the approved frames, and keep the radius and
+   typography observations for step 3.
 
 2. Extract the palette and style, mechanically (no model):
 
@@ -39,15 +48,41 @@ again the single source of truth and everything else re-derives from it.
    either suggests a `snapTo` token (it is already one of your tokens) or marks it
    `new`. It does the same for spacing and radii. Output: `import/approved.palette.json`.
 
-3. Map the palette onto the template slots, as a `propagate-change` plan (see
-   `references/propagate-change.md`). Typical decisions:
-   - `new` accent with the highest usage → the brand **primary**: repoint
-     `color/primary/base|dark|darker` (and the `color/alpha/primary-*` primitives).
-   - neutral cluster → keep or swap the `bg/text/icon/stroke` family between `gray`
-     and `slate`.
-   - `reuse` colors → already correct; no change.
-   - off-scale radius/spacing that recurs → add a token, or snap to the nearest step.
-   Only add a token when it is a genuine new decision; prefer snapping.
+   `extract.mjs` does **not** cluster typography — read the fonts, sizes, weights,
+   and bound text styles directly from the approved frames (step 1) and reconcile
+   them by judgment in step 3.
+
+3. Reconcile every dimension against the system — color is only the first. For
+   each dimension: detect what the approved screens actually use → decide
+   snap-to-existing vs new token/style → apply. Prefer snapping; add a token or
+   style only for a genuine new decision, never to preserve a one-off.
+
+   - **Color.** Map the clusters onto the template slots (a `propagate-change`
+     plan, see `references/propagate-change.md`): the `new` accent with the
+     highest usage → brand **primary** (repoint `color/primary/base|dark|darker`
+     and the `color/alpha/primary-*` primitives — and update the alpha primitives
+     too, they are a common miss when the primary hue changes); neutral cluster →
+     keep or swap `bg/text/icon/stroke` between `gray` and `slate`; `reuse`
+     colors need no change.
+   - **Border radius.** For each control the design draws (button, input, card,
+     tag…), read the radius it actually uses and compare it to the token and the
+     component's bound radius. When the design consistently uses a different step
+     than the template — e.g. inputs at `radius/4` where the template component
+     is `radius/10` — repoint that component's radius to the matching `radius/*`
+     token across **every variant**, not just the default. Add a `radius/*` value
+     only when the design's radius is genuinely off the scale.
+   - **Spacing.** Same for padding and item-gap: snap the recurring values to the
+     `space/*` 4px scale and rebind them; add a step only for a real new value.
+   - **Typography.** Detect the font family, sizes, and weights the approved
+     screens use, and the text styles they reference. If the brand font differs
+     from the template's (e.g. Rethink Sans vs the template's Inter/Zalando),
+     first update the file's **text styles** to the brand font, then bind every
+     component text node to the matching text/type style
+     (`body/<size> - <weight>`, `heading/*`) rather than leaving raw font
+     settings. Swap any foreign fonts to the brand font weight-for-weight, and
+     remap deprecated or remote (imported-library) text styles to the local ones
+     by size + weight. Leave genuinely custom sizes unstyled rather than snapping
+     them and shifting the layout.
 
 4. Detect the components in the approved screens (reuse the `references/bootstrap.md`
    clustering). Match each against the template catalog by name first, so you keep
@@ -93,8 +128,13 @@ again the single source of truth and everything else re-derives from it.
         color to the right variable with `figma_set_fills` / `figma_set_strokes`
         using `variableId` (not a raw hex) — the disabled and hover variants point
         at the derived ramp tokens — then `figma_arrange_component_set` to lay it out.
-      - Existing component whose palette moved: rebind its fills/strokes to the
-        repointed variables so it follows the new brand across all its states.
+      - Existing component whose styling moved: reconcile it on **every**
+        dimension across all its states, not only color — rebind fills/strokes to
+        the repointed color variables, **bind its corner radius to the new
+        `radius/*` token, attach its text to the brand text styles, and snap its
+        padding/gap to `space/*`** (per step 3). If the component is bound to a
+        remote/imported library's variables or text styles rather than the local
+        tokens, use the name-matched rebind in `references/reconcile-library.md`.
       - Instances on the approved screens: swap the raw frames for the real
         component with `figma_set_instance_properties` where it helps.
       - Use `figma_execute` (or the official `use_figma`, after loading the
@@ -117,5 +157,10 @@ again the single source of truth and everything else re-derives from it.
 - One direction still holds: this flow writes the approved state INTO Figma once,
   then normal sync (Figma → tokens → code + docs) resumes. Do not keep editing code
   or docs by hand afterwards.
-- Snap before you add: reuse an existing token whenever `extract.mjs` found one
-  within tolerance, so the palette does not sprawl.
+- Snap before you add: reuse an existing token or text style whenever the
+  approved design is within tolerance of one, so the palette and type ramp do not
+  sprawl.
+- Cover all four dimensions — color, border radius, spacing, and typography. Do
+  not report the refresh done after repointing only the palette; confirm the
+  approved screens' radii, spacing, and fonts are reflected in the components and
+  tokens too, or state explicitly which dimensions you left unchanged and why.
