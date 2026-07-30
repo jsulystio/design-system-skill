@@ -117,6 +117,24 @@ again the single source of truth and everything else re-derives from it.
    the template's props and naming. Produce an inventory delta: components to add,
    and existing components whose tokens changed under the new palette.
 
+   4c. **Open the coverage ledger — this is the gate that makes the refresh
+   whole-library instead of screens-only.** Run:
+
+   ```bash
+   node design-system/scripts/refresh-coverage.mjs --init
+   ```
+
+   It enumerates **every** component in `inventory/components.json` (not just the
+   ones on the approved screens), derives the style dimensions each uses (color,
+   radius, space, font, shadow), and writes `inventory/refresh-coverage.json` with
+   every dimension marked `pending`. As you apply the profile in step 6 you set
+   each dimension to `applied` (bound to the repointed tokens) or `n/a` (genuinely
+   unchanged — record why in `note`). The refresh is not done while any dimension
+   is still `pending`, so the components the screens never drew cannot be silently
+   skipped. Mark the ones that do appear on the approved screens with
+   `onApprovedScreen: true` so it is obvious which coverage came from the sample vs
+   was inferred for the rest of the library.
+
    4a. **Expand every component to its full state matrix — do not stop at the one
    state the designer drew.** An approved screen usually shows only the resting
    state (one pink button); the system needs all of them.
@@ -182,6 +200,22 @@ again the single source of truth and everything else re-derives from it.
    theme now reflect the approved direction, and the linter should be clean because
    the raw values became tokens and the components are inventoried.
 
+   7a. **Verify whole-library coverage — the refresh is not done until this is
+   clean.** The drift linter in step 7 only reads the approved screens, so it goes
+   green as soon as those screens are tokenized; it says nothing about components
+   the screens never showed. Close that gap:
+
+   ```bash
+   node design-system/scripts/refresh-coverage.mjs
+   ```
+
+   It exits non-zero and lists every component still `pending` — these are the ones
+   that would otherwise ship on the old template styling and force the person to
+   ask you, component by component, to update the rest of the library. Apply the
+   step-3 profile to each (or mark a dimension `n/a` with a reason), then re-run
+   until it reports `Refresh coverage clean`. Do not report the refresh done while
+   this command is red.
+
 ## Rules
 
 - Approval gate: never write variables or components to Figma without showing the
@@ -201,3 +235,9 @@ again the single source of truth and everything else re-derives from it.
   ones the approved screens never show. When the profile does not clearly dictate
   an unseen component's treatment, follow its closest sampled sibling and flag the
   assumption rather than leaving it on the old template styling.
+- Coverage is a measured gate, not a promise. The drift linter only sees the
+  approved screens, so a clean lint does **not** mean the library is on-brand. The
+  refresh is done only when `node design-system/scripts/refresh-coverage.mjs`
+  reports clean — every component resolved on every dimension. If you catch
+  yourself reporting done after touching only the components on the screens, that
+  is exactly the failure this gate exists to stop.

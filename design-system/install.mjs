@@ -56,6 +56,7 @@ const scripts = {
   'ds:build': 'node design-system/scripts/build.mjs',
   'ds:lint': 'node design-system/scripts/lint.mjs',
   'ds:sync': 'npm run ds:pull && npm run ds:build && npm run ds:lint',
+  'ds:refresh-check': 'node design-system/scripts/refresh-coverage.mjs',
   'ds:storybook': 'node design-system/scripts/storybook.mjs',
 };
 const pkgPath = path.join(repoRoot, 'package.json');
