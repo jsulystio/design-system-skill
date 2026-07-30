@@ -86,10 +86,31 @@ live file — do not rely on `screens.sample.json` after bootstrap.
 
 1. Call `get_metadata` with `fileKey` and `nodeId: "0:1"` to list pages and
    their top-level frames.
-2. Treat each top-level frame on a page as a **screen** (name = frame name).
-   Skip internal component-definition pages unless the person asks to include
-   them. Typical product screens live on pages like "Flows", "Screens", or
-   named after features.
+2. Treat each top-level frame on a **product** page as a **screen** (name = frame
+   name). Typical product screens live on pages like "Flows", "Screens", "MVP", or
+   names of features. Do not treat the design-system pages (below) as screens, but
+   do not ignore them either. You must read them.
+
+### Locate the design system: Foundations and Components pages
+
+Every flow that touches the file, and the refresh flow especially, must find and
+read two pages by name, on top of the variables:
+
+- **Foundations** (sometimes "Foundation", "Tokens", "Styles"): the visual source
+  of the color and type tokens, usually as "Color Palette" and "Typography"
+  frames. This is where the color tokens live alongside the variable collections,
+  and it shows the intended palette and type ramp even when the variables are
+  messy or split across collections.
+- **Components** (sometimes "Component Library", "UI Kit"): the component library,
+  the variant sets you will retheme or reconcile, and often a "Project Tokens" or
+  theme component set.
+
+Enumerate pages with `get_metadata` on `0:1` (or `figma_get_file_data` on the
+bridge), match these two by name, and read them before planning a refresh. They
+tell you where the existing system lives, and whether the components are bound to
+the same variable collection the approved screens use or to an older or remote
+one (the `reconcile-library.md` split). Skipping them is why a refresh can repoint
+the tokens yet leave the whole library off-brand.
 
 ### Walk each screen
 

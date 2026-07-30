@@ -34,6 +34,13 @@ The system has two audiences and one contract:
 - This skill may be installed globally, so a project might not have the toolkit
   yet. If there is no `design-system/` folder at the repo root, scaffold it first
   (see the new-project flow) before running any script.
+- Confirm you are in a **client project**, not this skill's own template. The
+  bundled `design-system/` ships with a placeholder `fileKey`
+  (`REPLACE_WITH_FIGMA_FILE_KEY`) and the AlignUI starter tokens. If the
+  `fileKey` is still the placeholder, or you are inside the design-system-skill
+  repo itself, stop and confirm where the client's `design-system/` lives before
+  editing tokens, demos, or committing. Editing the template in place produces
+  work that has to be thrown away.
 - When bootstrapping or starting a new project, ask the person for the two
   inputs before scaffolding: the **Figma file link** and the **GitHub repo or
   local path** (where `design-system/` lives and where the app source is). Never
@@ -109,11 +116,15 @@ refreshes `DESIGN-SYSTEM.md`, which is committed — include it in the diff you
 show.
 
 The rebuild re-derives the docs from **tokens + inventory only**. Editing
-component *definitions* in Figma (fills, variants, text styles — the
-`reconcile-library` and `refresh from approved` flows) does **not** flow into
-`DESIGN-SYSTEM.md`, `site/`, or the demos, which are token-driven plus
-hand-authored. After a component-level Figma change: re-pull if any token
-*values* moved (`pull` → `build`), and update the demo registry / inventory by
-hand for anything that changed only in the component. Otherwise the docs
-silently drift from the file — say so in your report rather than implying the
-docs reflect the Figma edits.
+component *definitions* in Figma (fills, variants, text styles, corner radius)
+does **not** flow into `DESIGN-SYSTEM.md`, `site/`, or the demos. The
+per-component redline the docs show (which radius, padding, and font a Button
+uses) is hand-authored in two files: **`demos/specs.mjs`** (the spec tables and
+`DESIGN-SYSTEM.md` rows) and **`demos/demos.css`** (the rendered previews). It is
+not derived from Figma. So a change like "buttons are now sharp, radius 0"
+reaches the docs only after you edit those two files by hand and rebuild. After
+any component-level Figma change: re-pull if token *values* moved
+(`pull` then `build`), then update `demos/specs.mjs`, `demos/demos.css`, and
+`inventory/components.json` for anything that changed only in the component. If
+you skip this, the docs silently disagree with Figma. Say so in your report
+rather than implying the docs reflect the Figma edits.

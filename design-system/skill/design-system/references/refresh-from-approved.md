@@ -27,8 +27,15 @@ again the single source of truth and everything else re-derives from it.
 ## Steps
 
 0. Confirm the project was bootstrapped from the starter template, and ask which frames or page
-   are the approved direction. Only read those frames; ignore the rejected
-   explorations.
+   are the approved direction. Read those approved frames for the design language,
+   and ignore the rejected explorations. Then also locate the file's
+   **Foundations** and **Components** pages (see `references/read-figma.md`,
+   "Locate the design system") and read them: Foundations is where the color and
+   type tokens live, Components is the library you will retheme. Check early
+   whether the Components page is bound to the same variable collection the
+   approved screens use or to an older or remote one. If they differ, the library
+   will render off-brand even after you repoint tokens, which is the
+   `reconcile-library.md` case.
 
 1. Read the approved frames (`references/read-figma.md`) on **every dimension**,
    not just color. Per node capture: fills/strokes (and whether each is bound),
@@ -196,9 +203,15 @@ again the single source of truth and everything else re-derives from it.
       `inventory/screens.json`.
 
 7. Rebuild and verify: `node design-system/scripts/build.mjs` then
-   `node design-system/scripts/lint.mjs`. The docs, `DESIGN-SYSTEM.md`, and the code
-   theme now reflect the approved direction, and the linter should be clean because
-   the raw values became tokens and the components are inventoried.
+   `node design-system/scripts/lint.mjs`. This makes the **token-driven** parts of
+   the docs reflect the approved direction: colors, the type ramp, and the
+   radius/spacing token *values*. It does **not** update the per-component redline:
+   which radius, padding, or font each component uses is hand-authored in
+   `demos/specs.mjs` and `demos/demos.css` (see `SKILL.md`). If the refresh changed
+   a component's radius, spacing, or font, edit those two files to match and
+   rebuild again, or the docs will still show the old values. A clean lint means
+   the approved screens are tokenized, not that every component in the docs
+   matches (see 7a).
 
    7a. **Verify whole-library coverage — the refresh is not done until this is
    clean.** The drift linter in step 7 only reads the approved screens, so it goes
