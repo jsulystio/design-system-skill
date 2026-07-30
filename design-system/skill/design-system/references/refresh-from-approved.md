@@ -10,13 +10,15 @@ The real 0-1 flow this serves:
 2. The designer explored several UI directions as raw screens, with no components
    attached, to get client sign-off.
 3. The client approved one direction.
-4. Now: detect the **colors, border radii, spacing, typography, and components**
-   in the approved screens and reconcile every one of them into the bootstrapped
-   system — repoint the palette, snap radii and spacing to the scale, move type
-   onto the brand font and text styles, add or update components, and write the
-   result back to Figma, code, and docs. Color is only the first dimension; a
-   refresh that touches only color leaves the components off-brand on radius and
-   type.
+4. Now: **learn the design language** the approved screens imply — their
+   sharpness (radius), how color is used, spacing rhythm, typography, and other
+   patterns — and apply that language to the **whole** bootstrapped system, not
+   only the components that happen to appear on the screens. The screens are a
+   small sample; the deliverable is a consistent library. Repoint the palette,
+   snap radii and spacing to the scale, move type onto the brand font and text
+   styles, add or update components, and write the result back to Figma, code,
+   and docs. Color is only the first dimension; a refresh that touches only color,
+   or only the drawn components, leaves the rest of the library off-brand.
 
 This is a deliberate, approved WRITE flow. Like `propagate-change`, it writes to
 Figma only after the person approves the exact edits. Once written, Figma is
@@ -52,9 +54,35 @@ again the single source of truth and everything else re-derives from it.
    and bound text styles directly from the approved frames (step 1) and reconcile
    them by judgment in step 3.
 
-3. Reconcile every dimension against the system — color is only the first. For
-   each dimension: detect what the approved screens actually use → decide
-   snap-to-existing vs new token/style → apply. Prefer snapping; add a token or
+3. Learn the design language, then apply it — do not just copy the sample. The
+   approved screens are a small sample and will not contain every component; the
+   job is to infer the *rules* they imply and propagate those rules to the whole
+   library.
+
+   3a. **Derive a style profile** — write down the rules, not a list of pixels,
+   because rules are what generalize to components the screens never show:
+   - **Sharpness (radius).** The dominant corner radius and how it scales by size
+     — e.g. "controls are `radius/4`, pills/avatars are full, cards `radius/8`".
+     State the rule, not just the one value you saw.
+   - **Color usage.** Not just which colors, but *how*: which role carries the
+     accent (primary actions) vs neutral (secondary/quiet), fill vs stroke vs
+     tint, on which surfaces, and the contrast pairs (accent background → which
+     text/icon color).
+   - **Spacing rhythm / density.** The padding and gap steps that recur and how
+     tight or airy the layout reads — the rule a component you did not see should
+     follow.
+   - **Typography.** Font, the weight per role (labels vs body vs headings), case
+     (are buttons uppercase?), and the size ramp.
+   - **Other patterns.** Elevation (shadow vs flat), border weight and where
+     borders appear, divider use, icon style/size, control height/density.
+
+   3b. **Apply the profile across every dimension AND every component — not only
+   the ones on the screens.** For each dimension below: detect what the screens
+   use → decide snap-to-existing vs new token/style → apply the rule to the
+   **whole catalog**. A component the client never drew (Table, Tooltip, Date
+   Picker) still gets the profile's radius, type, spacing, and color — infer its
+   treatment from the closest sampled sibling and its catalog role, and flag any
+   you had to guess so the person can confirm. Prefer snapping; add a token or
    style only for a genuine new decision, never to preserve a one-off.
 
    - **Color.** Map the clusters onto the template slots (a `propagate-change`
@@ -128,13 +156,17 @@ again the single source of truth and everything else re-derives from it.
         color to the right variable with `figma_set_fills` / `figma_set_strokes`
         using `variableId` (not a raw hex) — the disabled and hover variants point
         at the derived ramp tokens — then `figma_arrange_component_set` to lay it out.
-      - Existing component whose styling moved: reconcile it on **every**
-        dimension across all its states, not only color — rebind fills/strokes to
-        the repointed color variables, **bind its corner radius to the new
+      - **Every existing catalog component — not only the ones the screens
+        drew.** Walk `inventory/components.json` and apply the step 3 profile to
+        each, on every dimension across all its states: rebind fills/strokes to
+        the repointed color variables, bind its corner radius to the new
         `radius/*` token, attach its text to the brand text styles, and snap its
-        padding/gap to `space/*`** (per step 3). If the component is bound to a
-        remote/imported library's variables or text styles rather than the local
-        tokens, use the name-matched rebind in `references/reconcile-library.md`.
+        padding/gap to `space/*`. Components the approved screens never showed
+        (Table, Tooltip, Date Picker, …) get the profile inferred from their
+        catalog role and closest sampled sibling — do not skip them. If a
+        component is bound to a remote/imported library's variables or text styles
+        rather than the local tokens, use the name-matched rebind in
+        `references/reconcile-library.md`.
       - Instances on the approved screens: swap the raw frames for the real
         component with `figma_set_instance_properties` where it helps.
       - Use `figma_execute` (or the official `use_figma`, after loading the
@@ -164,3 +196,8 @@ again the single source of truth and everything else re-derives from it.
   not report the refresh done after repointing only the palette; confirm the
   approved screens' radii, spacing, and fonts are reflected in the components and
   tokens too, or state explicitly which dimensions you left unchanged and why.
+- Generalize from the sample; the screens are not the library. Derive the style
+  profile (step 3a) and apply it to **every** component in the catalog, including
+  ones the approved screens never show. When the profile does not clearly dictate
+  an unseen component's treatment, follow its closest sampled sibling and flag the
+  assumption rather than leaving it on the old template styling.
