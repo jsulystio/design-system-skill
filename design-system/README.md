@@ -123,7 +123,11 @@ The real 0-1 loop: bootstrap from the starter template, let the designer explore
 raw UI directions for client sign-off, and once one is approved, reconcile it
 into the system. Ask Claude to "refresh the system from the approved screens". It:
 
-- reads only the approved frames and runs `node design-system/scripts/extract.mjs`,
+- reads the file's **Foundations** and **Components** pages (where the tokens and
+  the component library live), and checks whether the component library is bound
+  to the same variables as the approved screens; if the library is on an older or
+  remote set, it reconciles the library too;
+- reads the approved frames and runs `node design-system/scripts/extract.mjs`,
   which clusters the colors actually used into a candidate palette (snapping each
   to an existing token, or flagging it as a new decision) plus a state ramp
   (base, hover, pressed, focus, disabled) for every accent;
@@ -222,6 +226,13 @@ Owned and committed: `figma.raw.json` (the pulled variables), `inventory/screens
 mappings. Generated and gitignored (via
 `design-system/.gitignore`): `tokens.json`, `variables.css`, `tailwind.theme.js`,
 and `site/`. Versioning is just git history on the raw pull.
+
+The per-component redline the docs show (which radius, padding, and font each
+component uses) is hand-authored in `demos/specs.mjs` and `demos/demos.css`, not
+derived from Figma. A component-only change in Figma (for example giving buttons a
+new corner radius) reaches `DESIGN-SYSTEM.md` and `site/` only after you update
+those two files and rebuild. A rebuild on its own syncs the token-driven parts
+(colors, the type ramp, token values), not per-component styling.
 
 ## Updating
 
