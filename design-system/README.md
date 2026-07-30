@@ -159,9 +159,10 @@ bridge.
 Or, if you added the npm scripts, `npm run ds:sync` does pull, build, and lint in
 one. Wire it to a git pre-commit hook or a Figma publish webhook and even the
 command disappears. You only invoke the Claude skill for judgment: first-time
-bootstrap, refreshing from approved screens, resolving drift, and translating a
-change ("primary warmer, buttons less round") into token edits. Each is one short
-request.
+bootstrap, refreshing from approved screens, resolving drift, reconciling
+components that an inherited template/library still binds to the wrong tokens,
+and translating a change ("primary warmer, buttons less round") into token edits.
+Each is one short request.
 
 Consume the output in your app: import `design-system/tokens/variables.css`
 globally, and in `tailwind.config.js`:

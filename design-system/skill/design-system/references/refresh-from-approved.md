@@ -78,9 +78,11 @@ again the single source of truth and everything else re-derives from it.
    anything yet.
 
 6. On approval, apply in this order:
-   a. **Variables → Figma.** Write the repoints with the bridge
-      (`figma_update_variable` / `figma_batch_update_variables`), so the approved
-      palette lives in the source of truth.
+   a. **Variables → Figma.** Write the repoints with the official MCP's
+      `use_figma` (load the `figma-use` skill first) or the bridge's
+      `figma_update_variable` / `figma_batch_update_variables`, so the approved
+      palette lives in the source of truth (see `references/read-figma.md` §0 —
+      either back end can write).
    b. **Components → Figma.** Build or update the approved direction's components in
       the file, bound to the new variables — this is the part that used to be
       manual:

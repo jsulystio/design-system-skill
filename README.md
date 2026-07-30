@@ -60,6 +60,7 @@ Claude Code and say things like:
 | *"Refresh the system from the approved screens"* | After the client picks a direction, detect its palette and components (with all their states) and write them back into Figma, code, and docs |
 | *"Build the settings page"* | Build the UI using your tokens and component catalog, then lint its own output |
 | *"Resolve the drift"* | Find anything that does not match the system and propose fixes for your approval |
+| *"Fix the components that look off-brand"* | Rebind components still stuck on an inherited template/library's colors, fonts, and text styles onto your local tokens |
 | *"Make the primary color warmer and buttons less round"* | Turn that into the exact changes and update your tokens, docs, and code |
 
 That is the everyday experience. The setup below is a one-time thing.

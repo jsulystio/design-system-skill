@@ -603,6 +603,7 @@ function getStartedPage() {
     ['Catch drift in CI', 'Gate merges on the mechanical drift lanes, in both your designs and your code.', 'npm run ds:lint && npm run ds:lint --code src'],
     ['Audit the drift', 'Survey every lane, including the overrides and one-role-built-two-ways a regex cannot catch.', '"Audit the design system drift"'],
     ['Resolve drift', 'When a lane flags something, snap it to the right token or add the component.', '"Resolve the drift"'],
+    ['Fix inherited components', 'Rebind components a template or library still ties to the wrong colors, fonts, and text styles onto your local tokens.', '"Fix the components that look off-brand"'],
     ['Hand off to engineers', 'Every component page carries live previews, per-variant specs, and copyable code.', 'Open the docs, or read DESIGN-SYSTEM.md'],
   ].map(([t, d, ex]) => `<div class="usecase"><strong>${esc(t)}</strong><p>${esc(d)}</p><code>${esc(ex)}</code></div>`).join('');
 

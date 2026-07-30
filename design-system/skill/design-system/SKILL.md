@@ -90,6 +90,13 @@ flows that read the Figma file start with `references/read-figma.md`.
   `references/drift.md` — defines the four drift lanes (design/code ×
   alignment/consistency) and audits them without fixing.
 - Lint reported issues, or "resolve the drift": see `references/resolve-drift.md`.
+- Components inherited from a template/library look off-brand or point at the
+  wrong values (old palette, a magenta/other accent theme, the wrong font or
+  radius), and you need them on the **local** tokens — "update the components to
+  match the design", "fix the buttons/inputs", "the components don't use our
+  colors/font": see `references/reconcile-library.md`. Detects fills, strokes,
+  and text bound to **remote** (published-library) variables or deprecated text
+  styles and rebinds them to the local same-named token/style.
 - A design change request, e.g. "primary warmer, radius 8 to 4": see
   `references/propagate-change.md`.
 - Publish the system as a Storybook, or "generate the design guidelines on
@@ -100,3 +107,13 @@ After any flow that changes tokens or inventory, run
 `node design-system/scripts/lint.mjs` and report the result. The build also
 refreshes `DESIGN-SYSTEM.md`, which is committed — include it in the diff you
 show.
+
+The rebuild re-derives the docs from **tokens + inventory only**. Editing
+component *definitions* in Figma (fills, variants, text styles — the
+`reconcile-library` and `refresh from approved` flows) does **not** flow into
+`DESIGN-SYSTEM.md`, `site/`, or the demos, which are token-driven plus
+hand-authored. After a component-level Figma change: re-pull if any token
+*values* moved (`pull` → `build`), and update the demo registry / inventory by
+hand for anything that changed only in the component. Otherwise the docs
+silently drift from the file — say so in your report rather than implying the
+docs reflect the Figma edits.

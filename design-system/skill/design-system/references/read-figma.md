@@ -25,7 +25,7 @@ automatically using the equivalent tool below.
 | Component list | `search_design_system` | `figma_search_components` |
 | Component props / anatomy | `get_context_for_code_connect` | `figma_get_component_for_development` / `figma_get_component_details` |
 | Screenshot | `get_screenshot` | `figma_take_screenshot` |
-| Write variable edits | — (read-only) | `figma_update_variable` / `figma_batch_update_variables` / `figma_execute` |
+| Write variables & components | `use_figma` (Plugin API — load the `figma-use` skill first; primary path, works whenever reads work) | `figma_update_variable` / `figma_batch_update_variables` / `figma_execute` |
 
 Treat any of these as a failure that triggers the switch: the server's tools are
 absent, a call errors or times out, the bridge reports "not connected", or the
@@ -39,9 +39,13 @@ Fallback procedure, in order:
    disconnected, call `figma_reconnect` once (then `figma_diagnose` if still
    failing) before using bridge tools.
 3. **If the bridge fails**, switch to the official MCP equivalent for the same
-   need. Writes (propagate-change) only exist on the bridge — if it is down,
-   recover it via `figma_reconnect`; do not attempt writes through the official
-   MCP.
+   need — **including writes**. Writes go through **either** back end: the
+   official MCP's `use_figma` (Plugin API — load the `figma-use` skill first) or
+   the bridge's `figma_update_variable` / `figma_batch_update_variables` /
+   `figma_execute`. `use_figma` is the primary write path and works whenever
+   reads do; reach for the bridge's typed helpers only if you prefer them or the
+   official server is absent. Surface a write error only when **neither** back
+   end can write.
 4. **Once a provider works for a given need, keep using it** for the rest of that
    flow instead of re-probing the failed one on every call.
 5. **Only if both fail**, tell the person which tools errored and what to check
@@ -57,7 +61,13 @@ Preferred order (auto-fall back between MCP and bridge per section 0):
 
 1. **Figma MCP** — call `get_variable_defs` on the file root (`nodeId: "0:1"`)
    or on each collection's scope node if the file is organized that way. Map the
-   response into the `figma.raw.json` collection/variable structure.
+   response into the `figma.raw.json` collection/variable structure. `get_variable_defs`
+   returns only the variables **used by** the target subtree, so aggregate across
+   the main composed frames (not one leaf) to get full coverage. This mapping is
+   hand-done — there is no MCP→raw script — so transcribe hex/number values
+   exactly, keep the primitives/semantic split, and diff `figma.raw.json` against
+   the MCP output before building; a single mistyped value propagates silently to
+   every token consumer.
 2. **Desktop / console bridge** — `figma_get_variables` when MCP is unavailable or
    returns incomplete collections. Same output shape.
 3. **Import plugin** — person exports JSON to `design-system/import/` and runs
@@ -85,20 +95,30 @@ live file — do not rely on `screens.sample.json` after bootstrap.
 
 For every screen frame:
 
-1. Call `get_metadata` on the screen's `nodeId` to get the subtree as XML.
+1. Call `get_metadata` on the screen's `nodeId` for the subtree as XML. Note
+   `get_metadata` returns **structure only** — ids, types, names, positions,
+   sizes. It carries **no fills, colors, or variable bindings**, so it cannot on
+   its own tell you a raw value from a bound one.
 2. For each node in the tree, record:
    - **Component instances** — nodes typed `instance` (or whose metadata marks
      them as component instances). Set `component` to the main component name
      (strip variant suffixes like `Button/Primary` → `Button` when grouping).
-   - **Fills** — solid fill hex values. Set `bound: true` when the fill uses a
-     variable binding; `bound: false` for raw hex. One entry per notable fill
-     (backgrounds, text, borders — skip invisible or duplicate layers).
-   - **Spacing** — gap, padding, or item-spacing values that matter for drift.
-     Set `bound: true` when tied to a variable; `bound: false` for raw numbers.
+     This is the one thing `get_metadata` alone gives you.
+   - **Fills** — read via `get_design_context` on the node (official MCP) or
+     `figma_get_file_data` on the subtree (bridge); `get_metadata` has none. Set
+     `bound: true` when the fill resolves to a variable, `bound: false` for a raw
+     hex. One entry per notable fill (backgrounds, text, borders — skip invisible
+     or duplicate layers). To detect whether a binding points at a **remote
+     library** variable rather than a local token, check the bound variable id —
+     a remote id contains a `/` (library key); see `references/reconcile-library.md`.
+   - **Spacing** — gap, padding, or item-spacing values that matter for drift,
+     also from `get_design_context` / `figma_get_file_data`. Set `bound: true`
+     when tied to a variable; `bound: false` for raw numbers.
 
-Use `get_design_context` on individual nodes only when metadata is ambiguous
-(e.g. cannot tell if a fill is bound). Prefer metadata for bulk scanning — it
-is lighter.
+Use `get_metadata` for the cheap structural pass (what components appear where),
+then `get_design_context` on the nodes whose fills/spacing you need. Scanning
+every leaf for fills is expensive — target the composed frames that carry the
+values the linter should catch.
 
 ### Write `inventory/screens.json`
 
