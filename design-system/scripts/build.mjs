@@ -598,6 +598,7 @@ function getStartedPage() {
     ['Refresh from approved screens', 'Fold an approved direction\'s palette and components into the system, and sync Figma, code, and docs.', '"Refresh from the approved screens"'],
     ['Build a screen with AI', 'Point any coding agent at DESIGN-SYSTEM.md and it builds token-true UI from the catalog.', '"Read design-system/DESIGN-SYSTEM.md, then build the settings page"'],
     ['Rebrand', 'Change the brand color once at the source; tokens, docs, and code theme all follow.', '"Make the primary color warmer"'],
+    ['Sync back to Figma', 'Changed a token value or a component spec in code? Push it back to Figma. Claude diffs the two sides and asks before it writes.', '"Sync my edits back to Figma"'],
     ['Catch drift in CI', 'Gate merges on the mechanical drift lanes, in both your designs and your code.', 'npm run ds:lint && npm run ds:lint --code src'],
     ['Audit the drift', 'Survey every lane, including the overrides and one-role-built-two-ways a regex cannot catch.', '"Audit the design system drift"'],
     ['Resolve drift', 'When a lane flags something, snap it to the right token or add the component.', '"Resolve the drift"'],
@@ -608,7 +609,7 @@ function getStartedPage() {
   const body = `
     <div class="hero">
       <h1>Get started</h1>
-      <p class="lede">Your Figma variables are the single source of truth. From them, this toolkit generates design tokens for light and dark, a catalog of ${compCount} documented components, this docs site, and one <code>DESIGN-SYSTEM.md</code> you can hand to any coding agent. Here's how to set it up and put it to work.</p>
+      <p class="lede">Your Figma variables are the default source of truth, and sync runs in either direction through a diff you approve. From them, this toolkit generates design tokens for light and dark, a catalog of ${compCount} documented components, this docs site, and one <code>DESIGN-SYSTEM.md</code> you can hand to any coding agent. Here's how to set it up and put it to work.</p>
     </div>
     ${step(1, 'Add it to your project', '<p class="gs-note">Run these once from the root of your repo. They only change your files when you pass a flag, so it is safe to run.</p>',
       codeBlk('npx degit jsulystio/design-system-skill/design-system design-system\nnode design-system/install.mjs --scripts --agents\nnode design-system/scripts/build.mjs'))}
@@ -617,7 +618,7 @@ function getStartedPage() {
       codeBlk("// tailwind.config.js\nmodule.exports = {\n  theme: { extend: require('./design-system/tokens/tailwind.theme.js') },\n};"))}
     ${step(3, 'Build UI with the system', '<p class="gs-note">Hand the generated <code>DESIGN-SYSTEM.md</code> to your coding agent. It builds with your real tokens and components instead of guessing at values.</p>',
       codeBlk('Read design-system/DESIGN-SYSTEM.md and follow it,\nthen build a billing settings page.'))}
-    ${step(4, 'Keep it in sync', '<p class="gs-note">When a designer changes a variable in Figma, one command pulls the update, rebuilds the tokens and docs, and runs the linter. Bring in Claude only for the judgment calls: bootstrapping, resolving drift, or propagating a change.</p>',
+    ${step(4, 'Keep it in sync', '<p class="gs-note">When a designer changes a variable in Figma, one command pulls the update, rebuilds the tokens and docs, and runs the linter. It also runs the other way: ask Claude to sync your local token or spec edits back to Figma, and it shows a diff for your approval before writing anything. Bring in Claude for the judgment calls: bootstrapping, resolving drift, propagating a change, or reconciling the two sides.</p>',
       codeBlk('npm run ds:sync   # pull from Figma → build tokens, theme, docs → lint'))}
     ${step(5, 'Guard against drift', '<p class="gs-note">Drift is anything that strays from the design system. It shows up across <a href="drifts.html">four lanes</a>: your designs and your code, each checked for alignment and consistency. The linter catches the mechanical cases, so run it in CI, where each command fails the build when it finds drift.</p>',
       codeBlk('npm run ds:lint              # design lanes: raw values, uninventoried components\nnpm run ds:lint --code src   # code lanes: hardcoded colors, radii, spacing\nnpm run ds:lint --report     # every lane as one JSON report'))}
