@@ -9,6 +9,13 @@
     "mode": "import",
     "importPath": "import/variables.export.json"
   },
+  "sync": {
+    "ownership": {
+      "variables": "figma",
+      "componentSpecs": "code",
+      "componentVisuals": "figma"
+    }
+  },
   "lint": {
     "codePaths": ["src"],
     "allowPx": [1],

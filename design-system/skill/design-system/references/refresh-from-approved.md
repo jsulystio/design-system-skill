@@ -203,15 +203,15 @@ again the single source of truth and everything else re-derives from it.
       `inventory/screens.json`.
 
 7. Rebuild and verify: `node design-system/scripts/build.mjs` then
-   `node design-system/scripts/lint.mjs`. This makes the **token-driven** parts of
-   the docs reflect the approved direction: colors, the type ramp, and the
-   radius/spacing token *values*. It does **not** update the per-component redline:
-   which radius, padding, or font each component uses is hand-authored in
-   `demos/specs.mjs` and `demos/demos.css` (see `SKILL.md`). If the refresh changed
-   a component's radius, spacing, or font, edit those two files to match and
-   rebuild again, or the docs will still show the old values. A clean lint means
-   the approved screens are tokenized, not that every component in the docs
-   matches (see 7a).
+   `node design-system/scripts/lint.mjs`. This reflects the approved direction in
+   the docs: colors, the type ramp, and the token *values*, plus each component's
+   spec (radius, padding, font) and preview radius, since those live in
+   `inventory/components.json` and flow through `build`. So when this flow updates
+   a component's spec in the inventory, the docs update on rebuild. The one part
+   that stays hand-built is the preview's non-radius visuals in `demos/demos.css`
+   (a variant's fill color, its layout); update that by hand if it drifts. A clean
+   lint means the approved screens are tokenized, not that every component in the
+   docs matches (see 7a).
 
    7a. **Verify whole-library coverage — the refresh is not done until this is
    clean.** The drift linter in step 7 only reads the approved screens, so it goes
@@ -233,9 +233,10 @@ again the single source of truth and everything else re-derives from it.
 
 - Approval gate: never write variables or components to Figma without showing the
   exact plan first and getting a yes.
-- One direction still holds: this flow writes the approved state INTO Figma once,
-  then normal sync (Figma → tokens → code + docs) resumes. Do not keep editing code
-  or docs by hand afterwards.
+- Write once, then re-derive: this flow pushes the approved state INTO Figma, then
+  the normal read (Figma → tokens → code + docs) resumes. Do not keep hand-editing
+  code or docs afterward; if the reverse direction is needed later, use `sync`
+  (`references/sync.md`).
 - Snap before you add: reuse an existing token or text style whenever the
   approved design is within tolerance of one, so the palette and type ramp do not
   sprawl.

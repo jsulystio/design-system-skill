@@ -227,12 +227,14 @@ mappings. Generated and gitignored (via
 `design-system/.gitignore`): `tokens.json`, `variables.css`, `tailwind.theme.js`,
 and `site/`. Versioning is just git history on the raw pull.
 
-The per-component redline the docs show (which radius, padding, and font each
-component uses) is hand-authored in `demos/specs.mjs` and `demos/demos.css`, not
-derived from Figma. A component-only change in Figma (for example giving buttons a
-new corner radius) reaches `DESIGN-SYSTEM.md` and `site/` only after you update
-those two files and rebuild. A rebuild on its own syncs the token-driven parts
-(colors, the type ramp, token values), not per-component styling.
+The per-component spec the docs show (which radius, padding, and font each
+component uses) lives in `inventory/components.json` as each component's `spec`,
+so it flows through the build like tokens do: the spec tables, the
+`DESIGN-SYSTEM.md` rows, and the preview's corner radius all track the inventory.
+A refresh writes those specs from Figma, so a component change reaches the docs on
+the next sync. The one part still hand-built is the preview's non-radius visuals
+in `demos/demos.css` (a variant's fill color, its layout); those are mocks, not a
+render of the Figma component.
 
 ## Updating
 

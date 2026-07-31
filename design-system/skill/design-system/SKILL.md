@@ -13,12 +13,15 @@ description: >
 
 # Design system skill
 
-Figma variables are the source of truth. Sync flows one direction: Figma to
-tokens to code and docs. Do not write to the Figma canvas except in the
-`propagate change` and `refresh from approved` flows, and only after the person
-approves the exact edits. Those two flows write an approved change back into
-Figma (variables, and in `refresh from approved` also components), after which
-Figma is again the source of truth and everything re-derives from it.
+Figma is the **default** source of truth, but sync runs in **either direction**,
+always through a diff you approve. Reading derives tokens, code, and docs from
+Figma. Writing pushes an approved local change (a token value, a component's
+spec) back to Figma. No side silently overwrites the other: every write shows the
+exact edits first, and when both sides moved a per-area **owner** in
+`figma.config.json` (`sync.ownership`) picks the default direction while genuine
+conflicts stop for you. The `propagate change`, `refresh from approved`, and
+`sync` flows are the write paths (see `references/sync.md`); after a write, Figma
+holds the change and everything else re-derives from it.
 
 The system has two audiences and one contract:
 
@@ -106,6 +109,12 @@ flows that read the Figma file start with `references/read-figma.md`.
   styles and rebinds them to the local same-named token/style.
 - A design change request, e.g. "primary warmer, radius 8 to 4": see
   `references/propagate-change.md`.
+- Push local edits to Figma, or reconcile the two when both moved — "sync my
+  token/spec edits to Figma", "sync the design system both ways": see
+  `references/sync.md`. It diffs the two sides, you approve, then it writes to
+  Figma with `use_figma`. `propagate-change` and `refresh from approved` are
+  specific write paths; `sync` is the general one and covers the reverse
+  (code/docs → Figma) direction.
 - Publish the system as a Storybook, or "generate the design guidelines on
   Storybook": see `references/storybook.md`.
 
@@ -115,16 +124,17 @@ After any flow that changes tokens or inventory, run
 refreshes `DESIGN-SYSTEM.md`, which is committed — include it in the diff you
 show.
 
-The rebuild re-derives the docs from **tokens + inventory only**. Editing
-component *definitions* in Figma (fills, variants, text styles, corner radius)
-does **not** flow into `DESIGN-SYSTEM.md`, `site/`, or the demos. The
-per-component redline the docs show (which radius, padding, and font a Button
-uses) is hand-authored in two files: **`demos/specs.mjs`** (the spec tables and
-`DESIGN-SYSTEM.md` rows) and **`demos/demos.css`** (the rendered previews). It is
-not derived from Figma. So a change like "buttons are now sharp, radius 0"
-reaches the docs only after you edit those two files by hand and rebuild. After
-any component-level Figma change: re-pull if token *values* moved
-(`pull` then `build`), then update `demos/specs.mjs`, `demos/demos.css`, and
-`inventory/components.json` for anything that changed only in the component. If
-you skip this, the docs silently disagree with Figma. Say so in your report
-rather than implying the docs reflect the Figma edits.
+The rebuild re-derives the docs from **tokens + inventory**. Token *values*
+(colors, the type ramp, the radius/spacing steps) flow from Figma through
+`pull` then `build`. Per-component specs (which radius, padding, and font each
+component uses) live in `inventory/components.json` as each component's `spec`,
+so they flow through `build` too: the spec tables, the `DESIGN-SYSTEM.md` rows,
+and the preview's corner radius all track the inventory. The read flows
+(`refresh from approved`, `reconcile-library`) write those specs from Figma, so a
+component change reaches the docs on the next sync.
+
+What still does **not** auto-derive: the rendered preview's non-radius visuals in
+`demos/demos.css` (a variant's fill color, its layout) are hand-built mocks, not a
+render of the Figma component. If those drift, update `demos/demos.css` by hand
+and say so in your report, rather than implying every pixel of the preview comes
+from Figma.

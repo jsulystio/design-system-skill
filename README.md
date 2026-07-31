@@ -62,6 +62,7 @@ Claude Code and say things like:
 | *"Resolve the drift"* | Find anything that does not match the system and propose fixes for your approval |
 | *"Fix the components that look off-brand"* | Rebind components still stuck on an inherited template/library's colors, fonts, and text styles onto your local tokens |
 | *"Make the primary color warmer and buttons less round"* | Turn that into the exact changes and update your tokens, docs, and code |
+| *"Sync my token and spec edits back to Figma"* | Diff your local changes against Figma, show you exactly what will change, and on your OK push them back |
 
 That is the everyday experience. The setup below is a one-time thing.
 
