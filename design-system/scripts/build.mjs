@@ -33,11 +33,9 @@ try {
 } catch { DEMOS = {}; }
 const demoFor = (c) => DEMOS[slug(c.name)] || null;
 
-// Redline specs per slug (color/padding/height/…). A missing file is fine.
-let SPECS = {};
-try {
-  ({ specs: SPECS } = await import('../demos/specs.mjs'));
-} catch { SPECS = {}; }
+// Per-component specs (color/padding/radius/height/…) now live in the inventory
+// (`components.json` `spec`), so they read from Figma and push back to it through
+// the normal sync instead of a hand-authored file.
 
 const raw = read(p('tokens/figma.raw.json'));
 const inventory = exists(p('inventory/components.json'))
@@ -848,13 +846,23 @@ function codeBlock(code) {
 }
 
 // Specs are per-variant (a size or type changes color/padding/height), so they
-// live inside each variant, not in one component-wide table. specs.mjs entries
-// may be a flat array (shared base) or { base, byVariant } — normalize both.
+// live inside each variant, not in one component-wide table. A component's
+// `spec` may be a flat array (shared base) or { base, byVariant } — normalize both.
 function getSpecs(c) {
-  const s = SPECS[slug(c.name)];
+  const s = c.spec;
   if (!s) return { base: [], byVariant: {} };
   if (Array.isArray(s)) return { base: s, byVariant: {} };
   return { base: s.base || [], byVariant: s.byVariant || {} };
+}
+// The component's own corner radius (its base 'Radius' row), used to make the
+// live previews track the spec: build sets `--demo-radius` per component page and
+// the demo CSS reads it, so a radius change in the inventory shows in the picture,
+// not only the spec table. Circular parts (avatars, radios) use radius-full
+// directly and ignore this var, so they stay round.
+function componentRadiusToken(c) {
+  const base = Array.isArray(c.spec) ? c.spec : (c.spec?.base || []);
+  const row = base.find((r) => (r.prop || '').toLowerCase() === 'radius' && typeof r.token === 'string' && r.token.startsWith('radius/'));
+  return row ? row.token : null;
 }
 // Resolve one spec row to a table row (token → current value, + swatch for colors).
 function specRowHtml(r) {
@@ -1045,7 +1053,11 @@ function componentPage(c) {
     ${api}
     ${tokensSection}
     ${guidelines}`;
-  return shell(c.name, body, { depth: 1, active: `component:${slug(c.name)}`, toc });
+  const rtok = componentRadiusToken(c);
+  const scopedBody = rtok
+    ? `<div class="ds-scope" style="--demo-radius: var(${cssVar(rtok)});">${body}</div>`
+    : body;
+  return shell(c.name, scopedBody, { depth: 1, active: `component:${slug(c.name)}`, toc });
 }
 
 // Copy generated variables.css + the live-demo styles into the site so the

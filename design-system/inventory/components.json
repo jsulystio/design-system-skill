@@ -190,7 +190,105 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/button.tsx"
+      "codePath": "src/components/ui/button.tsx",
+      "spec": {
+        "base": [
+          {
+            "prop": "Height (medium)",
+            "value": "40px"
+          },
+          {
+            "prop": "Radius",
+            "token": "radius/10"
+          },
+          {
+            "prop": "Padding Y",
+            "token": "space/10"
+          },
+          {
+            "prop": "Padding X",
+            "token": "space/16"
+          },
+          {
+            "prop": "Gap (icon)",
+            "token": "space/6"
+          },
+          {
+            "prop": "Font",
+            "token": "type/label/sm"
+          }
+        ],
+        "byVariant": {
+          "Primary": [
+            {
+              "prop": "Background",
+              "token": "color/primary/base"
+            },
+            {
+              "prop": "Label",
+              "token": "color/static/white"
+            }
+          ],
+          "Neutral": [
+            {
+              "prop": "Background",
+              "token": "color/bg/white-0"
+            },
+            {
+              "prop": "Border",
+              "token": "color/stroke/soft-200"
+            },
+            {
+              "prop": "Label",
+              "token": "color/text/sub-600"
+            }
+          ],
+          "Error": [
+            {
+              "prop": "Background",
+              "token": "color/state/error/base"
+            },
+            {
+              "prop": "Label",
+              "token": "color/static/white"
+            }
+          ],
+          "Lighter": [
+            {
+              "prop": "Background",
+              "token": "color/primary/alpha-10"
+            },
+            {
+              "prop": "Label",
+              "token": "color/primary/base"
+            }
+          ],
+          "Ghost": [
+            {
+              "prop": "Background",
+              "value": "transparent"
+            },
+            {
+              "prop": "Label",
+              "token": "color/text/sub-600"
+            }
+          ],
+          "Sizes": [
+            {
+              "prop": "Medium height",
+              "value": "40px"
+            },
+            {
+              "prop": "Small height",
+              "value": "36px"
+            },
+            {
+              "prop": "X-Small height",
+              "value": "32px"
+            }
+          ]
+        }
+      }
     },
     {
       "name": "Text Input",
@@ -341,7 +439,53 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/text-input.tsx"
+      "codePath": "src/components/ui/text-input.tsx",
+      "spec": [
+        {
+          "prop": "Height (medium)",
+          "value": "40px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Text",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Placeholder",
+          "token": "color/text/soft-400"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Padding Y",
+          "token": "space/10"
+        },
+        {
+          "prop": "Padding X",
+          "token": "space/12"
+        },
+        {
+          "prop": "Focus border",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Error border",
+          "token": "color/state/error/base"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Badge",
@@ -462,7 +606,73 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/badge.tsx"
+      "codePath": "src/components/ui/badge.tsx",
+      "spec": {
+        "base": [
+          {
+            "prop": "Min height",
+            "value": "20px"
+          },
+          {
+            "prop": "Radius",
+            "token": "radius/full"
+          },
+          {
+            "prop": "Padding X",
+            "token": "space/8"
+          },
+          {
+            "prop": "Font",
+            "token": "type/label/xs"
+          }
+        ],
+        "byVariant": {
+          "Filled": [
+            {
+              "prop": "Background",
+              "token": "color/primary/base"
+            },
+            {
+              "prop": "Text",
+              "token": "color/static/white"
+            }
+          ],
+          "Light": [
+            {
+              "prop": "Background",
+              "token": "color/state/information/light"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/information/dark"
+            }
+          ],
+          "Lighter": [
+            {
+              "prop": "Background",
+              "token": "color/state/information/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/information/base"
+            }
+          ],
+          "With dot": [
+            {
+              "prop": "Background",
+              "token": "color/state/success/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/success/base"
+            },
+            {
+              "prop": "Dot",
+              "token": "color/state/success/base"
+            }
+          ]
+        }
+      }
     },
     {
       "name": "Tag",
@@ -579,7 +789,41 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/tag.tsx"
+      "codePath": "src/components/ui/tag.tsx",
+      "spec": [
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Text",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/6"
+        },
+        {
+          "prop": "Padding Y",
+          "token": "space/4"
+        },
+        {
+          "prop": "Padding X",
+          "token": "space/8"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/6"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Widget Box",
@@ -670,7 +914,33 @@
         ]
       },
       "codeConnected": true,
-      "codePath": "src/components/ui/widget-box.tsx"
+      "codePath": "src/components/ui/widget-box.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/xs"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/16"
+        },
+        {
+          "prop": "Content gap",
+          "token": "space/12"
+        }
+      ]
     },
     {
       "name": "Compact Button",
@@ -733,7 +1003,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/compact-button.tsx"
+      "codePath": "src/components/ui/compact-button.tsx",
+      "spec": [
+        {
+          "prop": "Size",
+          "value": "28 × 28px"
+        },
+        {
+          "prop": "Icon",
+          "value": "16 × 16px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Icon color",
+          "token": "color/icon/sub-600"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/8"
+        }
+      ]
     },
     {
       "name": "Link Button",
@@ -797,7 +1093,25 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/link-button.tsx"
+      "codePath": "src/components/ui/link-button.tsx",
+      "spec": [
+        {
+          "prop": "Color",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Font",
+          "token": "type/label/sm"
+        },
+        {
+          "prop": "Gap (icon)",
+          "token": "space/4"
+        },
+        {
+          "prop": "Hover",
+          "value": "underline"
+        }
+      ]
     },
     {
       "name": "Social Button",
@@ -863,7 +1177,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/social-button.tsx"
+      "codePath": "src/components/ui/social-button.tsx",
+      "spec": [
+        {
+          "prop": "Height",
+          "value": "40px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Label",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        }
+      ]
     },
     {
       "name": "Fancy Button",
@@ -920,7 +1256,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/fancy-button.tsx"
+      "codePath": "src/components/ui/fancy-button.tsx",
+      "spec": [
+        {
+          "prop": "Height",
+          "value": "40px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/strong-950"
+        },
+        {
+          "prop": "Label",
+          "token": "color/text/white-0"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/md"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        }
+      ]
     },
     {
       "name": "Button Group",
@@ -978,7 +1336,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/button-group.tsx"
+      "codePath": "src/components/ui/button-group.tsx",
+      "spec": [
+        {
+          "prop": "Segment height",
+          "value": "36px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Selected background",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius (ends)",
+          "token": "radius/8"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/8"
+        }
+      ]
     },
     {
       "name": "Checkbox",
@@ -1040,7 +1424,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/checkbox.tsx"
+      "codePath": "src/components/ui/checkbox.tsx",
+      "spec": [
+        {
+          "prop": "Box size",
+          "value": "20 × 20px"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/6"
+        },
+        {
+          "prop": "Border (off)",
+          "token": "color/stroke/sub-300"
+        },
+        {
+          "prop": "Checked background",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Check mark",
+          "token": "color/static/white"
+        },
+        {
+          "prop": "Focus ring",
+          "token": "color/primary/alpha-16"
+        },
+        {
+          "prop": "Label gap",
+          "token": "space/8"
+        }
+      ]
     },
     {
       "name": "Radio",
@@ -1094,7 +1508,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/radio.tsx"
+      "codePath": "src/components/ui/radio.tsx",
+      "spec": [
+        {
+          "prop": "Circle size",
+          "value": "20 × 20px"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/full"
+        },
+        {
+          "prop": "Border (off)",
+          "token": "color/stroke/sub-300"
+        },
+        {
+          "prop": "Selected background",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Dot",
+          "token": "color/static/white"
+        },
+        {
+          "prop": "Label gap",
+          "token": "space/8"
+        }
+      ]
     },
     {
       "name": "Switch",
@@ -1148,7 +1588,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/switch.tsx"
+      "codePath": "src/components/ui/switch.tsx",
+      "spec": [
+        {
+          "prop": "Track",
+          "value": "36 × 20px"
+        },
+        {
+          "prop": "Thumb",
+          "value": "16 × 16px"
+        },
+        {
+          "prop": "Off track",
+          "token": "color/bg/soft-200"
+        },
+        {
+          "prop": "On track",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Thumb",
+          "token": "color/static/white"
+        },
+        {
+          "prop": "Thumb shadow",
+          "token": "shadow/xs"
+        }
+      ]
     },
     {
       "name": "Select",
@@ -1222,7 +1688,41 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/select.tsx"
+      "codePath": "src/components/ui/select.tsx",
+      "spec": [
+        {
+          "prop": "Height (medium)",
+          "value": "40px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Value text",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Placeholder",
+          "token": "color/text/soft-400"
+        },
+        {
+          "prop": "Chevron",
+          "token": "color/icon/soft-400"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/12"
+        }
+      ]
     },
     {
       "name": "Text Area",
@@ -1274,7 +1774,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/text-area.tsx"
+      "codePath": "src/components/ui/text-area.tsx",
+      "spec": [
+        {
+          "prop": "Min height",
+          "value": "84px"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/12"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Tag Input",
@@ -1327,7 +1853,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/tag-input.tsx"
+      "codePath": "src/components/ui/tag-input.tsx",
+      "spec": [
+        {
+          "prop": "Min height",
+          "value": "40px"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Chip radius",
+          "token": "radius/6"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/10"
+        }
+      ]
     },
     {
       "name": "Counter Input",
@@ -1379,7 +1927,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/counter-input.tsx"
+      "codePath": "src/components/ui/counter-input.tsx",
+      "spec": [
+        {
+          "prop": "Height",
+          "value": "40px"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Stepper size",
+          "value": "28 × 28px"
+        },
+        {
+          "prop": "Value font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Digit Input",
@@ -1420,7 +1990,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/digit-input.tsx"
+      "codePath": "src/components/ui/digit-input.tsx",
+      "spec": [
+        {
+          "prop": "Box size",
+          "value": "44 × 48px"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Focus border",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Font",
+          "token": "type/label/lg"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/8"
+        }
+      ]
     },
     {
       "name": "Slider",
@@ -1477,7 +2073,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/slider.tsx"
+      "codePath": "src/components/ui/slider.tsx",
+      "spec": [
+        {
+          "prop": "Track height",
+          "value": "6px"
+        },
+        {
+          "prop": "Track",
+          "token": "color/bg/soft-200"
+        },
+        {
+          "prop": "Fill",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Thumb",
+          "value": "16 × 16px"
+        },
+        {
+          "prop": "Thumb border",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/full"
+        }
+      ]
     },
     {
       "name": "Rating",
@@ -1535,7 +2157,25 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/rating.tsx"
+      "codePath": "src/components/ui/rating.tsx",
+      "spec": [
+        {
+          "prop": "Star size",
+          "value": "22 × 22px"
+        },
+        {
+          "prop": "Filled",
+          "token": "color/state/away/base"
+        },
+        {
+          "prop": "Empty",
+          "token": "color/bg/soft-200"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/4"
+        }
+      ]
     },
     {
       "name": "Date Picker",
@@ -1586,7 +2226,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/date-picker.tsx"
+      "codePath": "src/components/ui/date-picker.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Selected day",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Range fill",
+          "token": "color/primary/alpha-10"
+        },
+        {
+          "prop": "Day font",
+          "token": "type/paragraph/xs"
+        }
+      ]
     },
     {
       "name": "Time Picker",
@@ -1635,7 +2301,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/time-picker.tsx"
+      "codePath": "src/components/ui/time-picker.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Selected item",
+          "token": "color/primary/alpha-10"
+        },
+        {
+          "prop": "Selected text",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Item font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "File Upload",
@@ -1693,7 +2381,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/file-upload.tsx"
+      "codePath": "src/components/ui/file-upload.tsx",
+      "spec": [
+        {
+          "prop": "Border",
+          "token": "color/stroke/sub-300"
+        },
+        {
+          "prop": "Border style",
+          "value": "dashed"
+        },
+        {
+          "prop": "Background",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/12"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/24"
+        },
+        {
+          "prop": "Icon",
+          "token": "color/icon/soft-400"
+        }
+      ]
     },
     {
       "name": "Color Picker",
@@ -1743,7 +2457,25 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/color-picker.tsx"
+      "codePath": "src/components/ui/color-picker.tsx",
+      "spec": [
+        {
+          "prop": "Swatch size",
+          "value": "24 × 24px"
+        },
+        {
+          "prop": "Swatch radius",
+          "token": "radius/full"
+        },
+        {
+          "prop": "Selected ring",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/8"
+        }
+      ]
     },
     {
       "name": "Label & Hint Text",
@@ -1788,7 +2520,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/label-hint-text.tsx"
+      "codePath": "src/components/ui/label-hint-text.tsx",
+      "spec": [
+        {
+          "prop": "Label",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Label font",
+          "token": "type/label/sm"
+        },
+        {
+          "prop": "Required mark",
+          "token": "color/state/error/base"
+        },
+        {
+          "prop": "Hint",
+          "token": "color/text/soft-400"
+        },
+        {
+          "prop": "Error hint",
+          "token": "color/state/error/base"
+        },
+        {
+          "prop": "Hint font",
+          "token": "type/paragraph/xs"
+        }
+      ]
     },
     {
       "name": "Rich Editor",
@@ -1838,7 +2596,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/rich-editor.tsx"
+      "codePath": "src/components/ui/rich-editor.tsx",
+      "spec": [
+        {
+          "prop": "Toolbar background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Button size",
+          "value": "30 × 30px"
+        },
+        {
+          "prop": "Active button",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/xs"
+        }
+      ]
     },
     {
       "name": "Breadcrumbs",
@@ -1892,7 +2676,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/breadcrumbs.tsx"
+      "codePath": "src/components/ui/breadcrumbs.tsx",
+      "spec": [
+        {
+          "prop": "Link",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Current",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Separator",
+          "token": "color/text/disabled-300"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/8"
+        }
+      ]
     },
     {
       "name": "Pagination",
@@ -1941,7 +2747,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/pagination.tsx"
+      "codePath": "src/components/ui/pagination.tsx",
+      "spec": [
+        {
+          "prop": "Cell size",
+          "value": "32 × 32px"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/8"
+        },
+        {
+          "prop": "Selected background",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Selected text",
+          "token": "color/static/white"
+        },
+        {
+          "prop": "Text",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Tab Menu",
@@ -1994,7 +2826,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/tab-menu.tsx"
+      "codePath": "src/components/ui/tab-menu.tsx",
+      "spec": [
+        {
+          "prop": "Track border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Active text",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Active indicator",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Inactive text",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/20"
+        },
+        {
+          "prop": "Font",
+          "token": "type/label/sm"
+        }
+      ]
     },
     {
       "name": "Segmented Control",
@@ -2041,7 +2899,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/segmented-control.tsx"
+      "codePath": "src/components/ui/segmented-control.tsx",
+      "spec": [
+        {
+          "prop": "Track background",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Track radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Track padding",
+          "token": "space/2"
+        },
+        {
+          "prop": "Active background",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Active shadow",
+          "token": "shadow/xs"
+        },
+        {
+          "prop": "Item radius",
+          "token": "radius/8"
+        },
+        {
+          "prop": "Font",
+          "token": "type/label/sm"
+        }
+      ]
     },
     {
       "name": "Step Indicator",
@@ -2096,7 +2984,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/step-indicator.tsx"
+      "codePath": "src/components/ui/step-indicator.tsx",
+      "spec": [
+        {
+          "prop": "Step size",
+          "value": "24 × 24px"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/full"
+        },
+        {
+          "prop": "Active",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Completed",
+          "token": "color/state/success/base"
+        },
+        {
+          "prop": "Upcoming",
+          "token": "color/bg/soft-200"
+        },
+        {
+          "prop": "Font",
+          "token": "type/label/xs"
+        }
+      ]
     },
     {
       "name": "Alert",
@@ -2163,7 +3077,73 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/alert.tsx"
+      "codePath": "src/components/ui/alert.tsx",
+      "spec": {
+        "base": [
+          {
+            "prop": "Radius",
+            "token": "radius/12"
+          },
+          {
+            "prop": "Padding Y",
+            "token": "space/12"
+          },
+          {
+            "prop": "Padding X",
+            "token": "space/16"
+          },
+          {
+            "prop": "Icon size",
+            "value": "20 × 20px"
+          },
+          {
+            "prop": "Font",
+            "token": "type/paragraph/sm"
+          }
+        ],
+        "byVariant": {
+          "Success": [
+            {
+              "prop": "Background",
+              "token": "color/state/success/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/success/dark"
+            }
+          ],
+          "Error": [
+            {
+              "prop": "Background",
+              "token": "color/state/error/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/error/dark"
+            }
+          ],
+          "Warning": [
+            {
+              "prop": "Background",
+              "token": "color/state/warning/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/warning/dark"
+            }
+          ],
+          "Information": [
+            {
+              "prop": "Background",
+              "token": "color/state/information/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/information/dark"
+            }
+          ]
+        }
+      }
     },
     {
       "name": "Banner",
@@ -2219,7 +3199,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/banner.tsx"
+      "codePath": "src/components/ui/banner.tsx",
+      "spec": [
+        {
+          "prop": "Background",
+          "token": "color/state/information/lighter"
+        },
+        {
+          "prop": "Text",
+          "token": "color/state/information/dark"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/10"
+        },
+        {
+          "prop": "Padding Y",
+          "token": "space/12"
+        },
+        {
+          "prop": "Padding X",
+          "token": "space/16"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Progress Bar",
@@ -2273,7 +3279,25 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/progress-bar.tsx"
+      "codePath": "src/components/ui/progress-bar.tsx",
+      "spec": [
+        {
+          "prop": "Track height",
+          "value": "6px"
+        },
+        {
+          "prop": "Track",
+          "token": "color/bg/soft-200"
+        },
+        {
+          "prop": "Fill",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/full"
+        }
+      ]
     },
     {
       "name": "Tooltip",
@@ -2330,7 +3354,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/tooltip.tsx"
+      "codePath": "src/components/ui/tooltip.tsx",
+      "spec": [
+        {
+          "prop": "Background",
+          "token": "color/bg/strong-950"
+        },
+        {
+          "prop": "Text",
+          "token": "color/text/white-0"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/8"
+        },
+        {
+          "prop": "Padding Y",
+          "token": "space/6"
+        },
+        {
+          "prop": "Padding X",
+          "token": "space/10"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/xs"
+        }
+      ]
     },
     {
       "name": "Avatar",
@@ -2395,7 +3445,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/avatar.tsx"
+      "codePath": "src/components/ui/avatar.tsx",
+      "spec": [
+        {
+          "prop": "Size (default)",
+          "value": "40 × 40px"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/full"
+        },
+        {
+          "prop": "Fallback background",
+          "token": "color/bg/soft-200"
+        },
+        {
+          "prop": "Initials",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Status dot",
+          "value": "11 × 11px"
+        },
+        {
+          "prop": "Online status",
+          "token": "color/state/success/base"
+        }
+      ]
     },
     {
       "name": "Status Badge",
@@ -2455,7 +3531,55 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/status-badge.tsx"
+      "codePath": "src/components/ui/status-badge.tsx",
+      "spec": {
+        "base": [
+          {
+            "prop": "Radius",
+            "token": "radius/full"
+          },
+          {
+            "prop": "Padding",
+            "value": "2px 8px"
+          },
+          {
+            "prop": "Font",
+            "token": "type/label/xs"
+          }
+        ],
+        "byVariant": {
+          "Completed": [
+            {
+              "prop": "Background",
+              "token": "color/state/success/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/success/dark"
+            }
+          ],
+          "Pending": [
+            {
+              "prop": "Background",
+              "token": "color/state/warning/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/warning/dark"
+            }
+          ],
+          "Failed": [
+            {
+              "prop": "Background",
+              "token": "color/state/error/lighter"
+            },
+            {
+              "prop": "Text",
+              "token": "color/state/error/dark"
+            }
+          ]
+        }
+      }
     },
     {
       "name": "Table",
@@ -2510,7 +3634,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/table.tsx"
+      "codePath": "src/components/ui/table.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/12"
+        },
+        {
+          "prop": "Header background",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Header font",
+          "token": "type/label/xs"
+        },
+        {
+          "prop": "Cell padding",
+          "token": "space/12"
+        },
+        {
+          "prop": "Body font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Accordion",
@@ -2555,7 +3709,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/accordion.tsx"
+      "codePath": "src/components/ui/accordion.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/12"
+        },
+        {
+          "prop": "Header padding Y",
+          "token": "space/12"
+        },
+        {
+          "prop": "Header padding X",
+          "token": "space/16"
+        },
+        {
+          "prop": "Header font",
+          "token": "type/label/sm"
+        },
+        {
+          "prop": "Chevron",
+          "token": "color/icon/soft-400"
+        }
+      ]
     },
     {
       "name": "Activity Feed",
@@ -2602,7 +3786,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/activity-feed.tsx"
+      "codePath": "src/components/ui/activity-feed.tsx",
+      "spec": [
+        {
+          "prop": "Avatar size",
+          "value": "28 × 28px"
+        },
+        {
+          "prop": "Row gap",
+          "token": "space/16"
+        },
+        {
+          "prop": "Body text",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Emphasis text",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Timestamp",
+          "token": "color/text/soft-400"
+        },
+        {
+          "prop": "Font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Notification Feed",
@@ -2657,7 +3867,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/notification-feed.tsx"
+      "codePath": "src/components/ui/notification-feed.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Unread dot",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Item font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Content Divider",
@@ -2703,7 +3935,25 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/content-divider.tsx"
+      "codePath": "src/components/ui/content-divider.tsx",
+      "spec": [
+        {
+          "prop": "Line",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Label",
+          "token": "color/text/soft-400"
+        },
+        {
+          "prop": "Label font",
+          "token": "type/subheading/xs"
+        },
+        {
+          "prop": "Gap",
+          "token": "space/12"
+        }
+      ]
     },
     {
       "name": "Scroll",
@@ -2749,7 +3999,25 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/scroll.tsx"
+      "codePath": "src/components/ui/scroll.tsx",
+      "spec": [
+        {
+          "prop": "Track width",
+          "value": "8px"
+        },
+        {
+          "prop": "Track",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Thumb",
+          "token": "color/bg/sub-300"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/full"
+        }
+      ]
     },
     {
       "name": "Modal",
@@ -2816,7 +4084,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/modal.tsx"
+      "codePath": "src/components/ui/modal.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/md"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/20"
+        },
+        {
+          "prop": "Title font",
+          "token": "type/label/md"
+        },
+        {
+          "prop": "Body text",
+          "token": "color/text/sub-600"
+        }
+      ]
     },
     {
       "name": "Drawer",
@@ -2873,7 +4171,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/drawer.tsx"
+      "codePath": "src/components/ui/drawer.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/md"
+        },
+        {
+          "prop": "Padding",
+          "token": "space/20"
+        }
+      ]
     },
     {
       "name": "Popover",
@@ -2938,7 +4258,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/popover.tsx"
+      "codePath": "src/components/ui/popover.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/md"
+        },
+        {
+          "prop": "Padding Y",
+          "token": "space/12"
+        },
+        {
+          "prop": "Padding X",
+          "token": "space/16"
+        },
+        {
+          "prop": "Title font",
+          "token": "type/label/sm"
+        }
+      ]
     },
     {
       "name": "Dropdown",
@@ -2996,7 +4346,41 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/dropdown.tsx"
+      "codePath": "src/components/ui/dropdown.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/md"
+        },
+        {
+          "prop": "Item radius",
+          "token": "radius/8"
+        },
+        {
+          "prop": "Item padding Y",
+          "token": "space/8"
+        },
+        {
+          "prop": "Selected item",
+          "token": "color/primary/alpha-10"
+        },
+        {
+          "prop": "Item font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Command Menu",
@@ -3040,7 +4424,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/command-menu.tsx"
+      "codePath": "src/components/ui/command-menu.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Border",
+          "token": "color/stroke/soft-200"
+        },
+        {
+          "prop": "Radius",
+          "token": "radius/16"
+        },
+        {
+          "prop": "Shadow",
+          "token": "shadow/md"
+        },
+        {
+          "prop": "Selected item",
+          "token": "color/primary/alpha-10"
+        },
+        {
+          "prop": "Item font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Sidebar",
@@ -3095,7 +4505,37 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/sidebar.tsx"
+      "codePath": "src/components/ui/sidebar.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Item radius",
+          "token": "radius/8"
+        },
+        {
+          "prop": "Item padding Y",
+          "token": "space/8"
+        },
+        {
+          "prop": "Active background",
+          "token": "color/primary/alpha-10"
+        },
+        {
+          "prop": "Active text",
+          "token": "color/primary/base"
+        },
+        {
+          "prop": "Item text",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Item font",
+          "token": "type/label/sm"
+        }
+      ]
     },
     {
       "name": "Topbar",
@@ -3142,7 +4582,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/topbar.tsx"
+      "codePath": "src/components/ui/topbar.tsx",
+      "spec": [
+        {
+          "prop": "Surface",
+          "token": "color/bg/white-0"
+        },
+        {
+          "prop": "Padding Y",
+          "token": "space/12"
+        },
+        {
+          "prop": "Padding X",
+          "token": "space/16"
+        },
+        {
+          "prop": "Title",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Title font",
+          "token": "type/label/md"
+        }
+      ]
     },
     {
       "name": "Page Header",
@@ -3197,7 +4659,29 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/page-header.tsx"
+      "codePath": "src/components/ui/page-header.tsx",
+      "spec": [
+        {
+          "prop": "Padding",
+          "token": "space/16"
+        },
+        {
+          "prop": "Title",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Title font",
+          "token": "type/label/lg"
+        },
+        {
+          "prop": "Description",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Description font",
+          "token": "type/paragraph/sm"
+        }
+      ]
     },
     {
       "name": "Empty State",
@@ -3230,7 +4714,33 @@
         ]
       },
       "codeConnected": false,
-      "codePath": "src/components/ui/empty-state.tsx"
+      "codePath": "src/components/ui/empty-state.tsx",
+      "spec": [
+        {
+          "prop": "Padding",
+          "token": "space/24"
+        },
+        {
+          "prop": "Illustration",
+          "value": "56 × 56px"
+        },
+        {
+          "prop": "Illustration bg",
+          "token": "color/bg/weak-50"
+        },
+        {
+          "prop": "Title",
+          "token": "color/text/strong-950"
+        },
+        {
+          "prop": "Body",
+          "token": "color/text/sub-600"
+        },
+        {
+          "prop": "Content gap",
+          "token": "space/8"
+        }
+      ]
     }
   ]
 }
